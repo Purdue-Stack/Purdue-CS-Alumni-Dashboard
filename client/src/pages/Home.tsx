@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './Home.css';
+import '../styles/Home.css';
 
 const stats = [
   { number: "10,000+", label: "Alumni Tracked" },
