@@ -2,10 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Home.css';
 
 const stats = [
-  { number: "95%", label: "Employment Rate" },
-  { number: "$120K", label: "Average Starting Salary" },
-  { number: "500+", label: "Partner Companies" },
-  { number: "89%", label: "Graduate School Acceptance" }
+  { number: "10,000+", label: "Alumni Tracked" },
+  { number: "$106,000", label: "Average Salary" },
+  { number: "94%", label: "Job Placement" },
 ];
 
 const Home: React.FC = () => {
