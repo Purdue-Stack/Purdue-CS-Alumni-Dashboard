@@ -9,17 +9,30 @@
   display: flex;
   align-items: center;
   width: 100%;
-  background-image: url("https://wallpapers.com/images/featured/purdue-university-background-rlw0y3if1a57wjxr.jpg");
-  background-size: cover;
-  background-position: center;
   position: relative;
+  overflow: hidden; /* Add this to ensure video stays within bounds */
 }
 
+.hero__video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Remove the background-image property and keep the overlay */
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
+  z-index: 1; /* Ensure overlay is above video but below content */
 }
 
 .hero__content {

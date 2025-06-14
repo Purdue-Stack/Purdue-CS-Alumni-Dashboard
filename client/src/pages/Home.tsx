@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/Home.css';
+import heroVideo from '../assets/videos/graduation.mp4';
 
 const stats = [
   { number: "10,000+", label: "Alumni Tracked" },
@@ -33,6 +34,16 @@ const Home: React.FC = () => {
   return (
     <div className="page">
       <section className="hero">
+        <video
+          className="hero__video"
+          autoPlay
+          muted
+          loop
+          playsInline
+        >
+          <source src={heroVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
         <div className="hero__content">
           <div className="hero__left">
             <div className="hero__tag">
