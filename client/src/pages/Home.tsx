@@ -1,3 +1,4 @@
+// Home.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';

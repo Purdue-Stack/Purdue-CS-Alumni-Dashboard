@@ -2,12 +2,17 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import uploadRouter from './routes/upload';
 
 import indexRouter from './routes/index';
 import usersRouter from './routes/users';
 import adminRouter from './routes/admin';
 
 const app = express();
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -18,5 +23,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/admin', adminRouter)
+app.use('/api', uploadRouter);
 
 export default app;

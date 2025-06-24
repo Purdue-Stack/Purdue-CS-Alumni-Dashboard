@@ -1,0 +1,540 @@
+<!--upload.ejs-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data - Purdue CS Alumni Dashboard</title>
+    <link rel="stylesheet" href="../public/stylesheets/upload.css">
+    <style>
+        /* Purdue Header Styles */
+        .utility-bar {
+            background-color: #d4af37;
+            color: #000;
+            font-size: 12px;
+            padding: 5px 0;
+        }
+
+        .utility-bar__content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .utility-bar__links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .utility-bar__links a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .utility-bar__links a:hover {
+            text-decoration: underline;
+        }
+
+        .main-header {
+            background-color: #000;
+            color: #fff;
+            padding: 15px 0;
+        }
+
+        .main-header__content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .purdue-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .purdue-logo__image {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d4af37;
+        }
+
+        .purdue-logo__text {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .department-text {
+            color: #d4af37;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+
+        .main-nav {
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 0;
+        }
+
+        .main-nav__content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            padding: 0 20px;
+        }
+
+        .main-nav__links {
+            display: flex;
+            gap: 0;
+        }
+
+        .main-nav__link {
+            color: #000;
+            text-decoration: none;
+            padding: 15px 20px;
+            font-weight: 500;
+            border-right: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .main-nav__link:hover {
+            background-color: #e9e9e9;
+        }
+
+        .main-nav__link.active {
+            background-color: #d4af37;
+            color: #000;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            gap: 40px;
+        }
+
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .sidebar__nav {
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .sidebar__link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #e5e5e5;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar__link:hover {
+            background-color: #e9e9e9;
+        }
+
+        .sidebar__link.active {
+            background-color: #d4af37;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .sidebar__icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .content-area {
+            flex: 1;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header__title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+
+        .page-header__subtitle {
+            color: #666;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .user-info__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #d4af37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .user-info__name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Footer Styles */
+        .main-footer {
+            background-color: #333;
+            color: #fff;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section h3 {
+            color: #d4af37;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 8px;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .footer-section a:hover {
+            color: #d4af37;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #555;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo__text {
+            color: #d4af37;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .footer-logo__dept {
+            color: #ccc;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<!-- Utility Bar -->
+<div class="utility-bar">
+    <div class="utility-bar__content">
+        <div class="utility-bar__search">Find Info For</div>
+        <div class="utility-bar__links">
+            <a href="#">Apply</a>
+            <a href="#">News</a>
+            <a href="#">President</a>
+            <a href="#">Shop</a>
+            <a href="#">Visit</a>
+            <a href="#">Give</a>
+            <a href="#">Emergency</a>
+        </div>
+    </div>
+</div>
+
+<!-- Main Header -->
+<header class="main-header">
+    <div class="main-header__content">
+        <div class="purdue-logo">
+            <div class="purdue-logo__image">P</div>
+            <div class="purdue-logo__text">PURDUE<br>UNIVERSITY</div>
+        </div>
+        <div class="department-text">Department of Computer Science</div>
+    </div>
+</header>
+
+<!-- Main Navigation -->
+<nav class="main-nav">
+    <div class="main-nav__content">
+        <div class="main-nav__links">
+            <a href="#" class="main-nav__link">Home</a>
+            <a href="#" class="main-nav__link">About Us</a>
+            <a href="#" class="main-nav__link">People</a>
+            <a href="#" class="main-nav__link">Academics</a>
+            <a href="#" class="main-nav__link">Research</a>
+            <a href="#" class="main-nav__link">Alumni</a>
+            <a href="#" class="main-nav__link">Media</a>
+            <a href="#" class="main-nav__link">Corporate</a>
+            <a href="#" class="main-nav__link">Resources</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <nav class="sidebar__nav">
+            <a href="#" class="sidebar__link active">
+                <svg class="sidebar__icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"/>
+                </svg>
+                Upload Data
+            </a>
+            <a href="#" class="sidebar__link">
+                <svg class="sidebar__icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"/>
+                </svg>
+                Moderate Entries
+            </a>
+            <a href="#" class="sidebar__link">
+                <svg class="sidebar__icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z"/>
+                </svg>
+                Analytics
+            </a>
+            <a href="#" class="sidebar__link">
+                <svg class="sidebar__icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L17.09 6.11C17.65 6.04 18.04 6.5 18.04 7.07V9C18.04 9.55 17.59 10 17.04 10H15V8H13V10H11V8H9V10H7.96C7.41 10 6.96 9.55 6.96 9V7.07C6.96 6.5 7.35 6.04 7.91 6.11L11.5 2.5L10 1L4 7V9C4 10.1 4.9 11 6 11V19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V11C19.1 11 20 10.1 20 9Z"/>
+                </svg>
+                User Permissions
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Content Area -->
+    <main class="content-area">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-header__title">Upload Data</h1>
+            <p class="page-header__subtitle">Import and manage alumni career outcome data</p>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info">
+            <div class="user-info__avatar">JL</div>
+            <div class="user-info__name">JOHN L</div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <svg class="upload-area__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15"></path>
+                    <polyline points="7,10 12,15 17,10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+
+                <h3 class="upload-area__title">Drag and drop your file here</h3>
+                <p class="upload-area__subtitle">or click to browse</p>
+
+                <div class="upload-area__buttons">
+                    <button type="button" class="upload-area__browse">Choose File</button>
+                    <button type="button" class="upload-area__browse upload-area__browse--secondary">New Order</button>
+                </div>
+                <input type="file" id="fileInput" class="upload-area__file-input" accept=".csv,.xls,.xlsx">
+
+                <p class="upload-area__formats">
+                    Supported Formats: CSV, Excel
+                </p>
+            </div>
+
+            <div class="upload-actions">
+                <button type="button" class="upload-btn upload-btn--cancel">CANCEL</button>
+                <button type="button" id="uploadBtn" class="upload-btn upload-btn--primary" disabled>
+                    UPLOAD DATA
+                    <svg class="btn__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Log Section -->
+        <div class="upload-section upload-log">
+            <div class="upload-log__header">
+                <h2 class="upload-log__title">Upload Log</h2>
+                <span class="upload-log__subtitle">See past logging activity</span>
+            </div>
+
+            <div class="upload-log__entries">
+                <div class="log-entry">
+                    <div class="log-entry__avatar">JL</div>
+                    <div class="log-entry__content">
+                        <div class="log-entry__name">John Langenkamp</div>
+                        <div class="log-entry__date">12/18/2024 - 4:30 PM</div>
+                    </div>
+                    <div class="log-entry__action">
+                        <button class="log-entry__btn">View Full Data</button>
+                    </div>
+                </div>
+
+                <div class="log-entry">
+                    <div class="log-entry__avatar">BP</div>
+                    <div class="log-entry__content">
+                        <div class="log-entry__name">Bob Paden</div>
+                        <div class="log-entry__date">12/18/2024 - 3:25 PM</div>
+                    </div>
+                    <div class="log-entry__action">
+                        <button class="log-entry__btn">View Salary Data</button>
+                    </div>
+                </div>
+
+                <div class="log-entry">
+                    <div class="log-entry__avatar">BP</div>
+                    <div class="log-entry__content">
+                        <div class="log-entry__name">Bob Paden</div>
+                        <div class="log-entry__date">12/17/2024 - 5:30 PM</div>
+                    </div>
+                    <div class="log-entry__action">
+                        <button class="log-entry__btn">View Data Match</button>
+                    </div>
+                </div>
+
+                <div class="log-entry">
+                    <div class="log-entry__avatar">BP</div>
+                    <div class="log-entry__content">
+                        <div class="log-entry__name">Bob Paden</div>
+                        <div class="log-entry__date">12/17/2024 - 4:30 PM</div>
+                    </div>
+                    <div class="log-entry__action">
+                        <button class="log-entry__btn">View Salary Data</button>
+                    </div>
+                </div>
+
+                <div class="log-entry">
+                    <div class="log-entry__avatar">BP</div>
+                    <div class="log-entry__content">
+                        <div class="log-entry__name">Bob Paden</div>
+                        <div class="log-entry__date">12/17/2024 - 4:30 PM</div>
+                    </div>
+                    <div class="log-entry__action">
+                        <button class="log-entry__btn">View Salary Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="footer-sections">
+            <div class="footer-section">
+                <h3>COMMUNICATION</h3>
+                <ul>
+                    <li><a href="#">OneCampus Portal</a></li>
+                    <li><a href="#">BrightSpace</a></li>
+                    <li><a href="#">BoilerConnect</a></li>
+                    <li><a href="#">Office 365</a></li>
+                    <li><a href="#">Outlook</a></li>
+                    <li><a href="#">myPurdue</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>CAMPUS</h3>
+                <ul>
+                    <li><a href="#">Faculty and Staff</a></li>
+                    <li><a href="#">Human Resources</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Colleges and Schools</a></li>
+                    <li><a href="#">Directory</a></li>
+                    <li><a href="#">Campus Map</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>DEPARTMENT RESOURCES</h3>
+                <ul>
+                    <li><a href="#">Business Office</a></li>
+                    <li><a href="#">Myers Portal</a></li>
+                    <li><a href="#">Reserve a LWSN Room</a></li>
+                    <li><a href="#">Overrides for CS Courses</a></li>
+                    <li><a href="#">Computer Systems Status</a></li>
+                    <li><a href="#">Lawson Building Hours</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>MORE DEPARTMENT RESOURCES</h3>
+                <ul>
+                    <li><a href="#">CS Seminars</a></li>
+                    <li><a href="#">Science Seminars</a></li>
+                    <li><a href="#">Sitemap</a></li>
+                    <li><a href="#">Fix It: Maintenance Request</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-logo">
+                <div class="footer-logo__text">PURDUE UNIVERSITY</div>
+                <div class="footer-logo__dept">College of Science<br>College of Engineering</div>
+            </div>
+
+            <p>Department of Computer Science, 305 N. University Street, West Lafayette, IN 47907</p>
+            <p>Purdue University, Indianapolis, 723 W. Michigan St., Indianapolis, IN 46202</p>
+            <p>Phone: (765) 494-6010 - Fax: (765) 494-0739</p>
+            <p>Copyright © 2024 Purdue University | An equal access/equal opportunity university | Copyright Complaints | DOE Degree Scorecards</p>
+            <p>Trouble with this page? Accessibility issues? Please contact the College of Science.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="../public/javascripts/upload.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+/* Upload Page Styles */
+.upload-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.upload-header h1 {
+    color: #333;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.upload-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.upload-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 3px dashed #ddd;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: #DAA520;
+    background-color: #fffbf0;
+    transform: translateY(-2px);
+}
+
+.upload-area__icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    color: #DAA520;
+}
+
+.upload-area__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.upload-area__subtitle {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.upload-area__browse {
+    background: none;
+    border: 2px solid #DAA520;
+    color: #DAA520;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.upload-area__browse:hover {
+    background: #DAA520;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.upload-area__file-input {
+    display: none;
+}
+
+.upload-area__formats {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Upload Button */
+.upload-btn {
+    background: linear-gradient(135deg, #DAA520, #B8860B);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem auto 0;
+    box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+}
+
+.upload-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(218, 165, 32, 0.4);
+}
+
+.upload-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn__arrow {
+    transition: transform 0.3s ease;
+}
+
+.upload-btn:hover .btn__arrow {
+    transform: translateX(3px);
+}
+
+/* Upload Log Section */
+.upload-log {
+    margin-top: 3rem;
+}
+
+.upload-log__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.upload-log__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.upload-log__count {
+    background: #f0f8ff;
+    color: #4682b4;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.upload-log__entries {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Log Entry */
+.log-entry {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.log-entry:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.log-entry__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.log-entry__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.log-entry__content {
+    flex: 1;
+}
+
+.log-entry__name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.log-entry__date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.log-entry__action {
+    margin-left: 1rem;
+}
+
+.log-entry__btn {
+    background: #4682b4;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.log-entry__btn:hover {
+    background: #365a7a;
+    transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .upload-container {
+        padding: 1rem;
+    }
+
+    .upload-header h1 {
+        font-size: 2rem;
+    }
+
+    .upload-area {
+        padding: 2rem 1rem;
+    }
+
+    .log-entry {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .log-entry__avatar {
+        margin-right: 0;
+    }
+
+    .log-entry__action {
+        margin-left: 0;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Status Indicators */
+.status-success {
+    color: #28a745;
+}
+
+.status-error {
+    color: #dc3545;
+}
+
+.status-warning {
+    color: #ffc107;
+}
