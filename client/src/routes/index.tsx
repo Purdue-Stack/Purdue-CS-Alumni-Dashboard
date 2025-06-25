@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
+import UploadPreview from '../pages/UploadPreview';
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
       {
         path: '*',
         element: <NotFound />,
+      },
+      {
+        path: '/uploadPreview',
+        element: <UploadPreview />,
       }
     ],
   },

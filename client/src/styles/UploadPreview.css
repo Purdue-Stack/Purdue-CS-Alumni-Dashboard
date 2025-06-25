@@ -1,0 +1,257 @@
+.upload-page {
+    display: flex;
+    flex-wrap: wrap;
+    background: #fff;
+    padding-top: 5vh;
+    min-height: calc(100vh - var(--navbar-height));
+    justify-content: center;
+  }
+  
+  /* Sidebar */
+.sidebar {
+    width: 240px;            /* as in your design */
+    padding-left: 1rem;
+    box-sizing: border-box;
+    padding-top: 1rem;
+  }
+  .sidebar ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;             /* roughly matches 23px gap */
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  /* Each menu item */
+  .sidebar li {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;   /* ~12px top/bottom, ~16px left/right */
+    font-family: 'Acumin Pro', sans-serif;
+    font-size: 1rem;         /* 16px */
+    font-weight: 700;
+    border-radius: 0.25rem;  /* 4px */
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .sidebar li div {
+    padding-top: 0.25rem;
+  }
+
+  .sidebar li:hover {
+    background: #f0ece8;     /* light hover */
+  }
+  
+  /* Active selected state */
+  .sidebar li.active {
+    background: #CFB991;     /* boilermaker gold */
+  }
+  
+  /* Icon placeholder */
+  .sidebar-icon {
+    width: 1.25rem;          /* 20px */
+    height: 1.25rem;         /* 20px */
+    margin-right: 0.75rem;   /* 12px */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink: 0;
+  } 
+  
+  /* Main Content */
+  .main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 62vw;
+    box-sizing: border-box;
+    padding-top: 0.5rem;
+  }
+  
+  /* Header */
+  .page-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .page-header h1 {
+    font-family: 'United Sans Condensed';
+    font-size: 3rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .page-header p {
+    font-size: 1rem;
+    margin: 0.25rem 0 0;
+  }
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: #D9D9D9;
+  }
+  .profile span {
+    font-family: 'United Sans Condensed';
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .content-box {
+    border: 1px solid #ccc; /* Grey outline */
+    border-radius: 0.5rem; /* Rounded corners */
+    background: transparent; /* Transparent fill */
+    padding: 1.5rem; /* Add padding inside the box */
+    margin-top: 1rem; /* Add spacing above the box */
+  }
+
+  .dotted-box {
+    border: 2px dotted #ccc; /* Grey dotted border */
+    border-radius: 0; /* Straight corners */
+    background: transparent; /* Transparent fill */
+    width: 100%; /* Matches the width of the table placeholder */
+    padding: 1rem; /* Add padding inside the box */
+    margin-bottom: 0.5rem; /* Small bottom margin */
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+    display: flex; /* Enable flexbox */
+    align-items: center; /* Vertically center items */
+}
+  
+  /* Dataset Chip */
+  .dataset-box {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #6F727B;
+  }
+  
+  .dataset-chip {
+    display: flex; /* Flexbox for aligning logo and text */
+    align-items: center; /* Vertically center content */
+    margin-left: 1rem;
+    padding: 0.5rem 1rem; /* Increase padding for height */
+    background: #fff;
+    border: 1px solid #ccc; /* Same grey border as content box */
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 700; /* Make text bold */
+    color: #6F727B;
+    cursor: default; /* Remove pointer cursor */
+    gap: 0.5rem; /* Add spacing between logo and text */
+}
+.dataset-chip img {
+    width: 1.5rem; /* Adjust logo size */
+    height: 1.5rem;
+}
+  
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .tabs button {
+    flex: 1 1 10rem;
+    padding: 0.5rem;
+    border: 2px solid #C4BFC0;
+    border-radius: 0.25rem;
+    background: #fff;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .tabs button.active {
+    border-color: #000;
+    font-weight: 700;
+  }
+  
+  /* Table Placeholder */
+  .table-placeholder {
+    width: 100%;
+    min-height: 20rem;
+    border: 1px solid #9D9795;
+    border-radius: 0.25rem;
+    background: #F9F9F9;
+    margin-bottom: 1rem;
+  }
+  
+  /* Action Button */
+  .action-btn {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+  }
+  .gold-btn {
+    padding: 0.75rem 2rem;
+    background: #CFB991;
+    border: 1px solid #CFB991;
+    border-radius: 0.25rem;
+    font-family: 'United Sans Cond', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  /* Upload Log */
+  .upload-log h2 {
+    font-family: 'United Sans Cond', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .upload-log p {
+    font-size: 1rem;
+    margin: 0.25rem 0 1rem;
+  }
+  
+  /* Log Table */
+  .log-table {
+    border: 1px solid #C4BFC0;
+    border-radius: 0.25rem;
+    padding: 1rem;
+  }
+  .log-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .log-row:last-child {
+    margin-bottom: 0;
+  }
+  .log-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #D9D9D9;
+  }
+  .log-info {
+    flex: 1;
+  }
+  .log-info strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .log-info small {
+    font-size: 0.75rem;
+    color: #6F727B;
+  }
+  .csv-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #9D9795;
+    background: #fff;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }  
