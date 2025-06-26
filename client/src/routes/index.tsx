@@ -15,12 +15,12 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: '*',
-        element: <NotFound />,
-      },
-      {
         path: '/uploadPreview',
         element: <UploadPreview />,
+      },
+      {
+        path: '*',
+        element: <NotFound />,
       }
     ],
   },
