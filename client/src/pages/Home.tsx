@@ -3,14 +3,47 @@ import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';
 
+//exploration images
+import salaryImg from '../assets/images/salary.png';
+
+//alumni images
+import alumni1 from '../assets/images/alumni1.jpg';
+
 const stats = [
   { number: "10,000+", label: "Alumni Tracked" },
   { number: "$106,000", label: "Average Salary" },
   { number: "94%", label: "Job Placement" },
 ];
 
+const explorations = [
+  {
+    key: 'salary',
+    title: 'See Salary Data',
+    image: salaryImg,
+    description:
+      'Explore the diverse salary ranges our graduates earn across different job titles, industries, and top employers—giving you real insight into the earning potential of a Purdue CS degree.',
+    link: '/salary'
+  },
+  { key: 'company', title: 'Company Placements', image: salaryImg, description: 'See where our alumni are working—Big Tech, startups, consulting, and more.', link: '/company' },
+  { key: 'internship', title: 'Internship Placements', image: salaryImg, description: 'Discover top internship destinations that launched careers.', link: '/internship' },
+  { key: 'geographical', title: 'Geographical Data', image: salaryImg, description: 'Visualize where graduates live and work around the world.', link: '/geographical' },
+  { key: 'gradschool', title: 'Graduate School Admissions', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/gradschool' }
+];
+
+const stories = [
+  { name: 'Brody Smith', company: 'Google DeepMind', img: alumni1, link: '/alumni/brody' },
+  { name: 'Jamie Lee', company: 'Microsoft Research', img: alumni1, link: '/alumni/jamie' },
+  { name: 'Priya Patel', company: 'Amazon', img: alumni1, link: '/alumni/priya' },
+  { name: 'Carlos Ruiz', company: 'Tesla', img: alumni1, link: '/alumni/carlos' }
+];
+
+
 const Home: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // exploration section state
+  const [activeExploration, setActiveExploration] = useState(explorations[0].key);
+  const active = explorations.find(e => e.key === activeExploration)!;
 
   const resetInterval = useCallback(() => {
     return setInterval(() => {
@@ -168,6 +201,42 @@ const Home: React.FC = () => {
             </div>
 
           </div>
+        </div>
+      </section>
+      <section className="exploration">
+        <h2 className="exploration__heading">Choose Exploration</h2>
+        <div className="exploration__cards">
+          {explorations.map((exp) => (
+            <div key={exp.key} className="exploration__card">
+              <img
+                src={exp.image}
+                alt={exp.title}
+                className="exploration__card-image"
+              />
+              <div className="exploration__card-info">
+                <h3>{exp.title}</h3>
+                <p>{exp.description}</p>
+                <a href={exp.link} className="btn btn--explore">
+                  Explore →
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="alumni-stories">
+        <h2 className="alumni-stories__heading">See Alumni Stories</h2>
+        <div className="alumni-stories__grid">
+          {stories.map((story, i) => (
+            <div key={i} className="story-card">
+              <img src={story.img} alt={story.name} />
+              <div className="story-card__content">
+                <h3>{story.name}</h3>
+                <p>{story.company}</p>
+                <a href={story.link} className="story-card__link">→</a>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </div>
