@@ -1,0 +1,211 @@
+/* === ROOT VARS (all rem) === */
+:root{
+  --sidebar-w: 15rem;
+  --card-max: 56.25rem;
+  --border-sm: .0625rem;
+  --radius-sm: .375rem;
+  --pfp: 2.5rem;
+  --icon: 1.5rem;
+  --beige: #cfb991;
+  --beige-dark: #b59f7a;
+}
+
+/* ───────── layout ───────── */
+.admin-page{
+  display:flex;
+  min-height:100vh;
+  background:#f8fafc;
+}
+
+/* ───────── sidebar ───────── */
+.sidebar{
+  width:var(--sidebar-w);
+  background:#fff;
+  border-right:var(--border-sm) solid #e2e8f0;
+  box-shadow:.125rem 0 .375rem rgba(0,0,0,.05);
+  padding:2rem 1rem;
+}
+.sidebar__item{
+  padding:.75rem 1rem;
+  margin-bottom:.5rem;
+  font:600 1rem/1 'Acumin Pro',sans-serif;
+  color:#4a5568;
+  border-radius:.25rem;
+  cursor:pointer;
+  transition:background .2s;
+}
+.sidebar__item:hover{background:#edf2f7}
+.sidebar__item.active{background:var(--beige);color:#000}
+
+/* ───────── main column ───────── */
+.upload-page{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:2.5rem 3rem;
+}
+.upload-page__content{
+  width:100%;
+  max-width:var(--card-max);
+}
+
+/* header */
+.upload-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:2rem;
+}
+.upload-title h1{
+  font:700 2.5rem/1 'United Sans Condensed',sans-serif;
+  margin:0;
+}
+.upload-title p{
+  font:400 1rem/1.4 'Acumin Pro',sans-serif;
+  color:#718096;
+  margin:.5rem 0 0;
+}
+.user-info{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+}
+.user-info img{
+  width:var(--pfp);
+  height:var(--pfp);
+  border-radius:50%;
+  object-fit:cover;
+}
+.user-name{
+  font:700 1rem/1 'United Sans Condensed',sans-serif;
+}
+
+/* ───────── upload card ───────── */
+.upload-container{
+  position:relative;
+  background:#fff;
+  border:var(--border-sm) solid #e2e8f0;
+  border-radius:var(--radius-sm);
+  padding:2rem;
+  margin-bottom:3rem;
+}
+.upload-note{
+  position:absolute;
+  top:.75rem;
+  left:1rem;
+  font:400 .875rem/1 'Acumin Pro',sans-serif;
+  color:#718096;
+}
+
+/* drop-zone */
+.upload-dropzone{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:calc(var(--border-sm)*2) dashed #cbd5e0;
+  border-radius:var(--radius-sm);
+  padding:2.5rem;
+  text-align:center;
+  cursor:pointer;
+  transition:background .2s,border-color .2s;
+}
+.upload-dropzone:hover{background:#f7fafc;border-color:#a0aec0}
+.drop-title{
+  font:700 1.125rem/1.2 'United Sans Condensed',sans-serif;
+  margin:0;
+}
+.drop-sub{
+  font:400 1rem/1.4 'Acumin Pro',sans-serif;
+  color:#718096;
+  margin:.5rem 0 1.5rem;
+}
+.file-input{display:none}
+.upload-file{
+  font:500 .9rem/1.2 'Acumin Pro',sans-serif;
+  margin-top:1rem;
+}
+
+/* buttons */
+.upload-actions{
+  display:flex;
+  justify-content:space-between;
+  margin-top:1.5rem;
+}
+.btn{
+  font:700 1rem/1 'United Sans Condensed',sans-serif;
+  padding:.6rem 1.2rem;
+  border-radius:.25rem;
+  border:none;
+  cursor:pointer;
+  transition:background .2s;
+}
+.btn--cancel{
+  background:#edf2f7;
+  color:#4a5568;
+  border:var(--border-sm) solid #e2e8f0;
+}
+.btn--cancel:hover{background:#e2e8f0}
+.btn--primary{
+  background:var(--beige);
+  color:#000;
+}
+.btn--primary:not(:disabled):hover{background:var(--beige-dark)}
+.btn--primary:disabled{
+  background:#e2e8f0;
+  color:#a0aec0;
+  cursor:not-allowed;
+}
+
+/* ───────── log card ───────── */
+.upload-log h2{
+  font:700 1.75rem/1 'United Sans Condensed',sans-serif;
+  margin:0 0 .25rem;
+}
+.upload-log p{
+  font:400 1rem/1.4 'Acumin Pro',sans-serif;
+  color:#718096;
+  margin:0 0 1rem;
+}
+.log-card{
+  list-style:none;
+  padding:0;
+  margin:0;
+  border:var(--border-sm) solid #e2e8f0;
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+}
+.log-list__item{
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:.75rem 1rem;
+  border-bottom:var(--border-sm) solid #e2e8f0;
+}
+.log-list__item:last-child{border-bottom:none}
+.log-avatar{
+  width:2rem;
+  height:2rem;
+  border-radius:50%;
+  background:#cbd5e0;
+}
+.log-text{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+.log-time{
+  font:400 .875rem/1 'Acumin Pro',sans-serif;
+  color:#718096;
+}
+.log-file{
+  font:600 .9rem/1 'Acumin Pro',sans-serif;
+  background:#edf2f7;
+  border:var(--border-sm) solid #e2e8f0;
+  border-radius:.25rem;
+  padding:.35rem .75rem;
+  cursor:pointer;
+  transition:background .2s;
+}
+.log-file:hover{background:#e2e8f0}
