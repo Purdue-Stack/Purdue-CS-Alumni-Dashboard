@@ -3,13 +3,14 @@
     flex-wrap: wrap;
     background: #fff;
     padding-top: 5vh;
-    min-height: calc(100vh - var(--navbar-height));
+    min-height: 150vh;
+    width: 100%;
     justify-content: center;
   }
   
   /* Sidebar */
 .sidebar {
-    width: 240px;            /* as in your design */
+    width: 15rem;            /* as in your design */
     padding-left: 1rem;
     box-sizing: border-box;
     padding-top: 1rem;
@@ -110,6 +111,7 @@
     background: transparent; /* Transparent fill */
     padding: 1.5rem; /* Add padding inside the box */
     margin-top: 1rem; /* Add spacing above the box */
+    margin-bottom: 1.5rem; /* Add spacing below the box */
   }
 
   .dotted-box {
@@ -137,19 +139,19 @@
     display: flex; /* Flexbox for aligning logo and text */
     align-items: center; /* Vertically center content */
     margin-left: 1rem;
-    padding: 0.5rem 1rem; /* Increase padding for height */
+    padding: 0.1rem 0.5rem 0.1rem 0; /* Increase padding for height */
     background: #fff;
-    border: 1px solid #ccc; /* Same grey border as content box */
+    border: 1px solid #9D9795; /* Same grey border as content box */
     border-radius: 0.25rem;
     font-size: 0.875rem;
     font-weight: 700; /* Make text bold */
     color: #6F727B;
     cursor: default; /* Remove pointer cursor */
-    gap: 0.5rem; /* Add spacing between logo and text */
+    gap: 0.2rem; /* Add spacing between logo and text */
 }
 .dataset-chip img {
-    width: 1.5rem; /* Adjust logo size */
-    height: 1.5rem;
+    width: 2.5rem; /* Adjust logo size */
+    height: 2.5rem;
 }
   
   /* Tabs */
@@ -158,19 +160,21 @@
     gap: 0.5rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
+    background-color: #EBEBEB;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
   }
   .tabs button {
     flex: 1 1 10rem;
     padding: 0.5rem;
-    border: 2px solid #C4BFC0;
+    border: none;
     border-radius: 0.25rem;
     background: #fff;
     font-size: 0.875rem;
     cursor: pointer;
   }
   .tabs button.active {
-    border-color: #000;
-    font-weight: 700;
+    border: 1px solid black;
   }
   
   /* Table Placeholder */
@@ -201,9 +205,9 @@
   }
   
   /* Upload Log */
-  .upload-log h2 {
-    font-family: 'United Sans Cond', sans-serif;
-    font-size: 2.5rem;
+  .upload-log h1 {
+    font-family: 'United Sans Condensed';
+    font-size: 3rem;
     font-weight: 600;
     margin: 0;
   }
@@ -216,18 +220,19 @@
   .log-table {
     border: 1px solid #C4BFC0;
     border-radius: 0.25rem;
-    padding: 1rem;
   }
   .log-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
     flex-wrap: wrap;
+    border-bottom: 1px solid #C4BFC0;
+    padding: 0.5rem 1rem;
   }
   .log-row:last-child {
     margin-bottom: 0;
+    border-bottom: none;
   }
   .log-avatar {
     width: 2rem;
@@ -237,9 +242,13 @@
   }
   .log-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .log-info strong {
     display: block;
+    height: 1rem;
     font-size: 1rem;
     font-weight: 700;
   }
@@ -253,5 +262,5 @@
     background: #fff;
     font-size: 0.875rem;
     border-radius: 0.25rem;
-    cursor: pointer;
+    color:#6F727B;
   }  
