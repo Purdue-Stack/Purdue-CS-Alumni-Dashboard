@@ -5,6 +5,7 @@ import NotFound from '../pages/NotFound';
 import UploadPreview from '../pages/UploadPreview';
 import RequestForm from '../pages/RequestForm';
 import AdminLayout from '../components/AdminLayout';
+import AdminAlumniTable from '../pages/AdminAlumniTable';
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
           {
             path: 'upload',
             element: <UploadPreview />,
+          },
+          {
+            path: 'moderate',
+            element: <AdminAlumniTable />,
           }
         ]
       }

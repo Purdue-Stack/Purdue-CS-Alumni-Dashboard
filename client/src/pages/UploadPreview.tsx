@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
 import styles from '../styles/UploadPreview.module.css';
-import uploadIcon from '../assets/icons/upload-data.svg';
-import moderateIcon from '../assets/icons/moderate-entries.svg';
-import analyticsIcon from '../assets/icons/analytics.svg';
-import userIcon from '../assets/icons/user-permissions.svg';
 import UploadComponent from '../components/UploadComponent'
 import PreviewComponent from '../components/PreviewComponent';
 import api from '../api/api';
