@@ -53,31 +53,8 @@ const UploadPreview: React.FC = () => {
   };
 
   return (
-    <div className={styles['upload-page']}>
-      {/* Sidebar */}
-      <aside className={styles.sidebar}>
-        <ul>
-          <li className={styles.active}>
-            <img src={uploadIcon} alt="" className={styles['sidebar-icon']} />
-            <div>Upload Data</div>
-          </li>
-          <li>
-            <img src={moderateIcon} alt="" className={styles['sidebar-icon']} />
-            <div>Moderate Entries</div>
-          </li>
-          <li>
-            <img src={analyticsIcon} alt="" className={styles['sidebar-icon']} />
-            <div>Analytics</div>
-          </li>
-          <li>
-            <img src={userIcon} alt="" className={styles['sidebar-icon']} />
-            <div>User Permissions</div>
-          </li>
-        </ul>
-      </aside>
-
-      {/* Main content */}
-      <div className={styles.main}>
+      // Main Upload Content
+      <div>
         {/* Header */}
         <header className={styles['page-header']}>
           <div>
@@ -122,7 +99,6 @@ const UploadPreview: React.FC = () => {
           </div>
         </section>
       </div>
-    </div>
   );
 };
 

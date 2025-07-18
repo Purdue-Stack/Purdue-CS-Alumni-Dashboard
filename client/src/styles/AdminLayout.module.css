@@ -1,0 +1,70 @@
+.admin-page {
+    display: flex;
+    flex-wrap: wrap;
+    background: #fff;
+    padding-top: 5vh;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Sidebar */
+.sidebar {
+    width: 15rem;            /* as in your design */
+    padding-left: 1rem;
+    box-sizing: border-box;
+    padding-top: 1rem;
+  }
+  .sidebar ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;             /* roughly matches 23px gap */
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  /* Each menu item */
+  .sidebar li {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;   /* ~12px top/bottom, ~16px left/right */
+    font-family: 'Acumin Pro', sans-serif;
+    font-size: 1rem;         /* 16px */
+    font-weight: 700;
+    border-radius: 0.25rem;  /* 4px */
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .sidebar li div {
+    padding-top: 0.25rem;
+  }
+
+  .sidebar li:hover {
+    background: #f0ece8;     /* light hover */
+  }
+  
+  /* Active selected state */
+  .sidebar li.active {
+    background: #CFB991;     /* boilermaker gold */
+  }
+  
+  /* Icon placeholder */
+  .sidebar-icon {
+    width: 1.25rem;          /* 20px */
+    height: 1.25rem;         /* 20px */
+    margin-right: 0.75rem;   /* 12px */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink: 0;
+  } 
+  
+  /* Main Content */
+  .main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 62vw;
+    box-sizing: border-box;
+    padding-top: 0.5rem;
+  }

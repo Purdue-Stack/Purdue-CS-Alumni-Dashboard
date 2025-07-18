@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
 import UploadPreview from '../pages/UploadPreview';
 import RequestForm from '../pages/RequestForm';
+import AdminLayout from '../components/AdminLayout';
 
 export const router = createBrowserRouter([
   {
@@ -16,16 +17,22 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: 'admin/upload',
-        element: <UploadPreview />,
-      },
-      {
         path: '/requestform',
         element: <RequestForm />,
       },
       {
         path: '*',
         element: <NotFound />,
+      },
+      {
+        path: 'admin',
+        element: <AdminLayout />,
+        children: [
+          {
+            path: 'upload',
+            element: <UploadPreview />,
+          }
+        ]
       }
     ],
   },
