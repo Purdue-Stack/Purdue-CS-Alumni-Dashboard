@@ -3,7 +3,6 @@ import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
 import UploadPreview from '../pages/UploadPreview';
-import AdminUpload1 from '../pages/AdminUpload1';
 import RequestForm from '../pages/RequestForm';
 
 export const router = createBrowserRouter([
