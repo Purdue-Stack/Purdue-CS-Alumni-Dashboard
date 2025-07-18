@@ -24,7 +24,7 @@ export const uploadExcel = (req: Request, res: Response): void => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    const jsonData: Alumni[] = xlsx.utils.sheet_to_json(worksheet);
+    const jsonData = xlsx.utils.sheet_to_json<Record<string, any>>(worksheet, { defval: '' });
     fs.unlinkSync(file.path); // remove file after parsing
 
     if (jsonData.length === 0) {
@@ -32,24 +32,10 @@ export const uploadExcel = (req: Request, res: Response): void => {
       return;
     }
 
-    // Validate data structure
-    const requiredFields = [
-      'Name', 'Graduation Year', 'Graduation Term', 'Outcome Type',
-      'Employer', 'Job Title', 'Field of Study', 'Degree Seeking',
-      'University', 'City', 'State', 'Base Salary',
-      'Signing Bonus', 'Relocation Reimbursement', 'Student ID',
-      'Degree Level', 'Salary Period'
-    ];
-    for (const row of jsonData) {
-      for (const field of requiredFields) {
-        if (!(field in row)) {
-          res.status(400).json({ error: `Missing required field: ${field}` });
-          return;
-        }
-      }
-    }
-
-    res.status(200).json(jsonData);
+    res.status(200).json({
+      columns: Object.keys(jsonData[0]),
+      rows: jsonData
+    });
   } catch (error) {
     console.error('Error reading Excel file:', error);
     res.status(500).json({ error: 'Failed to process the file' });

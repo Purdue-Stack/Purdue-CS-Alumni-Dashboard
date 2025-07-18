@@ -1,0 +1,89 @@
+.dotted-box {
+    border: 2px dotted #ccc; /* Grey dotted border */
+    border-radius: 0; /* Straight corners */
+    background: transparent; /* Transparent fill */
+    width: 100%; /* Matches the width of the table placeholder */
+    padding: 1rem; /* Add padding inside the box */
+    margin-bottom: 0.5rem; /* Small bottom margin */
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+    display: flex; /* Enable flexbox */
+    align-items: center; /* Vertically center items */
+}
+  
+  /* Dataset Chip */
+  .dataset-box {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #6F727B;
+  }
+  
+  .dataset-chip {
+    display: flex; /* Flexbox for aligning logo and text */
+    align-items: center; /* Vertically center content */
+    margin-left: 1rem;
+    padding: 0.1rem 0.5rem 0.1rem 0; /* Increase padding for height */
+    background: #fff;
+    border: 1px solid #9D9795; /* Same grey border as content box */
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 700; /* Make text bold */
+    color: #6F727B;
+    cursor: default; /* Remove pointer cursor */
+    gap: 0.2rem; /* Add spacing between logo and text */
+}
+.dataset-chip img {
+    width: 2.5rem; /* Adjust logo size */
+    height: 2.5rem;
+}
+  
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    background-color: #EBEBEB;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+  .tabs button {
+    flex: 1 1 10rem;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    background: #fff;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .tabs button.active {
+    border: 1px solid black;
+  }
+  
+  /* Table Placeholder */
+  .table-placeholder {
+    width: 100%;
+    min-height: 20rem;
+    border: 1px solid #9D9795;
+    border-radius: 0.25rem;
+    background: #F9F9F9;
+    margin-bottom: 1rem;
+  }
+  
+  /* Action Button */
+  .action-btn {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+  }
+  .gold-btn {
+    padding: 0.75rem 2rem;
+    background: #CFB991;
+    border: 1px solid #CFB991;
+    border-radius: 0.25rem;
+    font-family: 'United Sans Condensed', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+  }

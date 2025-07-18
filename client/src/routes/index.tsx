@@ -17,10 +17,9 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: 'admin/uploadPreview',
+        path: 'admin/upload',
         element: <UploadPreview />,
       },
-      { path: 'admin/upload', element: <AdminUpload1 /> },
       {
         path: '/requestform',
         element: <RequestForm />,
