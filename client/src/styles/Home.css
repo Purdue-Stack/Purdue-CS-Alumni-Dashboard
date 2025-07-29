@@ -156,6 +156,42 @@
   outline: 1px solid white;
 }
 
+.hero-data-button--border {
+  background-color: transparent;
+  color: black;
+  border: 2px solid black;
+  border-radius: 5px;
+  box-shadow: none;
+  outline: none;
+}
+.hero-data-button--border:hover {
+  background-color: #cfb991;
+  color: black;
+  border: 2px solid #cfb991;
+  outline: none;
+}
+.hero-data-button--border:hover .hero-data-button__arrow {
+  color: black;
+}
+
+.hero-data-button--red-border {
+  background-color: transparent;
+  color: black;
+  border: 2px solid black;
+  border-radius: 5px;
+  box-shadow: none;
+  outline: none;
+}
+.hero-data-button--red-border:hover {
+  background-color: #e63946;
+  color: black;
+  border: 2px solid #e63946;
+  outline: none;
+}
+.hero-data-button--red-border:hover .hero-data-button__arrow {
+  color: black;
+}
+
 .hero__tag {
   display: inline-block;
   transform: skew(-20deg);
@@ -591,4 +627,12 @@
   background: #181818;
   color: #cfb991;
   opacity: 1;
+}
+
+.dashboard-page {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  position: relative;
 }

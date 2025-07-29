@@ -6,6 +6,7 @@ import UploadPreview from '../pages/UploadPreview';
 import RequestForm from '../pages/RequestForm';
 import AdminLayout from '../components/AdminLayout';
 import AdminAlumniTable from '../pages/AdminAlumniTable';
+import Dashboard from '../pages/Dashboard';
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
       {
         path: '/requestform',
         element: <RequestForm />,
+      },
+      {
+        path: '/dashboard',
+        element: <Dashboard />,
       },
       {
         path: '*',
