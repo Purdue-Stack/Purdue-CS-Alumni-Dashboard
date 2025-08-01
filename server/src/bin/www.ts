@@ -4,6 +4,7 @@ import app from '../app';
 import debug from 'debug';
 import http from 'http';
 import { AddressInfo } from 'net';
+import { query } from '../db'; // Import the query function from db.ts
 
 const debugLog = debug('server:server');
 
@@ -80,4 +81,16 @@ function onListening(): void {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debugLog('Listening on ' + bind);
+
+  // Test Neon DB connection
+  query('SELECT "First Name", "Last Name", "Graduation Year" FROM alumni LIMIT 5;')
+    .then(res => {
+      console.log('DB connected. Sample rows:');
+      res.rows.forEach((row, i) => {
+        console.log(`${i + 1}. ${row['First Name']} ${row['Last Name']} (${row['Graduation Year']})`);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to connect to DB or fetch data:', err.message);
+    });
 }
