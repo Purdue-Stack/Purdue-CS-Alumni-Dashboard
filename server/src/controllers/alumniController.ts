@@ -17,9 +17,8 @@ export const fetchAlumni = async (req: Request, res: Response): Promise<void> =>
 
     if (Number.isFinite(pageSize)) {
       options.limit = pageSize;
-      if (Number.isFinite(page) && page >= 0) {
-        options.offset = page * pageSize!;
-      }
+      const safePage = Number.isFinite(page) && page! >= 0 ? page! : 0;
+      options.offset = safePage * pageSize!;
     }
 
     const { rows, total } = await listAlumni(options);

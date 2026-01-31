@@ -210,11 +210,15 @@ export const uploadExcelPreview = async (req: Request, res: Response): Promise<v
     const invalidRows = rowErrors.length;
     const validRows = totalRows - invalidRows;
 
-    await addLog({
-      action: 'UPLOAD_PREVIEW',
-      description: `Previewed upload file with ${totalRows} rows`,
-      target: file.originalname
-    });
+    try {
+      await addLog({
+        action: 'UPLOAD_PREVIEW',
+        description: `Previewed upload file with ${totalRows} rows`,
+        target: file.originalname
+      });
+    } catch (logError) {
+      console.error('Failed to write upload preview log:', logError);
+    }
 
     res.status(200).json({
       columns: CANONICAL_COLUMNS,

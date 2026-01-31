@@ -211,11 +211,15 @@ export const commitUpload = async (req: Request, res: Response): Promise<void> =
       }
     }
 
-    await addLog({
-      action: 'UPLOAD',
-      description: `Committed upload: ${result.inserted} inserted, ${result.updated} updated, ${result.skipped} skipped, ${result.errors} errors`,
-      target: filename
-    }, client);
+    try {
+      await addLog({
+        action: 'UPLOAD',
+        description: `Committed upload: ${result.inserted} inserted, ${result.updated} updated, ${result.skipped} skipped, ${result.errors} errors`,
+        target: filename
+      }, client);
+    } catch (logError) {
+      console.error('Failed to write upload commit log:', logError);
+    }
 
     await client.query('COMMIT');
 
