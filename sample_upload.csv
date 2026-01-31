@@ -1,4 +1,4 @@
 First Name,Last Name,Graduation Year,Graduation Term,Outcome Type,Employer,Job Title,Expected Field of Study,Degree Seeking,University,City,State,Base Salary,Signing Bonus,Relocation Reimbursement,Student ID,Degree Level,Salary Pay Period
 Alice,Smith,2022,Fall,Employed,Google,Software Engineer,Computer Science,BS,Purdue,West Lafayette,IN,120000,10000,5000,10000001,Bachelors,Annual
 Bob,,2023,Spring,Employed,Amazon,Data Analyst,Data Science,MS,UIUC,Champaign,IL,90000,5000,2000,10000002,Masters,Annual
-Charlie,Lee,2021,Summer,Seeking,,Intern,Computer Science,BS,Purdue,West Lafayette,IN,,,10000003,Bachelors,Annual
+Charlie,Lee,2021,Summer,Seeking,,Intern,Computer Science,BS,Purdue,West Lafayette,IN,0,0,0,10000003,Bachelors,Annual
