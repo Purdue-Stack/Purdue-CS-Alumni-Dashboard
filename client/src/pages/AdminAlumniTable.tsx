@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styles from '../styles/AdminAlumniTable.module.css';
+import api from '../api/api';
 
 export interface Alumni {
   "First Name": string;
@@ -658,25 +659,53 @@ type Filters = {
 const ENTRIES_PER_PAGE = 50;
 
 const AdminAlumniTable: React.FC = () => {
+  const [data, setData] = useState<Alumni[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Filters>({});
   const [sortConfig, setSortConfig] = useState<{ key?: keyof Alumni; direction: "asc" | "desc" | "" }>({ direction: "" });
   const [page, setPage] = useState(0);
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAlumni = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/admin/alumni');
+        if (isMounted) {
+          setData(response.data.rows || []);
+        }
+      } catch (error) {
+        console.error('Failed to load alumni data:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAlumni();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const enumOptions = useMemo(() => {
     const map: { [K in keyof Alumni]?: string[] } = {};
     enumFields.forEach((f) => {
-      map[f] = Array.from(new Set(dummyData.map((r) => r[f] as string))).sort();
+      const values = data.map((r) => r[f]).filter((v): v is string => typeof v === 'string' && v.trim() !== '');
+      map[f] = Array.from(new Set(values)).sort();
     });
     return map;
-  }, []);
+  }, [data]);
 
   const searchableOptions = useMemo(() => {
     const map: { [K in keyof Alumni]?: string[] } = {};
     searchableFields.forEach((f) => {
       const freq: Record<string, number> = {};
-      dummyData.forEach((r) => {
+      data.forEach((r) => {
         const v = r[f] as string;
+        if (!v) return;
         freq[v] = (freq[v] || 0) + 1;
       });
       map[f] = Object.entries(freq)
@@ -684,30 +713,30 @@ const AdminAlumniTable: React.FC = () => {
         .map(([val]) => val);
     });
     return map;
-  }, []);
+  }, [data]);
 
   const filteredData = useMemo(() => {
-    let data = [...dummyData];
+    let filtered = [...data];
 
     // numeric range filters
     numericFields.forEach((f) => {
       const cfg = filters[f] as { min?: number; max?: number };
       if (cfg) {
-        if (cfg.min != null) data = data.filter((r) => (r[f] as number) >= cfg.min!);
-        if (cfg.max != null) data = data.filter((r) => (r[f] as number) <= cfg.max!);
+        if (cfg.min != null) filtered = filtered.filter((r) => (r[f] as number) >= cfg.min!);
+        if (cfg.max != null) filtered = filtered.filter((r) => (r[f] as number) <= cfg.max!);
       }
     });
 
     // enum & searchable multi-select filters
     [...enumFields, ...searchableFields].forEach((f) => {
       const sel = filters[f] as string[];
-      if (sel?.length) data = data.filter((r) => sel.includes(r[f] as string));
+      if (sel?.length) filtered = filtered.filter((r) => sel.includes(r[f] as string));
     });
 
     // global search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      data = data.filter((r) =>
+      filtered = filtered.filter((r) =>
         Object.values(r).some(
           (v) => typeof v === "string" && v.toLowerCase().includes(q)
         )
@@ -716,15 +745,15 @@ const AdminAlumniTable: React.FC = () => {
 
     // sorting
     if (sortConfig.key && sortConfig.direction) {
-      data.sort((a, b) => {
+      filtered.sort((a, b) => {
         const aV = a[sortConfig.key!], bV = b[sortConfig.key!];
         if (aV === bV) return 0;
         return (aV! > bV! ? 1 : -1) * (sortConfig.direction === "asc" ? 1 : -1);
       });
     }
 
-    return data;
-  }, [filters, searchQuery, sortConfig]);
+    return filtered;
+  }, [data, filters, searchQuery, sortConfig]);
 
   const pageCount = Math.ceil(filteredData.length / ENTRIES_PER_PAGE);
   const currentData = filteredData.slice(
