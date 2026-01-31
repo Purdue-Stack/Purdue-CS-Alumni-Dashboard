@@ -6,12 +6,34 @@ interface PreviewProps {
     file: File;
     columns: string[];
     rows: Record<string, any>[];
+    rowErrors?: { rowIndex: number; messages: string[] }[];
+    summary?: { totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null;
 }
 
 type Tab = 'mapping' | 'validation' | 'preview';
   
-const PreviewComponent: React.FC<PreviewProps> = ({ file, columns, rows }) => {
+const PreviewComponent: React.FC<PreviewProps> = ({
+    file,
+    columns,
+    rows,
+    rowErrors = [],
+    summary
+}) => {
     const [tab, setTab] = useState<Tab>('mapping');
+
+    const errorMap = new Map<number, string[]>();
+    rowErrors.forEach((err) => {
+        errorMap.set(err.rowIndex, err.messages);
+    });
+
+    const displayColumns = columns.length
+        ? columns
+        : rows[0]
+            ? Object.keys(rows[0])
+            : [];
+
+    const showErrors = rowErrors.length > 0;
+    const previewRows = rows.slice(0, 50);
 
   return (
     <section className={styles['preview-container']}>
@@ -50,7 +72,45 @@ const PreviewComponent: React.FC<PreviewProps> = ({ file, columns, rows }) => {
 
         {/* Table placeholder */}
         <div className={styles['table-placeholder']}>
-        {/* Table goes here */}
+            {summary && (
+                <div>
+                    <strong>Preview Summary:</strong> {summary.validRows} valid / {summary.invalidRows} invalid (total {summary.totalRows})
+                    {summary.missingColumns.length > 0 && (
+                        <div>Missing columns: {summary.missingColumns.join(', ')}</div>
+                    )}
+                </div>
+            )}
+            {displayColumns.length > 0 && (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            {displayColumns.map((col) => (
+                                <th key={col}>{col}</th>
+                            ))}
+                            {showErrors && <th>Row Errors</th>}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {previewRows.map((row, idx) => {
+                            const rowIndex = idx + 1;
+                            const errors = errorMap.get(rowIndex);
+                            return (
+                                <tr key={rowIndex}>
+                                    <td>{rowIndex}</td>
+                                    {displayColumns.map((col) => (
+                                        <td key={`${rowIndex}-${col}`}>{row[col] ?? ''}</td>
+                                    ))}
+                                    {showErrors && <td>{errors ? errors.join('; ') : ''}</td>}
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            )}
+            {rows.length > previewRows.length && (
+                <div>Showing first {previewRows.length} rows.</div>
+            )}
         </div>
 
         {/* Action button */}

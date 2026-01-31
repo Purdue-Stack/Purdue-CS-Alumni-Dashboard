@@ -17,6 +17,8 @@ const UploadPreview: React.FC = () => {
   const [activeView, setActiveView] = useState<'upload' | 'preview'>('upload');
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [rowErrors, setRowErrors] = useState<{ rowIndex: number; messages: string[] }[]>([]);
+  const [summary, setSummary] = useState<{ totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,10 +35,12 @@ const UploadPreview: React.FC = () => {
         },
       });
   
-      const { columns, rows } = response.data;
+      const { columns, rows, rowErrors, summary } = response.data;
   
       setColumns(columns);
       setRows(rows);
+      setRowErrors(rowErrors || []);
+      setSummary(summary || null);
   
       // File parsed successfully — switch view to preview
       setActiveView('preview');
@@ -47,6 +51,7 @@ const UploadPreview: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   return (
       // Main Upload Content
@@ -73,6 +78,8 @@ const UploadPreview: React.FC = () => {
               file={uploadedFile}
               columns={columns}
               rows={rows}
+              rowErrors={rowErrors}
+              summary={summary}
             />
           )}
         </div>
