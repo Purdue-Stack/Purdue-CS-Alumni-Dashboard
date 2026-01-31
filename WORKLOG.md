@@ -3,7 +3,10 @@
 ## Run commands
 1) Start server (needs DATABASE_URL set):
 ```sh
-DATABASE_URL="postgresql://<user>:<password>@<host>/<db>?sslmode=require" npm run server
+set -a
+source server/.env
+set +a
+npm run server
 ```
 
 2) Start client (separate terminal):
@@ -14,7 +17,10 @@ npm run client
 ## Apply schema (required for admin_logs + indexes)
 If you do not have `psql`, use Node with `pg`:
 ```sh
-DATABASE_URL="postgresql://<user>:<password>@<host>/<db>?sslmode=require" node - <<'JS'
+set -a
+source server/.env
+set +a
+node - <<'JS'
 const fs = require('fs');
 const { Client } = require('pg');
 const sql = fs.readFileSync('server/src/db/schema.sql', 'utf8');
