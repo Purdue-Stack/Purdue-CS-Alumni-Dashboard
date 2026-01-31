@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS alumni (
-  id SERIAL PRIMARY KEY,
+  alumni_id SERIAL PRIMARY KEY,
   "First Name" TEXT NOT NULL,
   "Last Name" TEXT NOT NULL,
   "Graduation Year" INTEGER NOT NULL,
