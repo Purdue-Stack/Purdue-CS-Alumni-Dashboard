@@ -21,6 +21,7 @@ const UploadPreview: React.FC = () => {
   const [summary, setSummary] = useState<{ totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [commitLoading, setCommitLoading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
     const formData = new FormData();
@@ -52,6 +53,28 @@ const UploadPreview: React.FC = () => {
     }
   };
 
+  const handleCommit = async () => {
+    if (!rows.length) {
+      alert('No rows to commit.');
+      return;
+    }
+
+    setCommitLoading(true);
+    try {
+      const response = await api.post('/commit-upload', {
+        rows,
+        filename: uploadedFile?.name
+      });
+      const { inserted, updated, skipped, errors } = response.data;
+      alert(`Commit complete. Inserted: ${inserted}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
+    } catch (error) {
+      console.error('Failed to commit data:', error);
+      alert('Error committing data. Please try again.');
+    } finally {
+      setCommitLoading(false);
+    }
+  };
+
 
   return (
       // Main Upload Content
@@ -80,6 +103,8 @@ const UploadPreview: React.FC = () => {
               rows={rows}
               rowErrors={rowErrors}
               summary={summary}
+              onCommit={handleCommit}
+              commitLoading={commitLoading}
             />
           )}
         </div>

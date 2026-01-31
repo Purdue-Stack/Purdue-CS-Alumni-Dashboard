@@ -5,6 +5,7 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { uploadExcelPreview } from '../controllers/uploadController';
+import { commitUpload } from '../controllers/commitController';
 
 const router: Router = express.Router();
 
@@ -46,6 +47,9 @@ const upload = multer({
 
 // React admin upload preview endpoint
 router.post('/upload-excel', upload.single('file'), uploadExcelPreview);
+
+// Commit upload data to DB
+router.post('/commit-upload', commitUpload);
 
 // Mock database for upload logs (replace with real database)
 let uploadLogs: any[] = [

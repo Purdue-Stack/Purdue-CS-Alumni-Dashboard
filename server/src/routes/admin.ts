@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadExcel, saveEditedData } from '../controllers/uploadController';
+import { uploadExcel } from '../controllers/uploadController';
+import { saveEditedData } from '../controllers/commitController';
 
 const router = express.Router();
 

@@ -8,6 +8,8 @@ interface PreviewProps {
     rows: Record<string, any>[];
     rowErrors?: { rowIndex: number; messages: string[] }[];
     summary?: { totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null;
+    onCommit?: () => void;
+    commitLoading?: boolean;
 }
 
 type Tab = 'mapping' | 'validation' | 'preview';
@@ -17,7 +19,9 @@ const PreviewComponent: React.FC<PreviewProps> = ({
     columns,
     rows,
     rowErrors = [],
-    summary
+    summary,
+    onCommit,
+    commitLoading = false
 }) => {
     const [tab, setTab] = useState<Tab>('mapping');
 
@@ -117,7 +121,15 @@ const PreviewComponent: React.FC<PreviewProps> = ({
         <div className={styles['action-btn']}>
             {tab === 'mapping' && <button className={styles['gold-btn']}>Validate →</button>}
             {tab === 'validation' && <button className={styles['gold-btn']}>Preview →</button>}
-            {tab === 'preview' && <button className={styles['gold-btn']}>Upload →</button>}
+            {tab === 'preview' && (
+                <button
+                    className={styles['gold-btn']}
+                    onClick={onCommit}
+                    disabled={commitLoading}
+                >
+                    {commitLoading ? 'Uploading…' : 'Upload →'}
+                </button>
+            )}
         </div>
     </section>
   );
