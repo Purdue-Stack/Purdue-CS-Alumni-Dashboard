@@ -30,6 +30,20 @@ CREATE TABLE IF NOT EXISTS admin_logs (
   target TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS mentorship_requests (
+  id SERIAL PRIMARY KEY,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  purdue_id TEXT NOT NULL,
+  mentorship_consent TEXT NOT NULL,
+  email TEXT NOT NULL,
+  linkedin TEXT NOT NULL,
+  mentorship_areas TEXT[] DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  reviewed_at TIMESTAMPTZ
+);
+
 CREATE INDEX IF NOT EXISTS alumni_grad_year_idx ON alumni ("Graduation Year");
 CREATE INDEX IF NOT EXISTS alumni_grad_term_idx ON alumni ("Graduation Term");
 CREATE INDEX IF NOT EXISTS alumni_outcome_type_idx ON alumni ("Outcome Type");
@@ -48,3 +62,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS alumni_student_id_unique
 
 CREATE INDEX IF NOT EXISTS admin_logs_action_idx ON admin_logs (action);
 CREATE INDEX IF NOT EXISTS admin_logs_timestamp_idx ON admin_logs (timestamp);
+
+CREATE INDEX IF NOT EXISTS mentorship_requests_status_idx ON mentorship_requests (status);
+CREATE INDEX IF NOT EXISTS mentorship_requests_created_idx ON mentorship_requests (created_at);
