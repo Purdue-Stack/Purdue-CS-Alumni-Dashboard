@@ -6,6 +6,7 @@ import {
   approveMentorshipRequest,
   denyMentorshipRequest
 } from '../controllers/mentorshipController';
+import { exportAlumniCsv } from '../controllers/exportController';
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.get('/logs/:action', fetchLogsByAction);
 router.get('/mentorship/requests', fetchPendingMentorshipRequests);
 router.post('/mentorship/requests/:id/approve', approveMentorshipRequest);
 router.post('/mentorship/requests/:id/deny', denyMentorshipRequest);
+router.get('/export', exportAlumniCsv);
 
 export default router;
