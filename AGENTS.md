@@ -1,0 +1,6 @@
+- Do not change any CSS files or component layouts.
+- Infer API endpoints and response shapes from client/src/api/api.ts and page components.
+- Prefer adding missing code over refactors.
+- Keep server structure: controllers/, models/, routes/.
+- Use parameterized queries only.
+- Use Neon via DATABASE_URL in server env.
