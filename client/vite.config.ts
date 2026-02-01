@@ -8,5 +8,9 @@ export default defineConfig({
   server: {
     port: 5678, // Change this to your desired port
     host: true, // Optional: allows access from network
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/request': 'http://localhost:3000',
+    },
   },
 })

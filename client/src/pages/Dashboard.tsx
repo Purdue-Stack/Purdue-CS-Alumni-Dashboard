@@ -11,9 +11,10 @@ import {
 } from "recharts";
 import { FilterCard, CustomRadio, FilterTag, CategoryLabel } from "../components/DashboardComponents";
 import USMapD3 from "../components/USMapD3";
+import { fetchDashboardAnalytics } from "../api/api";
 
 // Different datasets for each view
-const salaryData = [
+const defaultSalaryData = [
   { name: "50k", value: 15 },
   { name: "60k", value: 25 },
   { name: "70k", value: 35 },
@@ -27,7 +28,7 @@ const salaryData = [
   { name: "150k+", value: 12 },
 ];
 
-const companyData = [
+const defaultCompanyData = [
   { name: "Google", value: 45 },
   { name: "Microsoft", value: 38 },
   { name: "Amazon", value: 35 },
@@ -40,7 +41,7 @@ const companyData = [
   { name: "Airbnb", value: 12 },
 ];
 
-const admissionsData = [
+const defaultAdmissionsData = [
   { name: "Stanford", value: 25 },
   { name: "MIT", value: 22 },
   { name: "Carnegie Mellon", value: 28 },
@@ -53,7 +54,7 @@ const admissionsData = [
   { name: "Columbia", value: 20 },
 ];
 
-const outcomesData = [
+const defaultOutcomesData = [
   { state: "AL", value: 0 },
   { state: "AK", value: 0 },
   { state: "AZ", value: 0 },
@@ -109,6 +110,10 @@ const outcomesData = [
 const Dashboard: React.FC = () => {
   const [selectedDataView, setSelectedDataView] = useState('Outcomes');
   const [searchTerm, setSearchTerm] = useState('');
+  const [salaryData, setSalaryData] = useState(defaultSalaryData);
+  const [companyData, setCompanyData] = useState(defaultCompanyData);
+  const [admissionsData, setAdmissionsData] = useState(defaultAdmissionsData);
+  const [outcomesData, setOutcomesData] = useState(defaultOutcomesData);
   
   // Filter states (current selections)
   const [graduationYearFilters, setGraduationYearFilters] = useState<string[]>([]);
@@ -214,6 +219,39 @@ const Dashboard: React.FC = () => {
         return 'DASHBOARD';
     }
   };
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const loadAnalytics = async () => {
+      try {
+        const data = await fetchDashboardAnalytics({
+          graduationYears: appliedGraduationYearFilters,
+          majors: appliedMajorFilters,
+          degreeLevels: appliedDegreeLevelFilters,
+          employmentTypes: appliedEmploymentTypeFilters,
+          search: searchTerm
+        });
+        if (!isMounted) return;
+        setSalaryData(data.salaryBands);
+        setCompanyData(data.topCompanies);
+        setAdmissionsData(data.gradAdmissions);
+        setOutcomesData(data.outcomesByState);
+      } catch (error) {
+        console.error('Failed to load dashboard analytics:', error);
+      }
+    };
+
+    loadAnalytics();
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    appliedGraduationYearFilters,
+    appliedMajorFilters,
+    appliedDegreeLevelFilters,
+    appliedEmploymentTypeFilters,
+    searchTerm
+  ]);
 
   return (
     <>

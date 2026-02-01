@@ -23,6 +23,17 @@ Source of truth: client API usage in `client/src/api/api.ts` and page components
   - `{ inserted: number; updated: number; skipped: number; errors: number }`
   - Counts are displayed via alert.
 
+## GET /api/analytics/dashboard
+- **Used in**: `client/src/pages/Dashboard.tsx` (useEffect)
+- **Request**: query params
+  - `graduationYears?: string` (comma-separated)
+  - `majors?: string` (comma-separated)
+  - `degreeLevels?: string` (comma-separated)
+  - `employmentTypes?: string` (comma-separated)
+  - `search?: string`
+- **Response shape expected by UI**:
+  - `{ outcomesByState: { state: string; value: number }[]; salaryBands: { name: string; value: number }[]; topCompanies: { name: string; value: number }[]; gradAdmissions: { name: string; value: number }[] }`
+
 ## GET /api/admin/alumni
 - **Used in**: `client/src/pages/AdminAlumniTable.tsx` (useEffect fetch)
 - **Request**: none (optional query params for paging/search)
