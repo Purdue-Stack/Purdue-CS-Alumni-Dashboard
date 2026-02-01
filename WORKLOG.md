@@ -1,11 +1,9 @@
 # Worklog
 
 ## Run commands
-1) Start server (needs DATABASE_URL set):
+1) Start server (loads DATABASE_URL from `server/.env`):
 ```sh
-set -a
-source server/.env
-set +a
+set -a && source server/.env && set +a
 npm run server
 ```
 
@@ -17,9 +15,7 @@ npm run client
 ## Apply schema (required for admin_logs + indexes)
 If you do not have `psql`, use Node with `pg`:
 ```sh
-set -a
-source server/.env
-set +a
+set -a && source server/.env && set +a
 node - <<'JS'
 const fs = require('fs');
 const { Client } = require('pg');
@@ -75,3 +71,11 @@ Expected: JSON with `rows` and `total`.
 curl -s http://localhost:3000/api/admin/logs
 ```
 Expected: JSON array of log entries (requires `admin_logs` table + write access).
+
+## Demo checklist (TA)
+1) `set -a && source server/.env && set +a` then `npm run server` in one terminal.
+2) `npm run client` in a second terminal.
+3) POST `/api/upload-excel` with `sample_upload.csv` and confirm preview + rowErrors.
+4) POST `/api/commit-upload` and confirm counts response.
+5) GET `/api/admin/alumni` and confirm new rows appear (Alice/Charlie).
+6) GET `/api/admin/logs` and confirm `UPLOAD_PREVIEW` + `UPLOAD` entries.
