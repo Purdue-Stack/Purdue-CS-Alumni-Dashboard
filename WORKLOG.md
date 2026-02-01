@@ -32,6 +32,20 @@ client.connect()
 JS
 ```
 
+## Foundational read APIs (API)
+Public alumni:
+```sh
+curl -s "http://localhost:3000/api/alumni?page=0&pageSize=5"
+```
+Internships:
+```sh
+curl -s "http://localhost:3000/api/internships?page=0&pageSize=5"
+```
+Mentors:
+```sh
+curl -s "http://localhost:3000/api/mentors?page=0&pageSize=5"
+```
+
 ## Upload preview test (API)
 ```sh
 curl -s -X POST -F "file=@sample_upload.csv" http://localhost:3000/api/upload-excel

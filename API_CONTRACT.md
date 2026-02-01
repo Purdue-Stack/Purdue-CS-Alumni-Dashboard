@@ -34,6 +34,46 @@ Source of truth: client API usage in `client/src/api/api.ts` and page components
 - **Response shape expected by UI**:
   - `{ outcomesByState: { state: string; value: number }[]; salaryBands: { name: string; value: number }[]; topCompanies: { name: string; value: number }[]; gradAdmissions: { name: string; value: number }[] }`
 
+## GET /api/alumni
+- **Used in**: not wired yet (foundational)
+- **Request**: query params
+  - `graduationYears?: string` (comma-separated)
+  - `majors?: string` (comma-separated)
+  - `tracks?: string` (comma-separated)
+  - `search?: string`
+  - `page?: number`
+  - `pageSize?: number`
+- **Response shape**:
+  - `{ rows: Record<string, any>[]; total: number }`
+
+## GET /api/internships
+- **Used in**: not wired yet (foundational)
+- **Request**: query params
+  - `companies?: string` (comma-separated)
+  - `roles?: string` (comma-separated)
+  - `years?: string` (comma-separated)
+  - `locations?: string` (comma-separated)
+  - `outcomes?: string` (comma-separated)
+  - `search?: string`
+  - `page?: number`
+  - `pageSize?: number`
+- **Response shape**:
+  - `{ rows: Record<string, any>[]; total: number }`
+
+## GET /api/mentors
+- **Used in**: not wired yet (foundational)
+- **Request**: query params
+  - `tracks?: string` (comma-separated)
+  - `roles?: string` (comma-separated)
+  - `locations?: string` (comma-separated)
+  - `availability?: string` (comma-separated)
+  - `areas?: string` (comma-separated)
+  - `search?: string`
+  - `page?: number`
+  - `pageSize?: number`
+- **Response shape**:
+  - `{ rows: Record<string, any>[]; total: number }`
+
 ## GET /api/admin/alumni
 - **Used in**: `client/src/pages/AdminAlumniTable.tsx` (useEffect fetch)
 - **Request**: none (optional query params for paging/search)
@@ -52,3 +92,21 @@ Source of truth: client API usage in `client/src/api/api.ts` and page components
   - `mentorshipAreas: string[]`
 - **Response shape expected by UI**: none (success triggers a generic alert)
 - **Notes**: This call does not use the `/api` base URL.
+
+## GET /api/admin/mentorship/requests
+- **Used in**: not wired yet (admin tooling)
+- **Request**: none
+- **Response shape**: `MentorshipRequest[]`
+
+## POST /api/admin/mentorship/requests/:id/approve
+- **Used in**: not wired yet (admin tooling)
+- **Response shape**: `{ message: string }`
+
+## POST /api/admin/mentorship/requests/:id/deny
+- **Used in**: not wired yet (admin tooling)
+- **Response shape**: `{ message: string }`
+
+## GET /api/admin/export
+- **Used in**: not wired yet (admin tooling)
+- **Request**: same filters as `/api/alumni` (optional)
+- **Response shape**: CSV download

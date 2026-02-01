@@ -10,6 +10,7 @@ import adminRouter from './routes/admin';
 import adminApiRouter from './routes/adminApi';
 import analyticsRouter from './routes/analytics';
 import mentorshipRouter from './routes/mentorship';
+import publicRouter from './routes/public';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/admin', adminRouter)
 app.use('/api', uploadRouter);
 app.use('/api/admin', adminApiRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api', publicRouter);
 app.use('/', mentorshipRouter);
 
 export default app;

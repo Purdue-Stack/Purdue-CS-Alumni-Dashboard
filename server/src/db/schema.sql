@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS alumni (
   "Employer" TEXT,
   "Job Title" TEXT,
   "Expected Field of Study" TEXT,
+  "Track" TEXT,
   "Degree Seeking" TEXT,
   "University" TEXT,
   "City" TEXT,
@@ -18,6 +19,10 @@ CREATE TABLE IF NOT EXISTS alumni (
   "Student ID" BIGINT,
   "Degree Level" TEXT,
   "Salary Pay Period" TEXT,
+  is_approved BOOLEAN DEFAULT true,
+  is_visible BOOLEAN DEFAULT true,
+  is_anonymized BOOLEAN DEFAULT false,
+  is_deleted BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -40,8 +45,53 @@ CREATE TABLE IF NOT EXISTS mentorship_requests (
   linkedin TEXT NOT NULL,
   mentorship_areas TEXT[] DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'pending',
+  is_approved BOOLEAN DEFAULT false,
+  is_visible BOOLEAN DEFAULT true,
+  is_anonymized BOOLEAN DEFAULT false,
+  is_deleted BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
   reviewed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS mentorship_directory (
+  id SERIAL PRIMARY KEY,
+  alumni_id INTEGER,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  linkedin TEXT,
+  role TEXT,
+  track TEXT,
+  location_city TEXT,
+  location_state TEXT,
+  availability TEXT,
+  mentorship_areas TEXT[] DEFAULT '{}',
+  is_approved BOOLEAN DEFAULT true,
+  is_visible BOOLEAN DEFAULT true,
+  is_anonymized BOOLEAN DEFAULT false,
+  is_deleted BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS internships (
+  id SERIAL PRIMARY KEY,
+  alumni_id INTEGER,
+  company TEXT,
+  role TEXT,
+  internship_year INTEGER,
+  location_city TEXT,
+  location_state TEXT,
+  outcome_company TEXT,
+  outcome_role TEXT,
+  outcome_type TEXT,
+  is_approved BOOLEAN DEFAULT true,
+  is_visible BOOLEAN DEFAULT true,
+  is_anonymized BOOLEAN DEFAULT false,
+  is_deleted BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS alumni_grad_year_idx ON alumni ("Graduation Year");
@@ -65,3 +115,67 @@ CREATE INDEX IF NOT EXISTS admin_logs_timestamp_idx ON admin_logs (timestamp);
 
 CREATE INDEX IF NOT EXISTS mentorship_requests_status_idx ON mentorship_requests (status);
 CREATE INDEX IF NOT EXISTS mentorship_requests_created_idx ON mentorship_requests (created_at);
+
+CREATE INDEX IF NOT EXISTS mentors_track_idx ON mentorship_directory (track);
+CREATE INDEX IF NOT EXISTS mentors_role_idx ON mentorship_directory (role);
+CREATE INDEX IF NOT EXISTS mentors_location_idx ON mentorship_directory (location_state);
+CREATE INDEX IF NOT EXISTS mentors_visibility_idx ON mentorship_directory (is_visible, is_deleted, is_approved);
+
+CREATE INDEX IF NOT EXISTS internships_company_idx ON internships (company);
+CREATE INDEX IF NOT EXISTS internships_role_idx ON internships (role);
+CREATE INDEX IF NOT EXISTS internships_year_idx ON internships (internship_year);
+CREATE INDEX IF NOT EXISTS internships_location_idx ON internships (location_state);
+CREATE INDEX IF NOT EXISTS internships_outcome_company_idx ON internships (outcome_company);
+CREATE INDEX IF NOT EXISTS internships_outcome_role_idx ON internships (outcome_role);
+CREATE INDEX IF NOT EXISTS internships_visibility_idx ON internships (is_visible, is_deleted, is_approved);
+
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS "Track" TEXT;
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT true;
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT true;
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS is_anonymized BOOLEAN DEFAULT false;
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE alumni ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS alumni_track_idx ON alumni ("Track");
+CREATE INDEX IF NOT EXISTS alumni_visibility_idx ON alumni (is_visible, is_deleted, is_approved);
+
+ALTER TABLE mentorship_requests ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT false;
+ALTER TABLE mentorship_requests ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT true;
+ALTER TABLE mentorship_requests ADD COLUMN IF NOT EXISTS is_anonymized BOOLEAN DEFAULT false;
+ALTER TABLE mentorship_requests ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+ALTER TABLE mentorship_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS mentorship_requests_visibility_idx ON mentorship_requests (is_visible, is_deleted, is_approved);
+
+ALTER TABLE admin_logs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+INSERT INTO internships (company, role, internship_year, location_city, location_state, outcome_company, outcome_role, outcome_type)
+SELECT 'Google', 'SWE Intern', 2023, 'Mountain View', 'CA', 'Google', 'Software Engineer', 'Full Time'
+WHERE NOT EXISTS (
+  SELECT 1 FROM internships WHERE company = 'Google' AND role = 'SWE Intern' AND internship_year = 2023
+);
+
+INSERT INTO internships (company, role, internship_year, location_city, location_state, outcome_company, outcome_role, outcome_type)
+SELECT 'Amazon', 'Data Science Intern', 2022, 'Seattle', 'WA', 'Amazon', 'Data Scientist', 'Full Time'
+WHERE NOT EXISTS (
+  SELECT 1 FROM internships WHERE company = 'Amazon' AND role = 'Data Science Intern' AND internship_year = 2022
+);
+
+INSERT INTO mentorship_directory (first_name, last_name, email, linkedin, role, track, location_city, location_state, availability, mentorship_areas)
+SELECT 'Alice', 'Smith', 'alice.mentor@example.com', 'https://linkedin.com/in/alice-mentor', 'Software Engineer', 'CS', 'West Lafayette', 'IN', 'Ongoing', ARRAY['Resume Reviews','Career Chats']
+WHERE NOT EXISTS (
+  SELECT 1 FROM mentorship_directory WHERE email = 'alice.mentor@example.com'
+);
+
+INSERT INTO mentorship_directory (first_name, last_name, email, linkedin, role, track, location_city, location_state, availability, mentorship_areas)
+SELECT 'Bob', 'Lee', 'bob.mentor@example.com', 'https://linkedin.com/in/bob-mentor', 'Data Scientist', 'DS', 'Chicago', 'IL', 'One-time', ARRAY['Mock Interviews']
+WHERE NOT EXISTS (
+  SELECT 1 FROM mentorship_directory WHERE email = 'bob.mentor@example.com'
+);
+
+INSERT INTO mentorship_requests (first_name, last_name, purdue_id, mentorship_consent, email, linkedin, mentorship_areas)
+SELECT 'Seed', 'Requester', '99999999', 'Yes', 'seed.requester@example.com', 'https://linkedin.com/in/seed-requester', ARRAY['Career Chats']
+WHERE NOT EXISTS (
+  SELECT 1 FROM mentorship_requests WHERE email = 'seed.requester@example.com'
+);
