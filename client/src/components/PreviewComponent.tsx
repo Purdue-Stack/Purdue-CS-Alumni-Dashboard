@@ -119,8 +119,8 @@ const PreviewComponent: React.FC<PreviewProps> = ({
 
         {/* Action button */}
         <div className={styles['action-btn']}>
-            {tab === 'mapping' && <button className={styles['gold-btn']}>Validate →</button>}
-            {tab === 'validation' && <button className={styles['gold-btn']}>Preview →</button>}
+            {tab === 'mapping' && <button className={styles['gold-btn']} onClick={() => setTab('validation')}>Validate →</button>}
+            {tab === 'validation' && <button className={styles['gold-btn']} onClick={() => setTab('preview')}>Preview →</button>}
             {tab === 'preview' && (
                 <button
                     className={styles['gold-btn']}

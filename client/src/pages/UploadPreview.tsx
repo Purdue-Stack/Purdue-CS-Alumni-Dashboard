@@ -1,17 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from '../styles/UploadPreview.module.css';
 import UploadComponent from '../components/UploadComponent'
 import PreviewComponent from '../components/PreviewComponent';
-import api from '../api/api';
-
-// Array of log data
-const logData = [
-  { name: 'John Langenkamp', date: 'Yesterday, 4:00 PM', file: '2024 Fall Data' },
-  { name: 'Bob Paden', date: '04/12/2025, 4:00 PM', file: '2023 Salary Updates' },
-  { name: 'Bob Paden', date: '04/12/2025, 4:00 PM', file: '2023 Salary Updates' },
-  { name: 'Bob Paden', date: '04/12/2025, 4:00 PM', file: '2023 Salary Updates' },
-  { name: 'Bob Paden', date: '04/12/2025, 4:00 PM', file: '2023 Salary Updates' }
-];
+import api, { fetchAdminLogs, type AdminLog } from '../api/api';
 
 const UploadPreview: React.FC = () => {
   const [activeView, setActiveView] = useState<'upload' | 'preview'>('upload');
@@ -20,14 +11,20 @@ const UploadPreview: React.FC = () => {
   const [rowErrors, setRowErrors] = useState<{ rowIndex: number; messages: string[] }[]>([]);
   const [summary, setSummary] = useState<{ totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
   const [commitLoading, setCommitLoading] = useState(false);
+  const [logs, setLogs] = useState<AdminLog[]>([]);
+
+  useEffect(() => {
+    fetchAdminLogs()
+      .then((data) => setLogs(data.filter((log) => log.action === 'UPLOAD' || log.action === 'UPLOAD_PREVIEW').slice(0, 8)))
+      .catch((error) => {
+        console.error('Failed to fetch admin logs:', error);
+      });
+  }, []);
 
   const handleFileUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-  
-    setLoading(true);
   
     try {
       const response = await api.post('/upload-excel', formData, { //check api endpoint
@@ -48,8 +45,6 @@ const UploadPreview: React.FC = () => {
     } catch (error) {
       console.error('Failed to upload file:', error);
       alert('Error parsing file. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -67,6 +62,8 @@ const UploadPreview: React.FC = () => {
       });
       const { inserted, updated, skipped, errors } = response.data;
       alert(`Commit complete. Inserted: ${inserted}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
+      const refreshedLogs = await fetchAdminLogs();
+      setLogs(refreshedLogs.filter((log) => log.action === 'UPLOAD' || log.action === 'UPLOAD_PREVIEW').slice(0, 8));
     } catch (error) {
       console.error('Failed to commit data:', error);
       alert('Error committing data. Please try again.');
@@ -114,14 +111,14 @@ const UploadPreview: React.FC = () => {
           <h1>Upload Log</h1>
           <p>See past logging activity</p>
           <div className={styles['log-table']}>
-            {logData.map((log, index) => (
-                <div key={index} className={styles['log-row']}>
+            {logs.map((log) => (
+                <div key={log.id} className={styles['log-row']}>
                 <div className={styles['log-avatar']} />
                 <div className={styles['log-info']}>
-                    <strong>{log.name}</strong>
-                    <small>{log.date}</small>
+                    <strong>{log.action}</strong>
+                    <small>{new Date(log.timestamp).toLocaleString()}</small>
                 </div>
-                <button className={styles['csv-btn']}>{log.file}</button>
+                <button className={styles['csv-btn']}>{log.target}</button>
                 </div>
             ))}
           </div>

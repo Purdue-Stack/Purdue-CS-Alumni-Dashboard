@@ -3,10 +3,14 @@ import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
 import UploadPreview from '../pages/UploadPreview';
-import RequestForm from '../pages/RequestForm';
 import AdminLayout from '../components/AdminLayout';
 import AdminAlumniTable from '../pages/AdminAlumniTable';
 import Dashboard from '../pages/Dashboard';
+import AlumniDirectory from '../pages/AlumniDirectory';
+import MentorExplorer from '../pages/MentorExplorer';
+import InternshipExplorer from '../pages/InternshipExplorer';
+import AdminAnalytics from '../pages/AdminAnalytics';
+import { appBasePath } from '../config/runtime';
 
 export const router = createBrowserRouter([
   {
@@ -19,12 +23,20 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: '/requestform',
-        element: <RequestForm />,
+        path: 'dashboard',
+        element: <Dashboard />,
       },
       {
-        path: '/dashboard',
-        element: <Dashboard />,
+        path: 'alumni-directory',
+        element: <AlumniDirectory />,
+      },
+      {
+        path: 'mentors',
+        element: <MentorExplorer />,
+      },
+      {
+        path: 'internships',
+        element: <InternshipExplorer />,
       },
       {
         path: '*',
@@ -41,9 +53,15 @@ export const router = createBrowserRouter([
           {
             path: 'moderate',
             element: <AdminAlumniTable />,
+          },
+          {
+            path: 'analytics',
+            element: <AdminAnalytics />,
           }
         ]
       }
     ],
   },
-]);
+], {
+  basename: appBasePath,
+});

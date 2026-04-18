@@ -66,12 +66,16 @@ Sources:
 
 ## Deltas vs current implementation
 - **Not yet implemented in current app:**
-  - Dashboard analytics using live data (charts + filters are static).
-  - Mentorship request persistence + admin approval workflow.
-  - Export/reporting (CSV/PDF) endpoints and UI wiring.
-  - Internship outcome explorer, alumni directory, mentorship directory/request tracker.
+  - Internship outcome explorer UI.
+  - Alumni directory UI.
+  - Mentorship directory UI and request tracker.
   - Purdue SSO authentication.
-  - Alumni profile moderation (approve/anonymize/visibility controls).
+  - Alumni profile moderation actions (approve/anonymize/visibility controls).
+  - PDF export (CSV export exists).
 - **Already implemented:**
   - Admin upload preview + commit pipeline with validation and admin logs.
   - Admin alumni table backed by DB (read-only list).
+  - Dashboard analytics using live data (charts + filters wired to backend).
+  - Mentorship request persistence + admin approval workflow (endpoints + logs).
+  - CSV export endpoint + logging.
+  - Foundational read APIs: `GET /api/alumni`, `GET /api/internships`, `GET /api/mentors` (not wired to UI).

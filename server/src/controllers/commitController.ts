@@ -21,6 +21,7 @@ const CANONICAL_COLUMNS: (keyof Alumni)[] = [
   "Employer",
   "Job Title",
   "Expected Field of Study",
+  "Track",
   "Degree Seeking",
   "University",
   "City",
@@ -30,7 +31,11 @@ const CANONICAL_COLUMNS: (keyof Alumni)[] = [
   "Relocation Reimbursement",
   "Student ID",
   "Degree Level",
-  "Salary Pay Period"
+  "Salary Pay Period",
+  "Email",
+  "LinkedIn",
+  "Mentorship",
+  "Mentorship Areas"
 ];
 
 const REQUIRED_COLUMNS: (keyof Alumni)[] = [
@@ -45,6 +50,10 @@ const NUMERIC_COLUMNS = new Set<string>([
   "Signing Bonus",
   "Relocation Reimbursement",
   "Student ID"
+]);
+
+const ARRAY_COLUMNS = new Set<string>([
+  "Mentorship Areas"
 ]);
 
 const headerMap = new Map<string, keyof Alumni>(
@@ -83,6 +92,19 @@ function normalizeValue(column: keyof Alumni, value: any): { value: any; error?:
     }
 
     return { value: null, error: `${column} must be a number` };
+  }
+
+  if (ARRAY_COLUMNS.has(column)) {
+    if (Array.isArray(value)) {
+      return { value: value.map((item) => String(item).trim()).filter(Boolean) };
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return { value: trimmed ? trimmed.split(/[;,|]/).map((item) => item.trim()).filter(Boolean) : [] };
+    }
+
+    return { value: [] };
   }
 
   if (typeof value === 'string') {

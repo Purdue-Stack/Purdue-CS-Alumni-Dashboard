@@ -14,7 +14,6 @@ export const fetchMentors = async (req: Request, res: Response): Promise<void> =
     const tracks = parseList(req.query.tracks);
     const roles = parseList(req.query.roles);
     const locations = parseList(req.query.locations);
-    const availability = parseList(req.query.availability);
     const areas = parseList(req.query.areas);
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 50;
@@ -24,7 +23,6 @@ export const fetchMentors = async (req: Request, res: Response): Promise<void> =
       tracks,
       roles,
       locations,
-      availability,
       areas,
       search,
       limit: pageSize,

@@ -1,62 +1,26 @@
 import { Request, Response } from 'express';
 import { query } from '../db';
+import { getAllLogs } from '../models/logModel';
+import { listPendingMentorCandidates } from '../models/alumniModel';
 
 const STATE_NAME_TO_CODE: Record<string, string> = {
-  'alabama': 'AL',
-  'alaska': 'AK',
-  'arizona': 'AZ',
-  'arkansas': 'AR',
-  'california': 'CA',
-  'colorado': 'CO',
-  'connecticut': 'CT',
-  'delaware': 'DE',
-  'florida': 'FL',
-  'georgia': 'GA',
-  'hawaii': 'HI',
-  'idaho': 'ID',
-  'illinois': 'IL',
-  'indiana': 'IN',
-  'iowa': 'IA',
-  'kansas': 'KS',
-  'kentucky': 'KY',
-  'louisiana': 'LA',
-  'maine': 'ME',
-  'maryland': 'MD',
-  'massachusetts': 'MA',
-  'michigan': 'MI',
-  'minnesota': 'MN',
-  'mississippi': 'MS',
-  'missouri': 'MO',
-  'montana': 'MT',
-  'nebraska': 'NE',
-  'nevada': 'NV',
-  'new hampshire': 'NH',
-  'new jersey': 'NJ',
-  'new mexico': 'NM',
-  'new york': 'NY',
-  'north carolina': 'NC',
-  'north dakota': 'ND',
-  'ohio': 'OH',
-  'oklahoma': 'OK',
-  'oregon': 'OR',
-  'pennsylvania': 'PA',
-  'rhode island': 'RI',
-  'south carolina': 'SC',
-  'south dakota': 'SD',
-  'tennessee': 'TN',
-  'texas': 'TX',
-  'utah': 'UT',
-  'vermont': 'VT',
-  'virginia': 'VA',
-  'washington': 'WA',
-  'west virginia': 'WV',
-  'wisconsin': 'WI',
-  'wyoming': 'WY',
+  alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA', colorado: 'CO',
+  connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA', hawaii: 'HI', idaho: 'ID',
+  illinois: 'IL', indiana: 'IN', iowa: 'IA', kansas: 'KS', kentucky: 'KY', louisiana: 'LA',
+  maine: 'ME', maryland: 'MD', massachusetts: 'MA', michigan: 'MI', minnesota: 'MN',
+  mississippi: 'MS', missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV',
+  'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+  'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH', oklahoma: 'OK', oregon: 'OR',
+  pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD',
+  tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT', virginia: 'VA',
+  washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY',
   'district of columbia': 'DC'
 };
 
 const STATE_CODES = [
-  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS',
+  'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY',
+  'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
 
 const SALARY_BANDS = [
@@ -85,48 +49,59 @@ function normalizeStateCode(value: string | null): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const match = trimmed.match(/\\b([A-Z]{2})\\b/);
+  const match = trimmed.match(/\b([A-Z]{2})\b/);
   if (match) {
     return match[1];
   }
-  const lower = trimmed.toLowerCase();
-  return STATE_NAME_TO_CODE[lower] ?? null;
+  return STATE_NAME_TO_CODE[trimmed.toLowerCase()] ?? null;
 }
 
 function buildFilters(req: Request) {
   const params: any[] = [];
-  const clauses: string[] = [];
+  const clauses: string[] = ['is_deleted = false', 'is_approved = true'];
 
   const graduationYears = parseList(req.query.graduationYears);
   if (graduationYears.length) {
     params.push(graduationYears.map((y) => Number(y)));
-    clauses.push(`\"Graduation Year\" = ANY($${params.length}::int[])`);
+    clauses.push(`"Graduation Year" = ANY($${params.length}::int[])`);
   }
 
   const majors = parseList(req.query.majors);
   if (majors.length) {
     params.push(majors);
-    clauses.push(`\"Expected Field of Study\" = ANY($${params.length}::text[])`);
+    clauses.push(`"Expected Field of Study" = ANY($${params.length}::text[])`);
   }
 
   const degreeLevels = parseList(req.query.degreeLevels);
   if (degreeLevels.length) {
     params.push(degreeLevels);
-    clauses.push(`\"Degree Level\" = ANY($${params.length}::text[])`);
+    clauses.push(`"Degree Level" = ANY($${params.length}::text[])`);
+  }
+
+  const tracks = parseList(req.query.tracks);
+  if (tracks.length) {
+    params.push(tracks);
+    clauses.push(`"Track" = ANY($${params.length}::text[])`);
+  }
+
+  const locations = parseList(req.query.locations);
+  if (locations.length) {
+    params.push(locations);
+    clauses.push(`"State" = ANY($${params.length}::text[])`);
   }
 
   const employmentTypes = parseList(req.query.employmentTypes);
   if (employmentTypes.length) {
     const patterns: string[] = [];
-    employmentTypes.forEach((t) => {
-      if (t === 'Full Time') patterns.push('%Job%', '%Employed%');
-      if (t === 'Part Time') patterns.push('%Part%');
-      if (t === 'Internship') patterns.push('%Intern%');
+    employmentTypes.forEach((type) => {
+      if (type === 'Full Time') patterns.push('%Job%', '%Employed%');
+      if (type === 'Part Time') patterns.push('%Part%');
+      if (type === 'Internship') patterns.push('%Intern%');
     });
     if (patterns.length) {
       const orClauses = patterns.map((pattern) => {
         params.push(pattern);
-        return `\"Outcome Type\" ILIKE $${params.length}`;
+        return `"Outcome Type" ILIKE $${params.length}`;
       });
       clauses.push(`(${orClauses.join(' OR ')})`);
     }
@@ -136,7 +111,14 @@ function buildFilters(req: Request) {
   if (search) {
     params.push(`%${search}%`);
     const idx = params.length;
-    clauses.push(`(\"Employer\" ILIKE $${idx} OR \"Job Title\" ILIKE $${idx})`);
+    clauses.push(`(
+      "Employer" ILIKE $${idx}
+      OR "Job Title" ILIKE $${idx}
+      OR "Track" ILIKE $${idx}
+      OR "Expected Field of Study" ILIKE $${idx}
+      OR "City" ILIKE $${idx}
+      OR "State" ILIKE $${idx}
+    )`);
   }
 
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
@@ -148,7 +130,7 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
     const { where, params } = buildFilters(req);
 
     const outcomesResult = await query(
-      `SELECT \"State\", COUNT(*)::int AS count FROM alumni ${where} GROUP BY \"State\"`,
+      `SELECT "State", COUNT(*)::int AS count FROM alumni ${where} GROUP BY "State"`,
       params
     );
 
@@ -160,56 +142,89 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
       }
     });
 
-    const outcomesByState = STATE_CODES.map((code) => ({
-      state: code,
-      value: outcomesMap.get(code) ?? 0
-    }));
-
-    const salaryWhere = where
-      ? `${where} AND \"Base Salary\" IS NOT NULL`
-      : `WHERE \"Base Salary\" IS NOT NULL`;
-    const salaryResult = await query(
-      `SELECT \"Base Salary\" FROM alumni ${salaryWhere}`,
-      params
-    );
-
-    const salaryCounts = SALARY_BANDS.map((band) => ({ name: band.label, value: 0 }));
+    const salaryWhere = `${where} AND "Base Salary" IS NOT NULL`;
+    const salaryResult = await query(`SELECT "Base Salary" FROM alumni ${salaryWhere}`, params);
+    const salaryBands = SALARY_BANDS.map((band) => ({ name: band.label, value: 0 }));
     salaryResult.rows.forEach((row) => {
       const salary = Number(row['Base Salary']);
       if (!Number.isFinite(salary)) return;
-      const bandIndex = SALARY_BANDS.findIndex((band) => {
-        if (band.max == null) return salary >= band.min;
-        return salary >= band.min && salary <= band.max;
-      });
-      if (bandIndex >= 0) {
-        salaryCounts[bandIndex].value += 1;
-      }
+      const target = SALARY_BANDS.findIndex((band) => band.max == null ? salary >= band.min : salary >= band.min && salary <= band.max);
+      if (target >= 0) salaryBands[target].value += 1;
     });
 
-    const companiesWhere = where
-      ? `${where} AND \"Employer\" IS NOT NULL AND \"Employer\" <> ''`
-      : `WHERE \"Employer\" IS NOT NULL AND \"Employer\" <> ''`;
     const companiesResult = await query(
-      `SELECT \"Employer\" AS name, COUNT(*)::int AS value FROM alumni ${companiesWhere} GROUP BY \"Employer\" ORDER BY value DESC LIMIT 10`,
+      `SELECT "Employer" AS name, COUNT(*)::int AS value
+       FROM alumni ${where} AND "Employer" IS NOT NULL AND "Employer" <> ''
+       GROUP BY "Employer"
+       ORDER BY value DESC
+       LIMIT 10`,
       params
     );
 
-    const gradWhere = where
-      ? `${where} AND (\"Outcome Type\" ILIKE '%Graduate%' OR \"Outcome Type\" ILIKE '%Grad%' OR \"Outcome Type\" ILIKE '%School%') AND \"University\" IS NOT NULL AND \"University\" <> ''`
-      : `WHERE (\"Outcome Type\" ILIKE '%Graduate%' OR \"Outcome Type\" ILIKE '%Grad%' OR \"Outcome Type\" ILIKE '%School%') AND \"University\" IS NOT NULL AND \"University\" <> ''`;
     const gradResult = await query(
-      `SELECT \"University\" AS name, COUNT(*)::int AS value FROM alumni ${gradWhere} GROUP BY \"University\" ORDER BY value DESC LIMIT 10`,
+      `SELECT "University" AS name, COUNT(*)::int AS value
+       FROM alumni ${where}
+         AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
+         AND "University" IS NOT NULL AND "University" <> ''
+       GROUP BY "University"
+       ORDER BY value DESC
+       LIMIT 10`,
       params
     );
 
     res.status(200).json({
-      outcomesByState,
-      salaryBands: salaryCounts,
+      outcomesByState: STATE_CODES.map((code) => ({ state: code, value: outcomesMap.get(code) ?? 0 })),
+      salaryBands,
       topCompanies: companiesResult.rows,
       gradAdmissions: gradResult.rows
     });
   } catch (error) {
     console.error('Error fetching dashboard analytics:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard analytics' });
+  }
+};
+
+export const fetchHomeStats = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const [countResult, salaryResult, mentorResult] = await Promise.all([
+      query(`SELECT COUNT(*)::int AS count FROM alumni WHERE is_deleted = false AND is_approved = true`),
+      query(`SELECT COALESCE(AVG("Base Salary"), 0)::float AS average_salary FROM alumni WHERE is_deleted = false AND is_approved = true AND "Base Salary" IS NOT NULL`),
+      query(`SELECT COUNT(*)::int AS count FROM mentorship_directory WHERE is_deleted = false AND is_approved = true AND is_visible = true`)
+    ]);
+
+    res.status(200).json({
+      alumniTracked: Number(countResult.rows[0]?.count ?? 0),
+      averageSalary: Math.round(Number(salaryResult.rows[0]?.average_salary ?? 0)),
+      mentorsAvailable: Number(mentorResult.rows[0]?.count ?? 0)
+    });
+  } catch (error) {
+    console.error('Error fetching home stats:', error);
+    res.status(500).json({ error: 'Failed to fetch home stats' });
+  }
+};
+
+export const fetchAdminSummary = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const [alumniCount, mentorCount, internshipCount, pendingMentors, logs] = await Promise.all([
+      query(`SELECT COUNT(*)::int AS count FROM alumni WHERE is_deleted = false`),
+      query(`SELECT COUNT(*)::int AS count FROM mentorship_directory WHERE is_deleted = false AND is_approved = true AND is_visible = true`),
+      query(`SELECT COUNT(*)::int AS count FROM internships WHERE is_deleted = false AND is_visible = true`),
+      listPendingMentorCandidates(),
+      getAllLogs()
+    ]);
+
+    res.status(200).json({
+      counts: {
+        alumni: Number(alumniCount.rows[0]?.count ?? 0),
+        mentors: Number(mentorCount.rows[0]?.count ?? 0),
+        internships: Number(internshipCount.rows[0]?.count ?? 0),
+        pendingMentors: pendingMentors.length
+      },
+      pendingMentors,
+      recentLogs: logs.slice(0, 10)
+    });
+  } catch (error) {
+    console.error('Error fetching admin summary:', error);
+    res.status(500).json({ error: 'Failed to fetch admin summary' });
   }
 };

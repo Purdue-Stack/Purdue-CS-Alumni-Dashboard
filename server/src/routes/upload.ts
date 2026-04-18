@@ -3,6 +3,7 @@ import multer from 'multer';
 import * as XLSX from 'xlsx';
 import csv from 'csv-parser';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { uploadExcelPreview } from '../controllers/uploadController';
 import { commitUpload } from '../controllers/commitController';
@@ -12,7 +13,7 @@ const router: Router = express.Router();
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '../uploads');
+        const uploadDir = path.join(os.tmpdir(), 'purdue-cs-alumni-dashboard-uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }

@@ -1,7 +1,9 @@
 // Home.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';
+import { fetchHomeStats } from '../api/api';
 
 import salaryImg from '../assets/images/salary.jpg';
 
@@ -11,10 +13,10 @@ import alumni3 from '../assets/images/alumni3.png';
 import alumni4 from '../assets/images/alumni4.png';
 import alumni5 from '../assets/images/alumni5.png';
 
-const stats = [
-  { number: "10,000+", label: "Alumni Tracked" },
-  { number: "$106,000", label: "Average Salary" },
-  { number: "94%", label: "Job Placement" },
+const defaultStats = [
+  { number: "0", label: "Alumni Tracked" },
+  { number: "$0", label: "Average Salary" },
+  { number: "0", label: "Approved Mentors" },
 ];
 
 const explorations = [
@@ -24,12 +26,12 @@ const explorations = [
     image: salaryImg,
     description:
       'Explore the diverse salary ranges our graduates earn across different job titles, industries, and top employers—giving you real insight into the earning potential of a Purdue CS degree.',
-    link: '/salary'
+    link: '/dashboard'
   },
-  { key: 'company', title: 'Company Placements', image: salaryImg, description: 'See where our alumni are working—Big Tech, startups, consulting, and more.', link: '/company' },
-  { key: 'internship', title: 'Internship Placements', image: salaryImg, description: 'Discover top internship destinations that launched careers.', link: '/internship' },
-  { key: 'geographical', title: 'Geographical Data', image: salaryImg, description: 'Visualize where graduates live and work around the world.', link: '/geographical' },
-  { key: 'gradschool', title: 'Graduate School Admissions', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/gradschool' }
+  { key: 'company', title: 'Company Placements', image: salaryImg, description: 'See where our alumni are working—Big Tech, startups, consulting, and more.', link: '/dashboard' },
+  { key: 'internship', title: 'Internship Placements', image: salaryImg, description: 'Discover top internship destinations that launched careers.', link: '/internships' },
+  { key: 'geographical', title: 'Geographical Data', image: salaryImg, description: 'Visualize where graduates live and work around the world.', link: '/dashboard' },
+  { key: 'gradschool', title: 'Graduate School Admissions', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/dashboard' }
 ];
 
 const stories = [
@@ -43,6 +45,7 @@ const stories = [
 
 const Home: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [stats, setStats] = useState(defaultStats);
 
   const [activeExplorationIndex, setActiveExplorationIndex] = useState(0);
   const active = explorations[activeExplorationIndex];
@@ -57,6 +60,26 @@ const Home: React.FC = () => {
     const timer = resetInterval();
     return () => clearInterval(timer);
   }, [resetInterval]);
+
+  useEffect(() => {
+    let active = true;
+    fetchHomeStats()
+      .then((data) => {
+        if (!active) return;
+        setStats([
+          { number: data.alumniTracked.toLocaleString(), label: 'Alumni Tracked' },
+          { number: `$${data.averageSalary.toLocaleString()}`, label: 'Average Salary' },
+          { number: data.mentorsAvailable.toLocaleString(), label: 'Approved Mentors' }
+        ]);
+      })
+      .catch((error) => {
+        console.error('Failed to fetch home stats:', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleNavigation = (direction: 'prev' | 'next') => {
     setCurrentIndex((prevIndex) => {
@@ -126,7 +149,7 @@ const Home: React.FC = () => {
               <span className="hero__subtitle">Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
             </h1>
             <div className="hero__buttons">
-              <a className="hero-data-button">
+              <Link to="/dashboard" className="hero-data-button">
                 EXPLORE DATA
                 <svg 
                   className="hero-data-button__arrow" 
@@ -144,8 +167,8 @@ const Home: React.FC = () => {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
-              <a className="hero-data-button hero-data-button--white">
+              </Link>
+              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white">
                 LEARN MORE
                 <svg 
                   className="hero-data-button__arrow" 
@@ -163,7 +186,7 @@ const Home: React.FC = () => {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
           <div className="hero__right">
@@ -290,7 +313,7 @@ const Home: React.FC = () => {
               <div className="exploration__details-info">
                 <h3>{active.title}</h3>
                 <p>{active.description}</p>
-                <a className="hero-data-button">
+                <Link to={active.link} className="hero-data-button">
                   EXPLORE
                   <svg
                     className="hero-data-button__arrow"
@@ -308,7 +331,7 @@ const Home: React.FC = () => {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </a>
+                </Link>
               </div>
             </div>
           </div>

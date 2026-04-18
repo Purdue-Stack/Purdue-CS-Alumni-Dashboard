@@ -3,3 +3,18 @@ node_modules/
 .env
 dist/
 build/
+.vercel
+
+# Nested env files, but keep committed examples
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Python virtual environments and caches
+.pdfenv/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/

@@ -108,6 +108,7 @@ const defaultOutcomesData = [
 ];
 
 const Dashboard: React.FC = () => {
+  type BarChartDatum = { name: string; value: number };
   const [selectedDataView, setSelectedDataView] = useState('Outcomes');
   const [searchTerm, setSearchTerm] = useState('');
   const [salaryData, setSalaryData] = useState(defaultSalaryData);
@@ -120,12 +121,16 @@ const Dashboard: React.FC = () => {
   const [majorFilters, setMajorFilters] = useState<string[]>([]);
   const [degreeLevelFilters, setDegreeLevelFilters] = useState<string[]>([]);
   const [employmentTypeFilters, setEmploymentTypeFilters] = useState<string[]>([]);
+  const [trackFilters, setTrackFilters] = useState<string[]>([]);
+  const [locationFilters, setLocationFilters] = useState<string[]>([]);
 
   // Applied filter states (only updated when FILTER button is clicked)
   const [appliedGraduationYearFilters, setAppliedGraduationYearFilters] = useState<string[]>([]);
   const [appliedMajorFilters, setAppliedMajorFilters] = useState<string[]>([]);
   const [appliedDegreeLevelFilters, setAppliedDegreeLevelFilters] = useState<string[]>([]);
   const [appliedEmploymentTypeFilters, setAppliedEmploymentTypeFilters] = useState<string[]>([]);
+  const [appliedTrackFilters, setAppliedTrackFilters] = useState<string[]>([]);
+  const [appliedLocationFilters, setAppliedLocationFilters] = useState<string[]>([]);
 
   // Scroll state for blur effects
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -145,13 +150,15 @@ const Dashboard: React.FC = () => {
       setCanScrollLeft(filterContainer.scrollLeft > 0);
       setCanScrollRight(filterContainer.scrollLeft + 2 < filterContainer.scrollWidth - filterContainer.clientWidth);
     }
-  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters, appliedEmploymentTypeFilters]);
+  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters, appliedEmploymentTypeFilters, appliedTrackFilters, appliedLocationFilters]);
 
   const applyFilters = () => {
     setAppliedGraduationYearFilters([...graduationYearFilters]);
     setAppliedMajorFilters([...majorFilters]);
     setAppliedDegreeLevelFilters([...degreeLevelFilters]);
     setAppliedEmploymentTypeFilters([...employmentTypeFilters]);
+    setAppliedTrackFilters([...trackFilters]);
+    setAppliedLocationFilters([...locationFilters]);
   };
 
   const removeFilterTag = (category: string, value: string) => {
@@ -176,6 +183,16 @@ const Dashboard: React.FC = () => {
         setAppliedEmploymentTypeFilters(newEmployment);
         setEmploymentTypeFilters(newEmployment);
         break;
+      case 'Track':
+        const newTracks = appliedTrackFilters.filter(item => item !== value);
+        setAppliedTrackFilters(newTracks);
+        setTrackFilters(newTracks);
+        break;
+      case 'Location':
+        const newLocations = appliedLocationFilters.filter(item => item !== value);
+        setAppliedLocationFilters(newLocations);
+        setLocationFilters(newLocations);
+        break;
     }
   };
 
@@ -184,15 +201,19 @@ const Dashboard: React.FC = () => {
     setMajorFilters([]);
     setDegreeLevelFilters([]);
     setEmploymentTypeFilters([]);
+    setTrackFilters([]);
+    setLocationFilters([]);
     setAppliedGraduationYearFilters([]);
     setAppliedMajorFilters([]);
     setAppliedDegreeLevelFilters([]);
     setAppliedEmploymentTypeFilters([]);
+    setAppliedTrackFilters([]);
+    setAppliedLocationFilters([]);
     setSearchTerm('');
   };
 
   // Get data and title based on selected view
-  const getChartData = () => {
+  const getChartData = (): BarChartDatum[] => {
     switch (selectedDataView) {
       case 'Salary':
         return salaryData;
@@ -201,7 +222,7 @@ const Dashboard: React.FC = () => {
       case 'Grad Admissions':
         return admissionsData;
       default:
-        return outcomesData;
+        return salaryData;
     }
   };
 
@@ -229,6 +250,8 @@ const Dashboard: React.FC = () => {
           majors: appliedMajorFilters,
           degreeLevels: appliedDegreeLevelFilters,
           employmentTypes: appliedEmploymentTypeFilters,
+          tracks: appliedTrackFilters,
+          locations: appliedLocationFilters,
           search: searchTerm
         });
         if (!isMounted) return;
@@ -250,6 +273,8 @@ const Dashboard: React.FC = () => {
     appliedMajorFilters,
     appliedDegreeLevelFilters,
     appliedEmploymentTypeFilters,
+    appliedTrackFilters,
+    appliedLocationFilters,
     searchTerm
   ]);
 
@@ -288,6 +313,18 @@ const Dashboard: React.FC = () => {
           options={['Full Time', 'Part Time', 'Internship']}
           selectedOptions={employmentTypeFilters}
           onSelectionChange={setEmploymentTypeFilters}
+        />
+        <FilterCard
+          title="Track"
+          options={['CS', 'Data Science', 'Artificial Intelligence', 'Software', 'Systems']}
+          selectedOptions={trackFilters}
+          onSelectionChange={setTrackFilters}
+        />
+        <FilterCard
+          title="Location"
+          options={['CA', 'IL', 'IN', 'MA', 'NY', 'TX', 'WA']}
+          selectedOptions={locationFilters}
+          onSelectionChange={setLocationFilters}
         />
         <div style={{ display: 'flex', gap: 10 }}>
           <a 
@@ -430,7 +467,9 @@ const Dashboard: React.FC = () => {
         {((appliedGraduationYearFilters.length > 0 && appliedGraduationYearFilters.length < 5) || 
           (appliedMajorFilters.length > 0 && appliedMajorFilters.length < 3) || 
           (appliedDegreeLevelFilters.length > 0 && appliedDegreeLevelFilters.length < 3) || 
-          (appliedEmploymentTypeFilters.length > 0 && appliedEmploymentTypeFilters.length < 3)) && (
+          (appliedEmploymentTypeFilters.length > 0 && appliedEmploymentTypeFilters.length < 3) ||
+          (appliedTrackFilters.length > 0 && appliedTrackFilters.length < 5) ||
+          (appliedLocationFilters.length > 0 && appliedLocationFilters.length < 7)) && (
           <div style={{
             position: 'relative',
             marginTop: -14,
@@ -527,6 +566,32 @@ const Dashboard: React.FC = () => {
                       key={`employment-${employment}`}
                       value={employment}
                       onRemove={() => removeFilterTag('Employment Type', employment)}
+                    />
+                  ))}
+                </>
+              )}
+
+              {appliedTrackFilters.length > 0 && appliedTrackFilters.length < 5 && (
+                <>
+                  <CategoryLabel category="Track" />
+                  {appliedTrackFilters.map((track) => (
+                    <FilterTag
+                      key={`track-${track}`}
+                      value={track}
+                      onRemove={() => removeFilterTag('Track', track)}
+                    />
+                  ))}
+                </>
+              )}
+
+              {appliedLocationFilters.length > 0 && appliedLocationFilters.length < 7 && (
+                <>
+                  <CategoryLabel category="Location" />
+                  {appliedLocationFilters.map((location) => (
+                    <FilterTag
+                      key={`location-${location}`}
+                      value={location}
+                      onRemove={() => removeFilterTag('Location', location)}
                     />
                   ))}
                 </>
