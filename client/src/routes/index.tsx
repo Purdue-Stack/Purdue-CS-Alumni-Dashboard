@@ -8,7 +8,6 @@ import AdminAlumniTable from '../pages/AdminAlumniTable';
 import Dashboard from '../pages/Dashboard';
 import AlumniDirectory from '../pages/AlumniDirectory';
 import MentorExplorer from '../pages/MentorExplorer';
-import AdminAnalytics from '../pages/AdminAnalytics';
 import AdminMentorApprovals from '../pages/AdminMentorApprovals';
 import { appBasePath } from '../config/runtime';
 
@@ -57,10 +56,6 @@ export const router = createBrowserRouter([
           {
             path: 'mentor-approvals',
             element: <AdminMentorApprovals />,
-          },
-          {
-            path: 'analytics',
-            element: <AdminAnalytics />,
           }
         ]
       }

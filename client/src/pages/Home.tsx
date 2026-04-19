@@ -1,5 +1,5 @@
 // Home.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';
@@ -7,11 +7,6 @@ import { fetchHomeStats } from '../api/api';
 
 import salaryImg from '../assets/images/salary.jpg';
 
-import alumni1 from '../assets/images/alumni1.png';
-import alumni2 from '../assets/images/alumni2.png';
-import alumni3 from '../assets/images/alumni3.png';
-import alumni4 from '../assets/images/alumni4.png';
-import alumni5 from '../assets/images/alumni5.png';
 
 const defaultStats = [
   { number: "0", label: "Alumni Tracked" },
@@ -34,16 +29,19 @@ const explorations = [
   { key: 'gradschool', title: 'Graduate School', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/dashboard?tab=Graduate%20School&graph=0' }
 ];
 
-const stories = [
-  { name: 'Brody Smith', company: 'Google DeepMind', img: alumni1, link: '/alumni/brody' },
-  { name: 'Jamie Lee', company: 'Microsoft Research', img: alumni2, link: '/alumni/jamie' },
-  { name: 'Priya Patel', company: 'Amazon', img: alumni3, link: '/alumni/priya' },
-  { name: 'Carlos Ruiz', company: 'Tesla', img: alumni4, link: '/alumni/carlos' },
-  { name: 'Emily Chen', company: 'Meta', img: alumni5, link: '/alumni/emily' }
-];
+// const stories = [
+//   { name: 'Brody Smith', company: 'Google DeepMind', img: alumni1, link: '/alumni/brody' },
+//   { name: 'Jamie Lee', company: 'Microsoft Research', img: alumni2, link: '/alumni/jamie' },
+//   { name: 'Priya Patel', company: 'Amazon', img: alumni3, link: '/alumni/priya' },
+//   { name: 'Carlos Ruiz', company: 'Tesla', img: alumni4, link: '/alumni/carlos' },
+//   { name: 'Emily Chen', company: 'Meta', img: alumni5, link: '/alumni/emily' }
+// ];
 
 
 const Home: React.FC = () => {
+  const explorationBackground = '#CFB991';
+  const explorationAccent = '#2D2926';
+  const explorationText = '#2D2926';
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stats, setStats] = useState(defaultStats);
 
@@ -90,41 +88,41 @@ const Home: React.FC = () => {
     });
   };
 
-  const alumniGridRef = useRef<HTMLDivElement>(null);
+  // const alumniGridRef = useRef<HTMLDivElement>(null);
 
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  // const [canScrollLeft, setCanScrollLeft] = useState(false);
+  // const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const updateScrollButtons = useCallback(() => {
-    if (alumniGridRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = alumniGridRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
-    }
-  }, []);
+  // const updateScrollButtons = useCallback(() => {
+  //   if (alumniGridRef.current) {
+  //     const { scrollLeft, scrollWidth, clientWidth } = alumniGridRef.current;
+  //     setCanScrollLeft(scrollLeft > 0);
+  //     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    updateScrollButtons();
-    const grid = alumniGridRef.current;
-    if (!grid) return;
-    grid.addEventListener('scroll', updateScrollButtons);
-    window.addEventListener('resize', updateScrollButtons);
-    return () => {
-      grid.removeEventListener('scroll', updateScrollButtons);
-      window.removeEventListener('resize', updateScrollButtons);
-    };
-  }, [updateScrollButtons]);
+  // useEffect(() => {
+  //   updateScrollButtons();
+  //   const grid = alumniGridRef.current;
+  //   if (!grid) return;
+  //   grid.addEventListener('scroll', updateScrollButtons);
+  //   window.addEventListener('resize', updateScrollButtons);
+  //   return () => {
+  //     grid.removeEventListener('scroll', updateScrollButtons);
+  //     window.removeEventListener('resize', updateScrollButtons);
+  //   };
+  // }, [updateScrollButtons]);
 
-  const scrollAlumni = (direction: "left" | "right") => {
-    if (alumniGridRef.current) {
-      const card = alumniGridRef.current.querySelector('.story-card');
-      const cardWidth = card ? (card as HTMLElement).offsetWidth + 32 : 340;
-      alumniGridRef.current.scrollBy({
-        left: direction === "right" ? cardWidth : -cardWidth,
-        behavior: "smooth",
-      });
-    }
-  };
+  // const scrollAlumni = (direction: "left" | "right") => {
+  //   if (alumniGridRef.current) {
+  //     const card = alumniGridRef.current.querySelector('.story-card');
+  //     const cardWidth = card ? (card as HTMLElement).offsetWidth + 32 : 340;
+  //     alumniGridRef.current.scrollBy({
+  //       left: direction === "right" ? cardWidth : -cardWidth,
+  //       behavior: "smooth",
+  //     });
+  //   }
+  // };
 
   return (
     <div className="page">
@@ -149,7 +147,7 @@ const Home: React.FC = () => {
               <span className="hero__subtitle">Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
             </h1>
             <div className="hero__buttons">
-              <Link to="/dashboard" className="hero-data-button">
+              <Link to="/dashboard" className="hero-data-button" style={{ textDecoration: 'none' }}>
                 EXPLORE DATA
                 <svg 
                   className="hero-data-button__arrow" 
@@ -168,7 +166,7 @@ const Home: React.FC = () => {
                   />
                 </svg>
               </Link>
-              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white">
+              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none' }}>
                 RESOURCES
                 <svg 
                   className="hero-data-button__arrow" 
@@ -264,10 +262,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-      <section className="exploration">
+      <section className="exploration" style={{ background: explorationBackground }}>
         <div className="exploration__content">
           <div className="exploration__twocol">
-            <div className="exploration__list">
+            <div className="exploration__list" style={{ borderRight: `2px solid ${explorationAccent}` }}>
               <div
                 className="exploration__triangle-separator"
                 aria-hidden="true"
@@ -276,22 +274,21 @@ const Home: React.FC = () => {
                 <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <polygon
                     points="0,0 48,32 0,64"
-                    fill="black"
-                    stroke="#fff"
+                    fill="#CFB991"
+                    stroke={explorationAccent}
                     strokeWidth="4"
                     strokeLinejoin="round"
                   />
-                  {/* Overlay a red line on the left edge to hide the white border */}
                   <polyline
                     points="0,0 0,64"
-                    stroke="black"
+                    stroke="#CFB991"
                     strokeWidth="6"
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
-              <div className="hero__tag exploration__tag">
-                <span className="hero__tag-text">CHOOSE EXPLORATION</span>
+              <div className="hero__tag exploration__tag" style={{ background: '#2D2926' }}>
+                <span className="hero__tag-text" style={{ color: '#fff' }}>CHOOSE EXPLORATION</span>
               </div>
               {explorations.map((exp, idx) => (
                 <button
@@ -299,6 +296,10 @@ const Home: React.FC = () => {
                   className={`exploration__list-item${activeExplorationIndex === idx ? ' active' : ''}`}
                   onClick={() => setActiveExplorationIndex(idx)}
                   type="button"
+                  style={{
+                    color: explorationText,
+                    textDecorationColor: '#2D2926'
+                  }}
                 >
                   {exp.title}
                 </button>
@@ -311,9 +312,9 @@ const Home: React.FC = () => {
                 className="exploration__details-image"
               />
               <div className="exploration__details-info">
-                <h3>{active.title}</h3>
-                <p>{active.description}</p>
-                <Link to={active.link} className="hero-data-button">
+                <h3 style={{ color: explorationText }}>{active.title}</h3>
+                <p style={{ color: explorationText }}>{active.description}</p>
+                <Link to={active.link} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none' }}>
                   EXPLORE
                   <svg
                     className="hero-data-button__arrow"
@@ -322,13 +323,13 @@ const Home: React.FC = () => {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 5L21 12M21 12L14 19M21 12H3"
+                    >
+                      <path
+                        d="M14 5L21 12M21 12L14 19M21 12H3"
                       stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                     />
                   </svg>
                 </Link>
@@ -337,6 +338,7 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      {/*
       <section className="alumni-stories">
         <div className="alumni-stories__content">
           <div className="hero__tag alumni-stories__tag">
@@ -422,6 +424,7 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      */}
     </div>
   );
 };
