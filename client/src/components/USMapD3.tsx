@@ -10,12 +10,72 @@ interface USMapD3Props {
   data: OutcomesData[];
   width?: number;
   height?: number;
+  tooltipLabel?: string;
+  legendLabel?: string;
+  formatValue?: (value: number) => string;
 }
+
+const STATE_CODE_TO_NAME: Record<string, string> = {
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+  DC: 'District of Columbia'
+};
 
 const USMapD3: React.FC<USMapD3Props> = ({ 
   data, 
   width = 800, 
-  height = 500 
+  height = 500,
+  tooltipLabel = 'Alumni',
+  legendLabel = 'Number of Alumni',
+  formatValue
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -41,20 +101,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
     // Create data map for quick lookup
     const dataMap = new Map<string, number>();
     data.forEach(d => {
-      // Map state abbreviations to full names for matching with GeoJSON
-      const stateNameMap: Record<string, string> = {
-        'CA': 'California',
-        'NY': 'New York',
-        'TX': 'Texas',
-        'WA': 'Washington',
-        'FL': 'Florida',
-        'IL': 'Illinois',
-        'MA': 'Massachusetts',
-        'OH': 'Ohio',
-        'PA': 'Pennsylvania',
-        'IN': 'Indiana'
-      };
-      const fullName = stateNameMap[d.state] || d.state;
+      const fullName = STATE_CODE_TO_NAME[d.state] || d.state;
       dataMap.set(fullName, d.value);
     });
 
@@ -113,7 +160,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
               .duration(200)
               .style('opacity', 1);
 
-            tooltip.html(`<strong>${stateName}</strong><br/>Alumni: ${value}`)
+            tooltip.html(`<strong>${stateName}</strong><br/>${tooltipLabel}: ${formatValue ? formatValue(value) : value}`)
               .style('left', (event.pageX + 10) + 'px')
               .style('top', (event.pageY - 10) + 'px');
           }
@@ -184,8 +231,8 @@ const USMapD3: React.FC<USMapD3Props> = ({
         .style('font-family', 'Acumin Pro')
         .style('font-size', '12px')
         .style('fill', '#333')
-        .text('Number of Alumni');
-    }).catch(error => {
+        .text(legendLabel);
+    }).catch((error: unknown) => {
       console.error('Error loading US states data:', error);
     });
 
@@ -193,7 +240,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
     return () => {
       d3.select('.tooltip').remove();
     };
-  }, [data, width, height]);
+  }, [data, width, height, tooltipLabel, legendLabel, formatValue]);
 
   return (
     <div style={{ 

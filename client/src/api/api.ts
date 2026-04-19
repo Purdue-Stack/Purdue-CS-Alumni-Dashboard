@@ -4,18 +4,24 @@ import { apiBaseUrl } from '../config/runtime';
 const api = axios.create({ baseURL: apiBaseUrl });
 
 export type DashboardAnalyticsResponse = {
-  outcomesByState: { state: string; value: number }[];
-  salaryBands: { name: string; value: number }[];
-  topCompanies: { name: string; value: number }[];
-  gradAdmissions: { name: string; value: number }[];
+  outcomeBreakdown: { name: string; value: number }[];
+  salaryHistogram: { name: string; value: number }[];
+  salaryByRegion: { state: string; value: number }[];
+  jobPlacementsByRegion: { state: string; value: number }[];
+  topPlacementFocus: { name: string; value: number }[];
+  topPlacementsTop10: { name: string; value: number }[];
+  gradAdmissionsByRegion: { state: string; value: number }[];
+  gradAdmissionsFocus: { name: string; value: number }[];
+  gradAdmissionsTop10: { name: string; value: number }[];
   internshipConversions: { name: string; value: number }[];
+  internshipPlacementFocus: { name: string; value: number }[];
+  internshipPlacementsTop10: { name: string; value: number }[];
 };
 
 export type DashboardAnalyticsParams = {
   graduationYears?: string[];
   majors?: string[];
   degreeLevels?: string[];
-  employmentTypes?: string[];
   tracks?: string[];
   locations?: string[];
   search?: string;
@@ -196,7 +202,6 @@ export const fetchDashboardAnalytics = async (
       graduationYears: params.graduationYears?.join(','),
       majors: params.majors?.join(','),
       degreeLevels: params.degreeLevels?.join(','),
-      employmentTypes: params.employmentTypes?.join(','),
       tracks: params.tracks?.join(','),
       locations: params.locations?.join(','),
       search: params.search

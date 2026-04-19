@@ -5,6 +5,7 @@ type FilterCardProps = {
   options: string[];
   selectedOptions: string[];
   onSelectionChange: (options: string[]) => void;
+  disabled?: boolean;
 };
 
 export const CustomRadio = ({ checked, onChange, label }: { 
@@ -99,7 +100,7 @@ export const CustomCheckbox = ({ checked, onChange, label, fontWeight }: {
   </div>
 );
 
-export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selectedOptions, onSelectionChange }) => {
+export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selectedOptions, onSelectionChange, disabled = false }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   const handleOptionToggle = (option: string) => {
@@ -120,9 +121,14 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
       minWidth: 0,
       maxWidth: 'none',
       overflow: 'hidden',
+      opacity: disabled ? 0.55 : 1,
     }}>
       <div 
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={() => {
+          if (!disabled) {
+            setIsCollapsed(!isCollapsed);
+          }
+        }}
         style={{
           padding: '15px 20px',
           margin: 0,
@@ -131,7 +137,7 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
           fontSize: 19,
           textTransform: 'capitalize',
           color: 'black',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -160,7 +166,7 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
         </div>
       </div>
       <div style={{
-        maxHeight: isCollapsed ? '0px' : '400px',
+        maxHeight: isCollapsed || disabled ? '0px' : '400px',
         overflow: 'hidden',
         transition: 'max-height 0.3s ease-in-out',
       }}>

@@ -43,6 +43,32 @@ const INTERNSHIP_CONVERSION_LABELS = {
   noRecordedJob: 'No Recorded Job Outcome'
 } as const;
 
+const TOP_PLACEMENT_COMPANIES = [
+  'Google',
+  'Amazon',
+  'Apple',
+  'Meta',
+  'Microsoft',
+  'Netflix',
+  'NVIDIA',
+  'Jane Street',
+  'Citadel',
+  'Two Sigma'
+] as const;
+
+const TOP_GRAD_SCHOOLS = [
+  'Stanford University',
+  'Massachusetts Institute of Technology',
+  'Carnegie Mellon University',
+  'University of California, Berkeley',
+  'Georgia Institute of Technology',
+  'Harvard University',
+  'Princeton University',
+  'Cornell University',
+  'University of Illinois Urbana-Champaign',
+  'University of Michigan'
+] as const;
+
 function parseList(value: unknown): string[] {
   if (!value) return [];
   if (Array.isArray(value)) {
@@ -78,6 +104,22 @@ function isInternshipOutcome(value: string | null): boolean {
 
 function isJobOutcome(value: string | null): boolean {
   return !!value && /(job|employed)/i.test(value);
+}
+
+function buildStateSeries(rows: Array<Record<string, unknown>>) {
+  const outcomesMap = new Map<string, number>();
+  rows.forEach((row) => {
+    const code = normalizeStateCode(String(row.state ?? row.State ?? row['State'] ?? ''));
+    if (code) {
+      outcomesMap.set(code, (outcomesMap.get(code) ?? 0) + Number(row.value ?? row.count ?? 0));
+    }
+  });
+
+  return STATE_CODES.map((code) => ({ state: code, value: outcomesMap.get(code) ?? 0 }));
+}
+
+function orderedSeriesFromMap(names: readonly string[], counts: Map<string, number>) {
+  return names.map((name) => ({ name, value: counts.get(name) ?? 0 }));
 }
 
 type BuildFilterOptions = {
@@ -142,10 +184,13 @@ function buildFilters(req: Request, options: BuildFilterOptions = {}) {
     params.push(`%${search}%`);
     const idx = params.length;
     clauses.push(`(
-      "Employer" ILIKE $${idx}
+      "First Name" ILIKE $${idx}
+      OR "Last Name" ILIKE $${idx}
+      OR "Employer" ILIKE $${idx}
       OR "Job Title" ILIKE $${idx}
       OR "Track" ILIKE $${idx}
       OR "Expected Field of Study" ILIKE $${idx}
+      OR "University" ILIKE $${idx}
       OR "City" ILIKE $${idx}
       OR "State" ILIKE $${idx}
     )`);
@@ -259,21 +304,133 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
   try {
     const { where, params } = buildFilters(req);
 
-    const [outcomesResult, internshipConversions] = await Promise.all([
-      query(`SELECT "State", COUNT(*)::int AS count FROM alumni ${where} GROUP BY "State"`, params),
+    const salaryWhere = `${where} AND "Base Salary" IS NOT NULL`;
+
+    const [
+      outcomeBreakdownResult,
+      salaryResult,
+      salaryByRegionResult,
+      jobPlacementsByRegionResult,
+      topPlacementsFocusResult,
+      topPlacementsTopTenResult,
+      gradAdmissionsByRegionResult,
+      gradAdmissionsFocusResult,
+      gradAdmissionsTopTenResult,
+      internshipPlacementFocusResult,
+      internshipPlacementsTopTenResult,
+      internshipConversions
+    ] = await Promise.all([
+      query(
+        `SELECT
+           CASE
+             WHEN "Outcome Type" ILIKE '%Intern%' THEN 'Internship'
+             WHEN "Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%' THEN 'Job'
+             WHEN "Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%' THEN 'Graduate School'
+             ELSE 'Other'
+           END AS name,
+           COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+         GROUP BY 1
+         ORDER BY value DESC`,
+        params
+      ),
+      query(`SELECT "Base Salary" FROM alumni ${salaryWhere}`, params),
+      query(
+        `SELECT "State" AS state, ROUND(AVG("Base Salary"))::int AS value
+         FROM alumni
+         ${salaryWhere}
+         GROUP BY "State"`,
+        params
+      ),
+      query(
+        `SELECT "State" AS state, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')
+         GROUP BY "State"`,
+        params
+      ),
+      query(
+        `SELECT "Employer" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')
+           AND "Employer" IS NOT NULL
+           AND "Employer" <> ''
+           AND "Employer" = ANY($${params.length + 1}::text[])
+         GROUP BY "Employer"`,
+        [...params, TOP_PLACEMENT_COMPANIES]
+      ),
+      query(
+        `SELECT "Employer" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')
+           AND "Employer" IS NOT NULL
+           AND "Employer" <> ''
+         GROUP BY "Employer"
+         ORDER BY value DESC, name ASC
+         LIMIT 10`,
+        params
+      ),
+      query(
+        `SELECT "State" AS state, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
+         GROUP BY "State"`,
+        params
+      ),
+      query(
+        `SELECT "University" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
+           AND "University" IS NOT NULL
+           AND "University" <> ''
+           AND "University" = ANY($${params.length + 1}::text[])
+         GROUP BY "University"`,
+        [...params, TOP_GRAD_SCHOOLS]
+      ),
+      query(
+        `SELECT "University" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
+           AND "University" IS NOT NULL
+           AND "University" <> ''
+         GROUP BY "University"
+         ORDER BY value DESC, name ASC
+         LIMIT 10`,
+        params
+      ),
+      query(
+        `SELECT "Employer" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND "Outcome Type" ILIKE '%Intern%'
+           AND "Employer" IS NOT NULL
+           AND "Employer" <> ''
+           AND "Employer" = ANY($${params.length + 1}::text[])
+         GROUP BY "Employer"`,
+        [...params, TOP_PLACEMENT_COMPANIES]
+      ),
+      query(
+        `SELECT "Employer" AS name, COUNT(*)::int AS value
+         FROM alumni
+         ${where}
+           AND "Outcome Type" ILIKE '%Intern%'
+           AND "Employer" IS NOT NULL
+           AND "Employer" <> ''
+         GROUP BY "Employer"
+         ORDER BY value DESC, name ASC
+         LIMIT 10`,
+        params
+      ),
       buildInternshipConversionData(req)
     ]);
 
-    const outcomesMap = new Map<string, number>();
-    outcomesResult.rows.forEach((row) => {
-      const code = normalizeStateCode(row.State ?? row['State']);
-      if (code) {
-        outcomesMap.set(code, (outcomesMap.get(code) ?? 0) + Number(row.count));
-      }
-    });
-
-    const salaryWhere = `${where} AND "Base Salary" IS NOT NULL`;
-    const salaryResult = await query(`SELECT "Base Salary" FROM alumni ${salaryWhere}`, params);
     const salaryBands = SALARY_BANDS.map((band) => ({ name: band.label, value: 0 }));
     salaryResult.rows.forEach((row) => {
       const salary = Number(row['Base Salary']);
@@ -282,32 +439,34 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
       if (target >= 0) salaryBands[target].value += 1;
     });
 
-    const companiesResult = await query(
-      `SELECT "Employer" AS name, COUNT(*)::int AS value
-       FROM alumni ${where} AND "Employer" IS NOT NULL AND "Employer" <> ''
-       GROUP BY "Employer"
-       ORDER BY value DESC
-       LIMIT 10`,
-      params
-    );
+    const placementFocusMap = new Map<string, number>();
+    topPlacementsFocusResult.rows.forEach((row) => {
+      placementFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
+    });
 
-    const gradResult = await query(
-      `SELECT "University" AS name, COUNT(*)::int AS value
-       FROM alumni ${where}
-         AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
-         AND "University" IS NOT NULL AND "University" <> ''
-       GROUP BY "University"
-       ORDER BY value DESC
-       LIMIT 10`,
-      params
-    );
+    const gradFocusMap = new Map<string, number>();
+    gradAdmissionsFocusResult.rows.forEach((row) => {
+      gradFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
+    });
+
+    const internshipFocusMap = new Map<string, number>();
+    internshipPlacementFocusResult.rows.forEach((row) => {
+      internshipFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
+    });
 
     res.status(200).json({
-      outcomesByState: STATE_CODES.map((code) => ({ state: code, value: outcomesMap.get(code) ?? 0 })),
-      salaryBands,
-      topCompanies: companiesResult.rows,
-      gradAdmissions: gradResult.rows,
-      internshipConversions
+      outcomeBreakdown: outcomeBreakdownResult.rows,
+      salaryHistogram: salaryBands,
+      salaryByRegion: buildStateSeries(salaryByRegionResult.rows),
+      jobPlacementsByRegion: buildStateSeries(jobPlacementsByRegionResult.rows),
+      topPlacementFocus: orderedSeriesFromMap(TOP_PLACEMENT_COMPANIES, placementFocusMap),
+      topPlacementsTop10: topPlacementsTopTenResult.rows,
+      gradAdmissionsByRegion: buildStateSeries(gradAdmissionsByRegionResult.rows),
+      gradAdmissionsFocus: orderedSeriesFromMap(TOP_GRAD_SCHOOLS, gradFocusMap),
+      gradAdmissionsTop10: gradAdmissionsTopTenResult.rows,
+      internshipConversions,
+      internshipPlacementFocus: orderedSeriesFromMap(TOP_PLACEMENT_COMPANIES, internshipFocusMap),
+      internshipPlacementsTop10: internshipPlacementsTopTenResult.rows
     });
   } catch (error) {
     console.error('Error fetching dashboard analytics:', error);
