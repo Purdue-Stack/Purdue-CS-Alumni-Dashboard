@@ -61,7 +61,7 @@ export const CustomCheckbox = ({ checked, onChange, label, fontWeight }: {
     onClick={onChange}
     style={{
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       cursor: 'pointer',
     }}
   >
@@ -72,6 +72,8 @@ export const CustomCheckbox = ({ checked, onChange, label, fontWeight }: {
         width: 18,
         height: 18,
         marginRight: 8,
+        marginTop: 1,
+        flexShrink: 0,
         border: `2px solid ${checked ? '#8E6F3E' : '#d1d5db'}`,
         borderRadius: 4,
         background: 'transparent',
@@ -93,23 +95,13 @@ export const CustomCheckbox = ({ checked, onChange, label, fontWeight }: {
       }}
     />
     </div>
-    <span style={{ fontSize: 14, fontWeight: fontWeight || 400 }}>{label}</span>
+    <span style={{ fontSize: 14, fontWeight: fontWeight || 400, lineHeight: 1.35, wordBreak: 'break-word' }}>{label}</span>
   </div>
 );
 
 export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selectedOptions, onSelectionChange }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  
-  const allOptionsSelected = selectedOptions.length === options.length;
-  
-  const handleAllToggle = () => {
-    if (allOptionsSelected) {
-      onSelectionChange([]);
-    } else {
-      onSelectionChange([...options]);
-    }
-  };
-  
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   const handleOptionToggle = (option: string) => {
     if (selectedOptions.includes(option)) {
       onSelectionChange(selectedOptions.filter(item => item !== option));
@@ -124,9 +116,9 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
       borderRadius: 8,
       border: '1px solid #C4BFC0',
       padding: 0,
-      marginBottom: 20,
-      minWidth: 300,
-      maxWidth: 350,
+      width: '100%',
+      minWidth: 0,
+      maxWidth: 'none',
       overflow: 'hidden',
     }}>
       <div 
@@ -172,21 +164,22 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
         overflow: 'hidden',
         transition: 'max-height 0.3s ease-in-out',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '15px 25px' }}>
-          <CustomCheckbox 
-            checked={allOptionsSelected}
-            onChange={handleAllToggle}
-            label={`Select All`}
-            fontWeight={500}
-          />
-          
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 10,
+            padding: '15px 25px'
+          }}
+        >
           {options.map((option, index) => (
-            <CustomCheckbox 
-              key={index}
-              checked={selectedOptions.includes(option)}
-              onChange={() => handleOptionToggle(option)}
-              label={option}
-            />
+            <div key={index} style={{ minWidth: 0 }}>
+              <CustomCheckbox 
+                checked={selectedOptions.includes(option)}
+                onChange={() => handleOptionToggle(option)}
+                label={option}
+              />
+            </div>
           ))}
         </div>
       </div>

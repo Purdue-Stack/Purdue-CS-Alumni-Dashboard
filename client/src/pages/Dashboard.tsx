@@ -129,16 +129,12 @@ const Dashboard: React.FC = () => {
   const [majorFilters, setMajorFilters] = useState<string[]>([]);
   const [degreeLevelFilters, setDegreeLevelFilters] = useState<string[]>([]);
   const [employmentTypeFilters, setEmploymentTypeFilters] = useState<string[]>([]);
-  const [trackFilters, setTrackFilters] = useState<string[]>([]);
-  const [locationFilters, setLocationFilters] = useState<string[]>([]);
 
   // Applied filter states (only updated when FILTER button is clicked)
   const [appliedGraduationYearFilters, setAppliedGraduationYearFilters] = useState<string[]>([]);
   const [appliedMajorFilters, setAppliedMajorFilters] = useState<string[]>([]);
   const [appliedDegreeLevelFilters, setAppliedDegreeLevelFilters] = useState<string[]>([]);
   const [appliedEmploymentTypeFilters, setAppliedEmploymentTypeFilters] = useState<string[]>([]);
-  const [appliedTrackFilters, setAppliedTrackFilters] = useState<string[]>([]);
-  const [appliedLocationFilters, setAppliedLocationFilters] = useState<string[]>([]);
 
   // Scroll state for blur effects
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -158,15 +154,13 @@ const Dashboard: React.FC = () => {
       setCanScrollLeft(filterContainer.scrollLeft > 0);
       setCanScrollRight(filterContainer.scrollLeft + 2 < filterContainer.scrollWidth - filterContainer.clientWidth);
     }
-  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters, appliedEmploymentTypeFilters, appliedTrackFilters, appliedLocationFilters]);
+  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters, appliedEmploymentTypeFilters]);
 
   const applyFilters = () => {
     setAppliedGraduationYearFilters([...graduationYearFilters]);
     setAppliedMajorFilters([...majorFilters]);
     setAppliedDegreeLevelFilters([...degreeLevelFilters]);
     setAppliedEmploymentTypeFilters([...employmentTypeFilters]);
-    setAppliedTrackFilters([...trackFilters]);
-    setAppliedLocationFilters([...locationFilters]);
   };
 
   const removeFilterTag = (category: string, value: string) => {
@@ -191,16 +185,6 @@ const Dashboard: React.FC = () => {
         setAppliedEmploymentTypeFilters(newEmployment);
         setEmploymentTypeFilters(newEmployment);
         break;
-      case 'Track':
-        const newTracks = appliedTrackFilters.filter(item => item !== value);
-        setAppliedTrackFilters(newTracks);
-        setTrackFilters(newTracks);
-        break;
-      case 'Location':
-        const newLocations = appliedLocationFilters.filter(item => item !== value);
-        setAppliedLocationFilters(newLocations);
-        setLocationFilters(newLocations);
-        break;
     }
   };
 
@@ -209,14 +193,10 @@ const Dashboard: React.FC = () => {
     setMajorFilters([]);
     setDegreeLevelFilters([]);
     setEmploymentTypeFilters([]);
-    setTrackFilters([]);
-    setLocationFilters([]);
     setAppliedGraduationYearFilters([]);
     setAppliedMajorFilters([]);
     setAppliedDegreeLevelFilters([]);
     setAppliedEmploymentTypeFilters([]);
-    setAppliedTrackFilters([]);
-    setAppliedLocationFilters([]);
     setSearchTerm('');
   };
 
@@ -262,8 +242,6 @@ const Dashboard: React.FC = () => {
           majors: appliedMajorFilters,
           degreeLevels: appliedDegreeLevelFilters,
           employmentTypes: appliedEmploymentTypeFilters,
-          tracks: appliedTrackFilters,
-          locations: appliedLocationFilters,
           search: searchTerm
         });
         if (!isMounted) return;
@@ -286,8 +264,6 @@ const Dashboard: React.FC = () => {
     appliedMajorFilters,
     appliedDegreeLevelFilters,
     appliedEmploymentTypeFilters,
-    appliedTrackFilters,
-    appliedLocationFilters,
     searchTerm
   ]);
 
@@ -302,7 +278,7 @@ const Dashboard: React.FC = () => {
       </style>
       <div className="dashboard-page" style={{ display: 'flex', width: '100%', minHeight: 400, gap: 32, padding: '20px', position: 'relative' }}>
 
-      <div style={{ flex: '0 0 260px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+      <div style={{ flex: '0 0 260px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 12 }}>
         <FilterCard 
           title="Graduation Year"
           options={['2020', '2021', '2022', '2023', '2024']}
@@ -327,19 +303,7 @@ const Dashboard: React.FC = () => {
           selectedOptions={employmentTypeFilters}
           onSelectionChange={setEmploymentTypeFilters}
         />
-        <FilterCard
-          title="Track"
-          options={['CS', 'Data Science', 'Artificial Intelligence', 'Software', 'Systems']}
-          selectedOptions={trackFilters}
-          onSelectionChange={setTrackFilters}
-        />
-        <FilterCard
-          title="Location"
-          options={['CA', 'IL', 'IN', 'MA', 'NY', 'TX', 'WA']}
-          selectedOptions={locationFilters}
-          onSelectionChange={setLocationFilters}
-        />
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <a 
             className="hero-data-button hero-data-button--border" 
             style={{ width: 130, margin: 0, cursor: 'pointer' }}
@@ -480,9 +444,7 @@ const Dashboard: React.FC = () => {
         {((appliedGraduationYearFilters.length > 0 && appliedGraduationYearFilters.length < 5) || 
           (appliedMajorFilters.length > 0 && appliedMajorFilters.length < 3) || 
           (appliedDegreeLevelFilters.length > 0 && appliedDegreeLevelFilters.length < 3) || 
-          (appliedEmploymentTypeFilters.length > 0 && appliedEmploymentTypeFilters.length < 3) ||
-          (appliedTrackFilters.length > 0 && appliedTrackFilters.length < 5) ||
-          (appliedLocationFilters.length > 0 && appliedLocationFilters.length < 7)) && (
+          (appliedEmploymentTypeFilters.length > 0 && appliedEmploymentTypeFilters.length < 3)) && (
           <div style={{
             position: 'relative',
             marginTop: -14,
@@ -584,31 +546,6 @@ const Dashboard: React.FC = () => {
                 </>
               )}
 
-              {appliedTrackFilters.length > 0 && appliedTrackFilters.length < 5 && (
-                <>
-                  <CategoryLabel category="Track" />
-                  {appliedTrackFilters.map((track) => (
-                    <FilterTag
-                      key={`track-${track}`}
-                      value={track}
-                      onRemove={() => removeFilterTag('Track', track)}
-                    />
-                  ))}
-                </>
-              )}
-
-              {appliedLocationFilters.length > 0 && appliedLocationFilters.length < 7 && (
-                <>
-                  <CategoryLabel category="Location" />
-                  {appliedLocationFilters.map((location) => (
-                    <FilterTag
-                      key={`location-${location}`}
-                      value={location}
-                      onRemove={() => removeFilterTag('Location', location)}
-                    />
-                  ))}
-                </>
-              )}
             </div>
           </div>
         )}

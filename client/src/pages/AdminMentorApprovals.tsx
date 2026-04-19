@@ -25,7 +25,6 @@ const createDraft = (candidate: PendingMentorCandidate): MentorDraft => ({
   isDirectoryVisible: true
 });
 
-const gold = '#CFB991';
 const deepGold = '#9D7A28';
 const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
