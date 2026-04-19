@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -158,9 +159,27 @@ const graphGroups: Record<DashboardTab, GraphDefinition[]> = {
 };
 
 const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
+const dashboardTabs: DashboardTab[] = ["Outcome", "Salary", "Placements", "Graduate School", "Internship"];
+
+function parseDashboardTab(value: string | null): DashboardTab {
+  if (value && dashboardTabs.includes(value as DashboardTab)) {
+    return value as DashboardTab;
+  }
+  return "Outcome";
+}
+
+function parseGraphIndex(value: string | null, max: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed >= max) {
+    return 0;
+  }
+  return parsed;
+}
 
 const Dashboard: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState<DashboardTab>("Outcome");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = parseDashboardTab(searchParams.get("tab"));
+  const [selectedTab, setSelectedTab] = useState<DashboardTab>(initialTab);
   const [searchTerm, setSearchTerm] = useState("");
   const [analyticsData, setAnalyticsData] = useState<DashboardAnalyticsResponse>(defaultAnalyticsData);
 
@@ -182,10 +201,37 @@ const Dashboard: React.FC = () => {
     Internship: 0,
   });
 
-  const dataOptions: DashboardTab[] = ["Outcome", "Salary", "Placements", "Graduate School", "Internship"];
+  const dataOptions: DashboardTab[] = dashboardTabs;
   const currentGraphSet = graphGroups[selectedTab];
   const currentGraphIndex = graphIndices[selectedTab] ?? 0;
   const currentGraph = currentGraphSet[currentGraphIndex];
+
+  React.useEffect(() => {
+    const nextTab = parseDashboardTab(searchParams.get("tab"));
+    const nextGraph = parseGraphIndex(searchParams.get("graph"), graphGroups[nextTab].length);
+
+    setSelectedTab((current) => (current === nextTab ? current : nextTab));
+    setGraphIndices((current) => (
+      current[nextTab] === nextGraph
+        ? current
+        : { ...current, [nextTab]: nextGraph }
+    ));
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    const currentTabParam = searchParams.get("tab");
+    const currentGraphParam = searchParams.get("graph");
+    const nextGraph = String(currentGraphIndex);
+
+    if (currentTabParam === selectedTab && currentGraphParam === nextGraph) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("tab", selectedTab);
+    nextParams.set("graph", nextGraph);
+    setSearchParams(nextParams, { replace: true });
+  }, [currentGraphIndex, searchParams, selectedTab, setSearchParams]);
 
   const handleScrollCheck = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;

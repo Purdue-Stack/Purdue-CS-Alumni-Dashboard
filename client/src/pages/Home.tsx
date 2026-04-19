@@ -22,16 +22,16 @@ const defaultStats = [
 const explorations = [
   {
     key: 'salary',
-    title: 'See Salary Data',
+    title: 'Salary',
     image: salaryImg,
     description:
-      'Explore the diverse salary ranges our graduates earn across different job titles, industries, and top employers—giving you real insight into the earning potential of a Purdue CS degree.',
-    link: '/dashboard'
+      'Explore the diverse salary ranges our graduates earn across different job titles, industries, and employers.',
+    link: '/dashboard?tab=Salary&graph=0'
   },
-  { key: 'company', title: 'Company Placements', image: salaryImg, description: 'See where our alumni are working—Big Tech, startups, consulting, and more.', link: '/dashboard' },
-  { key: 'internship', title: 'Internship Placements', image: salaryImg, description: 'Discover top internship destinations that launched careers.', link: '/alumni-directory?tab=Internship' },
-  { key: 'geographical', title: 'Geographical Data', image: salaryImg, description: 'Visualize where graduates live and work around the world.', link: '/dashboard' },
-  { key: 'gradschool', title: 'Graduate School Admissions', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/dashboard' }
+  { key: 'company', title: 'Placements', image: salaryImg, description: 'See where our alumni are working—Big Tech, startups, consulting, and more.', link: '/dashboard?tab=Placements&graph=0' },
+  { key: 'internship', title: 'Internship', image: salaryImg, description: 'Discover top internship destinations that launched careers.', link: '/dashboard?tab=Internship&graph=0' },
+  { key: 'geographical', title: 'Outcome', image: salaryImg, description: 'Visualize the career outcomes of our alumni.', link: '/dashboard?tab=Outcome&graph=0' },
+  { key: 'gradschool', title: 'Graduate School', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/dashboard?tab=Graduate%20School&graph=0' }
 ];
 
 const stories = [
@@ -169,7 +169,7 @@ const Home: React.FC = () => {
                 </svg>
               </Link>
               <Link to="/alumni-directory" className="hero-data-button hero-data-button--white">
-                LEARN MORE
+                RESOURCES
                 <svg 
                   className="hero-data-button__arrow" 
                   width="24" 
