@@ -37,6 +37,12 @@ const SALARY_BANDS = [
   { label: '150k+', min: 150000, max: null }
 ];
 
+const INTERNSHIP_CONVERSION_LABELS = {
+  sameCompany: 'Converted at Same Company',
+  differentCompany: 'Hired at Different Company',
+  noRecordedJob: 'No Recorded Job Outcome'
+} as const;
+
 function parseList(value: unknown): string[] {
   if (!value) return [];
   if (Array.isArray(value)) {
@@ -56,7 +62,31 @@ function normalizeStateCode(value: string | null): string | null {
   return STATE_NAME_TO_CODE[trimmed.toLowerCase()] ?? null;
 }
 
-function buildFilters(req: Request) {
+function normalizeEmployer(value: string | null): string {
+  return (value ?? '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\b(corporation|corp|incorporated|inc|llc|ltd|co|company|technologies|technology)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isInternshipOutcome(value: string | null): boolean {
+  return !!value && /intern/i.test(value);
+}
+
+function isJobOutcome(value: string | null): boolean {
+  return !!value && /(job|employed)/i.test(value);
+}
+
+type BuildFilterOptions = {
+  includeEmploymentTypes?: boolean;
+  includeSearch?: boolean;
+};
+
+function buildFilters(req: Request, options: BuildFilterOptions = {}) {
+  const { includeEmploymentTypes = true, includeSearch = true } = options;
   const params: any[] = [];
   const clauses: string[] = ['is_deleted = false', 'is_approved = true'];
 
@@ -90,7 +120,7 @@ function buildFilters(req: Request) {
     clauses.push(`"State" = ANY($${params.length}::text[])`);
   }
 
-  const employmentTypes = parseList(req.query.employmentTypes);
+  const employmentTypes = includeEmploymentTypes ? parseList(req.query.employmentTypes) : [];
   if (employmentTypes.length) {
     const patterns: string[] = [];
     employmentTypes.forEach((type) => {
@@ -107,7 +137,7 @@ function buildFilters(req: Request) {
     }
   }
 
-  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const search = includeSearch && typeof req.query.search === 'string' ? req.query.search.trim() : '';
   if (search) {
     params.push(`%${search}%`);
     const idx = params.length;
@@ -125,14 +155,114 @@ function buildFilters(req: Request) {
   return { where, params };
 }
 
+async function buildInternshipConversionData(req: Request) {
+  const { where: eligibilityWhere, params: eligibilityParams } = buildFilters(req);
+  const eligibleStudentsResult = await query(
+    `SELECT DISTINCT COALESCE("Student ID"::text, CONCAT(LOWER(TRIM("First Name")), '|', LOWER(TRIM("Last Name")), '|', "Graduation Year"::text)) AS student_key
+     FROM alumni
+     ${eligibilityWhere}
+       AND ("Outcome Type" ILIKE '%Intern%' OR "Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')`,
+    eligibilityParams
+  );
+
+  const eligibleStudentKeys = eligibleStudentsResult.rows
+    .map((row) => String(row.student_key ?? '').trim())
+    .filter(Boolean);
+
+  const counts = {
+    sameCompany: 0,
+    differentCompany: 0,
+    noRecordedJob: 0
+  };
+
+  if (!eligibleStudentKeys.length) {
+    return [
+      { name: INTERNSHIP_CONVERSION_LABELS.sameCompany, value: 0 },
+      { name: INTERNSHIP_CONVERSION_LABELS.differentCompany, value: 0 },
+      { name: INTERNSHIP_CONVERSION_LABELS.noRecordedJob, value: 0 }
+    ];
+  }
+
+  const { where: contextWhere, params: contextParams } = buildFilters(req, {
+    includeEmploymentTypes: false,
+    includeSearch: false
+  });
+
+  const conversionRowsResult = await query(
+    `SELECT
+       COALESCE("Student ID"::text, CONCAT(LOWER(TRIM("First Name")), '|', LOWER(TRIM("Last Name")), '|', "Graduation Year"::text)) AS student_key,
+       "Outcome Type" AS outcome_type,
+       "Employer" AS employer
+     FROM alumni
+     ${contextWhere}
+       AND COALESCE("Student ID"::text, CONCAT(LOWER(TRIM("First Name")), '|', LOWER(TRIM("Last Name")), '|', "Graduation Year"::text)) = ANY($${contextParams.length + 1}::text[])
+       AND ("Outcome Type" ILIKE '%Intern%' OR "Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')`,
+    [...contextParams, eligibleStudentKeys]
+  );
+
+  const studentMap = new Map<string, { internships: Set<string>; jobs: Set<string>; hasJob: boolean; hasSameCompanyJob: boolean }>();
+  conversionRowsResult.rows.forEach((row) => {
+    const studentKey = String(row.student_key ?? '').trim();
+    if (!studentKey) return;
+
+    const current = studentMap.get(studentKey) ?? {
+      internships: new Set<string>(),
+      jobs: new Set<string>(),
+      hasJob: false,
+      hasSameCompanyJob: false
+    };
+
+    const outcomeType = String(row.outcome_type ?? '');
+    const employer = normalizeEmployer(row.employer ?? null);
+
+    if (isInternshipOutcome(outcomeType)) {
+      if (employer) {
+        current.internships.add(employer);
+        if (current.jobs.has(employer)) {
+          current.hasSameCompanyJob = true;
+        }
+      }
+    } else if (isJobOutcome(outcomeType)) {
+      current.hasJob = true;
+      if (employer) {
+        current.jobs.add(employer);
+        if (current.internships.has(employer)) {
+          current.hasSameCompanyJob = true;
+        }
+      }
+    }
+
+    studentMap.set(studentKey, current);
+  });
+
+  studentMap.forEach((student) => {
+    if (!student.internships.size) return;
+    if (student.hasSameCompanyJob) {
+      counts.sameCompany += 1;
+      return;
+    }
+    if (student.hasJob) {
+      counts.differentCompany += 1;
+      return;
+    }
+    counts.noRecordedJob += 1;
+  });
+
+  return [
+    { name: INTERNSHIP_CONVERSION_LABELS.sameCompany, value: counts.sameCompany },
+    { name: INTERNSHIP_CONVERSION_LABELS.differentCompany, value: counts.differentCompany },
+    { name: INTERNSHIP_CONVERSION_LABELS.noRecordedJob, value: counts.noRecordedJob }
+  ];
+}
+
 export const fetchDashboardAnalytics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { where, params } = buildFilters(req);
 
-    const outcomesResult = await query(
-      `SELECT "State", COUNT(*)::int AS count FROM alumni ${where} GROUP BY "State"`,
-      params
-    );
+    const [outcomesResult, internshipConversions] = await Promise.all([
+      query(`SELECT "State", COUNT(*)::int AS count FROM alumni ${where} GROUP BY "State"`, params),
+      buildInternshipConversionData(req)
+    ]);
 
     const outcomesMap = new Map<string, number>();
     outcomesResult.rows.forEach((row) => {
@@ -176,7 +306,8 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
       outcomesByState: STATE_CODES.map((code) => ({ state: code, value: outcomesMap.get(code) ?? 0 })),
       salaryBands,
       topCompanies: companiesResult.rows,
-      gradAdmissions: gradResult.rows
+      gradAdmissions: gradResult.rows,
+      internshipConversions
     });
   } catch (error) {
     console.error('Error fetching dashboard analytics:', error);

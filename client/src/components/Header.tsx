@@ -13,7 +13,6 @@ const Header = () => {
                 <li role="none"><Link role="menuitem" to="/dashboard">Dashboard</Link></li>
                 <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>
                 <li role="none"><Link role="menuitem" to="/mentors">Mentors</Link></li>
-                <li role="none"><Link role="menuitem" to="/internships">Internships</Link></li>
                 <li role="none"><Link role="menuitem" to="/admin/analytics">Admin</Link></li>
               </ul>
             </nav>
@@ -42,7 +41,6 @@ const Header = () => {
             <li role="none"><Link role="menuitem" to="/dashboard">Career Outcomes</Link></li>
             <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>
             <li role="none"><Link role="menuitem" to="/mentors">Mentor Explorer</Link></li>
-            <li role="none"><Link role="menuitem" to="/internships">Internship Explorer</Link></li>
             <li role="none"><Link role="menuitem" to="/admin/analytics">Admin</Link></li>
           </ul>
         </section>

@@ -54,6 +54,12 @@ const defaultAdmissionsData = [
   { name: "Columbia", value: 20 },
 ];
 
+const defaultInternshipConversionData = [
+  { name: "Converted at Same Company", value: 0 },
+  { name: "Hired at Different Company", value: 0 },
+  { name: "No Recorded Job Outcome", value: 0 },
+];
+
 const defaultOutcomesData = [
   { state: "AL", value: 0 },
   { state: "AK", value: 0 },
@@ -109,12 +115,14 @@ const defaultOutcomesData = [
 
 const Dashboard: React.FC = () => {
   type BarChartDatum = { name: string; value: number };
-  const [selectedDataView, setSelectedDataView] = useState('Outcomes');
+  type DashboardView = 'Outcomes' | 'Salary' | 'Top Company Placements' | 'Grad Admissions' | 'Internship Conversions';
+  const [selectedDataView, setSelectedDataView] = useState<DashboardView>('Outcomes');
   const [searchTerm, setSearchTerm] = useState('');
   const [salaryData, setSalaryData] = useState(defaultSalaryData);
   const [companyData, setCompanyData] = useState(defaultCompanyData);
   const [admissionsData, setAdmissionsData] = useState(defaultAdmissionsData);
   const [outcomesData, setOutcomesData] = useState(defaultOutcomesData);
+  const [internshipConversionData, setInternshipConversionData] = useState(defaultInternshipConversionData);
   
   // Filter states (current selections)
   const [graduationYearFilters, setGraduationYearFilters] = useState<string[]>([]);
@@ -136,7 +144,7 @@ const Dashboard: React.FC = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const dataOptions = ['Outcomes', 'Salary', 'Top Company Placements', 'Grad Admissions'];
+  const dataOptions: DashboardView[] = ['Outcomes', 'Salary', 'Top Company Placements', 'Grad Admissions', 'Internship Conversions'];
 
   const handleScrollCheck = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
@@ -221,6 +229,8 @@ const Dashboard: React.FC = () => {
         return companyData;
       case 'Grad Admissions':
         return admissionsData;
+      case 'Internship Conversions':
+        return internshipConversionData;
       default:
         return salaryData;
     }
@@ -234,6 +244,8 @@ const Dashboard: React.FC = () => {
         return 'TOP COMPANY PLACEMENTS';
       case 'Grad Admissions':
         return 'GRADUATE SCHOOL ADMISSIONS';
+      case 'Internship Conversions':
+        return 'INTERNSHIP CONVERSION OUTCOMES';
       case 'Outcomes':
         return 'ALUMNI OUTCOMES BY STATE';
       default:
@@ -259,6 +271,7 @@ const Dashboard: React.FC = () => {
         setCompanyData(data.topCompanies);
         setAdmissionsData(data.gradAdmissions);
         setOutcomesData(data.outcomesByState);
+        setInternshipConversionData(data.internshipConversions);
       } catch (error) {
         console.error('Failed to load dashboard analytics:', error);
       }
@@ -616,6 +629,49 @@ const Dashboard: React.FC = () => {
         <div style={{ height: 500 }}>
           {selectedDataView === 'Outcomes' ? (
             <USMapD3 data={outcomesData} height={500} />
+          ) : selectedDataView === 'Internship Conversions' ? (
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {internshipConversionData.map((item, index) => {
+                  const colors = ['#8E6F3E', '#CFB991', '#D9D9D9'];
+                  return (
+                    <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 12, height: 12, borderRadius: 999, background: colors[index] }} />
+                      <span style={{ fontFamily: 'Acumin Pro', fontSize: 14, color: '#333' }}>
+                        {item.name}: {item.value}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <ResponsiveContainer>
+                <BarChart
+                  data={[{
+                    name: 'Internship Outcomes',
+                    sameCompany: internshipConversionData[0]?.value ?? 0,
+                    differentCompany: internshipConversionData[1]?.value ?? 0,
+                    noRecordedJob: internshipConversionData[2]?.value ?? 0,
+                  }]}
+                  layout="vertical"
+                  margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={140} />
+                  <Tooltip
+                    formatter={(value: number, name: string) => {
+                      if (name === 'sameCompany') return [value, 'Converted at Same Company'];
+                      if (name === 'differentCompany') return [value, 'Hired at Different Company'];
+                      if (name === 'noRecordedJob') return [value, 'No Recorded Job Outcome'];
+                      return [value, name];
+                    }}
+                  />
+                  <Bar dataKey="sameCompany" stackId="a" fill="#8E6F3E" radius={[6, 0, 0, 6]} />
+                  <Bar dataKey="differentCompany" stackId="a" fill="#CFB991" />
+                  <Bar dataKey="noRecordedJob" stackId="a" fill="#D9D9D9" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <ResponsiveContainer>
               <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>

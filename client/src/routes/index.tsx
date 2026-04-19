@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
@@ -8,8 +8,8 @@ import AdminAlumniTable from '../pages/AdminAlumniTable';
 import Dashboard from '../pages/Dashboard';
 import AlumniDirectory from '../pages/AlumniDirectory';
 import MentorExplorer from '../pages/MentorExplorer';
-import InternshipExplorer from '../pages/InternshipExplorer';
 import AdminAnalytics from '../pages/AdminAnalytics';
+import AdminMentorApprovals from '../pages/AdminMentorApprovals';
 import { appBasePath } from '../config/runtime';
 
 export const router = createBrowserRouter([
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'internships',
-        element: <InternshipExplorer />,
+        element: <Navigate to="/alumni-directory?tab=Internship" replace />,
       },
       {
         path: '*',
@@ -53,6 +53,10 @@ export const router = createBrowserRouter([
           {
             path: 'moderate',
             element: <AdminAlumniTable />,
+          },
+          {
+            path: 'mentor-approvals',
+            element: <AdminMentorApprovals />,
           },
           {
             path: 'analytics',

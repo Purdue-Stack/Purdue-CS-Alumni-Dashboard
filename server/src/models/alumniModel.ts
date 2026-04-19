@@ -429,6 +429,9 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
       if (type === 'Job') {
         patterns.push('%Job%', '%Employed%');
       }
+      if (type === 'Internship') {
+        patterns.push('%Intern%');
+      }
       if (type === 'Graduate School') {
         patterns.push('%Graduate%', '%Grad%', '%School%');
       }

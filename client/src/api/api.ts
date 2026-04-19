@@ -8,6 +8,7 @@ export type DashboardAnalyticsResponse = {
   salaryBands: { name: string; value: number }[];
   topCompanies: { name: string; value: number }[];
   gradAdmissions: { name: string; value: number }[];
+  internshipConversions: { name: string; value: number }[];
 };
 
 export type DashboardAnalyticsParams = {
@@ -276,6 +277,11 @@ export const updateAdminAlumni = async (
 
 export const fetchAdminSummary = async (): Promise<AdminSummaryResponse> => {
   const response = await api.get<AdminSummaryResponse>('/admin/analytics/summary');
+  return response.data;
+};
+
+export const fetchPendingMentorApprovals = async (): Promise<PendingMentorCandidate[]> => {
+  const response = await api.get<PendingMentorCandidate[]>('/admin/mentors/pending');
   return response.data;
 };
 

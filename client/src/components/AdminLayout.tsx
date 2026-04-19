@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import uploadIcon from '../assets/icons/upload-data.svg';
 import moderateIcon from '../assets/icons/moderate-entries.svg';
 import analyticsIcon from '../assets/icons/analytics.svg';
+import permissionsIcon from '../assets/icons/user-permissions.svg';
 import styles from '../styles/AdminLayout.module.css';
 
 const AdminLayout = () => {
@@ -11,6 +12,7 @@ const AdminLayout = () => {
     const links = [
         { path: '/admin/upload', label: 'Upload Data', icon: uploadIcon },
         { path: '/admin/moderate', label: 'Moderate Entries', icon: moderateIcon },
+        { path: '/admin/mentor-approvals', label: 'Mentor Approvals', icon: permissionsIcon },
         { path: '/admin/analytics', label: 'Analytics', icon: analyticsIcon },
     ];
 

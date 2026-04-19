@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchPublicAlumni, type AlumniDirectoryRow } from '../api/api';
 
-type AlumniTab = 'Job' | 'Graduate School';
+type AlumniTab = 'Job' | 'Graduate School' | 'Internship';
 type AlumniSortKey =
   | 'last_name'
   | 'graduation_year'
@@ -25,6 +26,13 @@ const deepGold = '#9D7A28';
 const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
 const offWhite = '#FFFCF7';
+
+function parseTab(value: string | null): AlumniTab {
+  if (value === 'Job' || value === 'Graduate School' || value === 'Internship') {
+    return value;
+  }
+  return 'Job';
+}
 
 function uniqueSorted(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
@@ -157,7 +165,8 @@ function toggleValue(values: string[], value: string) {
 }
 
 const AlumniDirectory = () => {
-  const [tab, setTab] = useState<AlumniTab>('Job');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState<AlumniTab>(() => parseTab(searchParams.get('tab')));
   const [rows, setRows] = useState<AlumniDirectoryRow[]>([]);
   const [search, setSearch] = useState('');
   const [graduationYears, setGraduationYears] = useState<string[]>([]);
@@ -170,6 +179,19 @@ const AlumniDirectory = () => {
   const [universities, setUniversities] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<AlumniSortKey>('graduation_year');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  useEffect(() => {
+    const nextTab = parseTab(searchParams.get('tab'));
+    setTab((current) => current === nextTab ? current : nextTab);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const currentParam = searchParams.get('tab');
+    if (currentParam === tab) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', tab);
+    setSearchParams(nextParams, { replace: true });
+  }, [tab, searchParams, setSearchParams]);
 
   useEffect(() => {
     let active = true;
@@ -235,7 +257,7 @@ const AlumniDirectory = () => {
     if (!matchesSelection(row.expected_field_of_study, majors)) return false;
     if (!matchesSelection(row.state, states)) return false;
 
-    if (tab === 'Job') {
+    if (tab === 'Job' || tab === 'Internship') {
       if (!matchesSelection(row.employer, companies)) return false;
       if (!matchesSelection(row.job_title, jobTitles)) return false;
     }
@@ -251,19 +273,19 @@ const AlumniDirectory = () => {
   const sortedRows = sortRows(filteredRows, sortKey, sortDirection);
   const activeCount = sortedRows.length;
 
-  const visibleSortOptions: Array<{ value: AlumniSortKey; label: string }> = tab === 'Job'
+  const visibleSortOptions: Array<{ value: AlumniSortKey; label: string }> = tab === 'Graduate School'
     ? [
         { value: 'graduation_year', label: 'Graduation Year' },
         { value: 'last_name', label: 'Last Name' },
-        { value: 'employer', label: 'Company' },
-        { value: 'job_title', label: 'Job Title' },
+        { value: 'university', label: 'University' },
         { value: 'track', label: 'Track' },
         { value: 'degree_level', label: 'Degree Level' }
       ]
     : [
         { value: 'graduation_year', label: 'Graduation Year' },
         { value: 'last_name', label: 'Last Name' },
-        { value: 'university', label: 'University' },
+        { value: 'employer', label: 'Company' },
+        { value: 'job_title', label: 'Job Title' },
         { value: 'track', label: 'Track' },
         { value: 'degree_level', label: 'Degree Level' }
       ];
@@ -272,7 +294,7 @@ const AlumniDirectory = () => {
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: 'fit-content' }}>
-          {(['Job', 'Graduate School'] as AlumniTab[]).map((option) => (
+          {(['Job', 'Graduate School', 'Internship'] as AlumniTab[]).map((option) => (
             <button
               key={option}
               type="button"
@@ -295,7 +317,7 @@ const AlumniDirectory = () => {
         <div>
           <h1 style={{ marginBottom: 8 }}>Alumni Directory</h1>
           <p style={{ margin: 0, color: '#534B45' }}>
-            Browse {tab === 'Job' ? 'job-placement' : 'graduate-school'} outcomes. Mentorship, salary, LinkedIn, and email are excluded from this directory.
+            Browse {tab === 'Graduate School' ? 'graduate-school' : tab === 'Internship' ? 'internship' : 'job-placement'} outcomes. Mentorship, salary, LinkedIn, and email are excluded from this directory.
           </p>
         </div>
       </section>
@@ -318,7 +340,7 @@ const AlumniDirectory = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder={tab === 'Job' ? 'Search by name, company, title, city, state, or track' : 'Search by name, expected field, university, degree, city, state, or track'}
+              placeholder={tab === 'Graduate School' ? 'Search by name, expected field, university, degree, city, state, or track' : 'Search by name, company, title, city, state, or track'}
               style={{
                 padding: 14,
                 border: `1px solid ${warmBorder}`,
@@ -328,7 +350,7 @@ const AlumniDirectory = () => {
             />
           </label>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ fontWeight: 800, color: '#2D2926' }}>Sort</span>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -397,7 +419,7 @@ const AlumniDirectory = () => {
             onToggle={(value) => setStates((current) => toggleValue(current, value))}
             accent={deepGold}
           />
-          {tab === 'Job' && (
+          {(tab === 'Job' || tab === 'Internship') && (
             <>
               <SearchableCheckboxDropdown
                 label="Company"
@@ -464,8 +486,8 @@ const AlumniDirectory = () => {
                 <th style={{ padding: 14 }}>Last Name</th>
                 <th style={{ padding: 14 }}>Graduation Year</th>
                 <th style={{ padding: 14 }}>Graduation Term</th>
-                {tab === 'Job' && <th style={{ padding: 14 }}>Employer</th>}
-                {tab === 'Job' && <th style={{ padding: 14 }}>Job Title</th>}
+                {(tab === 'Job' || tab === 'Internship') && <th style={{ padding: 14 }}>Employer</th>}
+                {(tab === 'Job' || tab === 'Internship') && <th style={{ padding: 14 }}>Job Title</th>}
                 {tab === 'Graduate School' && <th style={{ padding: 14 }}>Expected Field of Study</th>}
                 <th style={{ padding: 14 }}>Track</th>
                 {tab === 'Graduate School' && <th style={{ padding: 14 }}>Degree Seeking</th>}
@@ -482,8 +504,8 @@ const AlumniDirectory = () => {
                   <td style={{ padding: 14 }}>{row.last_name}</td>
                   <td style={{ padding: 14 }}>{row.graduation_year}</td>
                   <td style={{ padding: 14 }}>{row.graduation_term || 'N/A'}</td>
-                  {tab === 'Job' && <td style={{ padding: 14 }}>{row.employer || 'N/A'}</td>}
-                  {tab === 'Job' && <td style={{ padding: 14 }}>{row.job_title || 'N/A'}</td>}
+                  {(tab === 'Job' || tab === 'Internship') && <td style={{ padding: 14 }}>{row.employer || 'N/A'}</td>}
+                  {(tab === 'Job' || tab === 'Internship') && <td style={{ padding: 14 }}>{row.job_title || 'N/A'}</td>}
                   {tab === 'Graduate School' && <td style={{ padding: 14 }}>{row.expected_field_of_study || 'N/A'}</td>}
                   <td style={{ padding: 14 }}>{row.track || 'N/A'}</td>
                   {tab === 'Graduate School' && <td style={{ padding: 14 }}>{row.degree_seeking || 'N/A'}</td>}
@@ -495,7 +517,7 @@ const AlumniDirectory = () => {
               ))}
               {!sortedRows.length && (
                 <tr>
-                  <td colSpan={tab === 'Job' ? 11 : 11} style={{ padding: 24, textAlign: 'center' }}>No alumni match the current {tab.toLowerCase()} filters.</td>
+                  <td colSpan={11} style={{ padding: 24, textAlign: 'center' }}>No alumni match the current {tab.toLowerCase()} filters.</td>
                 </tr>
               )}
             </tbody>
