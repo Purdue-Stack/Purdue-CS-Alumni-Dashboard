@@ -10,6 +10,7 @@ import AlumniDirectory from '../pages/AlumniDirectory';
 import MentorExplorer from '../pages/MentorExplorer';
 import AdminMentorApprovals from '../pages/AdminMentorApprovals';
 import { appBasePath } from '../config/runtime';
+import { RequireAdmin, RequireAuth } from './RouteGuards';
 
 export const router = createBrowserRouter([
   {
@@ -27,11 +28,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'alumni-directory',
-        element: <AlumniDirectory />,
+        element: <RequireAuth><AlumniDirectory /></RequireAuth>,
       },
       {
         path: 'mentors',
-        element: <MentorExplorer />,
+        element: <RequireAuth><MentorExplorer /></RequireAuth>,
       },
       {
         path: 'internships',
@@ -43,7 +44,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'admin',
-        element: <AdminLayout />,
+        element: <RequireAdmin><AdminLayout /></RequireAdmin>,
         children: [
           {
             path: 'upload',

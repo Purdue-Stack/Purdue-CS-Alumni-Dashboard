@@ -8,7 +8,6 @@ export interface Mentor {
   email: string | null;
   linkedin: string | null;
   role: string | null;
-  track: string | null;
   location_city: string | null;
   location_state: string | null;
   mentorship_areas: string[];
@@ -27,7 +26,6 @@ export interface Mentor {
 }
 
 export type MentorFilters = {
-  tracks?: string[];
   roles?: string[];
   locations?: string[];
   areas?: string[];
@@ -46,10 +44,6 @@ export async function listMentors(filters: MentorFilters): Promise<{ rows: Mento
   const params: any[] = [];
   const clauses: string[] = ['md.is_visible = true', 'md.is_deleted = false', 'md.is_approved = true'];
 
-  if (filters.tracks?.length) {
-    params.push(filters.tracks);
-    clauses.push(`md.track = ANY($${params.length}::text[])`);
-  }
   if (filters.roles?.length) {
     params.push(filters.roles);
     clauses.push(`md.role = ANY($${params.length}::text[])`);
@@ -69,7 +63,6 @@ export async function listMentors(filters: MentorFilters): Promise<{ rows: Mento
       md.first_name ILIKE $${idx}
       OR md.last_name ILIKE $${idx}
       OR md.role ILIKE $${idx}
-      OR md.track ILIKE $${idx}
       OR md.location_city ILIKE $${idx}
       OR md.location_state ILIKE $${idx}
     )`);
@@ -117,7 +110,6 @@ export async function upsertMentorDirectoryEntry(alumniId: number, input: Mentor
       "Email" AS email,
       "LinkedIn" AS linkedin,
       "Job Title" AS role,
-      "Track" AS track,
       "City" AS location_city,
       "State" AS location_state,
       mentorship_areas
@@ -144,7 +136,6 @@ export async function upsertMentorDirectoryEntry(alumniId: number, input: Mentor
       email,
       linkedin,
       role,
-      track,
       location_city,
       location_state,
       mentorship_areas,
@@ -152,7 +143,7 @@ export async function upsertMentorDirectoryEntry(alumniId: number, input: Mentor
       is_visible,
       updated_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true, true, NOW()
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, true, true, NOW()
     )
     ON CONFLICT (alumni_id) DO UPDATE SET
       first_name = EXCLUDED.first_name,
@@ -160,7 +151,6 @@ export async function upsertMentorDirectoryEntry(alumniId: number, input: Mentor
       email = EXCLUDED.email,
       linkedin = EXCLUDED.linkedin,
       role = EXCLUDED.role,
-      track = EXCLUDED.track,
       location_city = EXCLUDED.location_city,
       location_state = EXCLUDED.location_state,
       mentorship_areas = EXCLUDED.mentorship_areas,
@@ -176,7 +166,6 @@ export async function upsertMentorDirectoryEntry(alumniId: number, input: Mentor
       email,
       linkedin,
       alumni.role,
-      alumni.track,
       alumni.location_city,
       alumni.location_state,
       mentorshipAreas

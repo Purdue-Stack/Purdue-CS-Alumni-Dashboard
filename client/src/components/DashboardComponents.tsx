@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
+const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
+
 type FilterCardProps = {
   title: string;
   options: string[];
@@ -133,7 +136,7 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
           padding: '15px 20px',
           margin: 0,
           borderBottom: isCollapsed ? 'solid 0px #C4BFC0' : 'solid 1px #C4BFC0',
-          fontFamily: "Acumin Pro",
+          fontFamily: bodyFontFamily,
           fontSize: 19,
           textTransform: 'capitalize',
           color: 'black',
@@ -145,7 +148,7 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
         }}
       >
         <span>
-          <span style={{fontFamily: 'United Sans Condensed', fontWeight: 600, fontSize: 20 }}>FILTER BY:</span> {title}
+          <span style={{ fontFamily: condensedFontFamily, fontWeight: 600, fontSize: 20 }}>FILTER BY:</span> {title}
         </span>
         <div style={{
           transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
@@ -205,7 +208,7 @@ export const FilterTag = ({ value, onRemove }: {
     borderRadius: 5,
     padding: '6px 12px',
     fontSize: 14,
-    fontFamily: 'Acumin Pro',
+    fontFamily: bodyFontFamily,
     border: '1px solid #C4BFC0',
     margin: '0 -1px',
     flexShrink: 0,
@@ -257,7 +260,7 @@ export const CategoryLabel = ({ category }: { category: string }) => (
     borderRadius: 5,
     padding: '6px 12px',
     fontSize: 14,
-    fontFamily: 'United Sans Condensed',
+    fontFamily: condensedFontFamily,
     fontWeight: 600,
     margin: '0 4px 0 0',
     flexShrink: 0,

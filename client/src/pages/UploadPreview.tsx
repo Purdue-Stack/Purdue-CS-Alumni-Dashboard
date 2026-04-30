@@ -1,20 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import UploadComponent from '../components/UploadComponent';
 import PreviewComponent from '../components/PreviewComponent';
-import api, { fetchAdminLogs, type AdminLog } from '../api/api';
+import {
+  commitUploadData,
+  fetchAdminLogs,
+  previewUploadFile,
+  validateUploadData,
+  type AdminLog,
+  type UploadFieldError,
+  type UploadFieldMapping
+} from '../api/api';
 
-const deepGold = '#9D7A28';
 const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
 const offWhite = '#FFFCF7';
 
 const UploadPreview: React.FC = () => {
   const [activeView, setActiveView] = useState<'upload' | 'preview'>('upload');
+  const [rawHeaders, setRawHeaders] = useState<string[]>([]);
+  const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
+  const [mapping, setMapping] = useState<UploadFieldMapping>({});
+  const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [rowErrors, setRowErrors] = useState<{ rowIndex: number; messages: string[] }[]>([]);
-  const [summary, setSummary] = useState<{ totalRows: number; validRows: number; invalidRows: number; missingColumns: string[] } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<UploadFieldError[]>([]);
+  const [uploadSummary, setUploadSummary] = useState<{
+    totalRows: number;
+    missingColumns: string[];
+    unmappedHeaders: string[];
+    mappingErrors: string[];
+  } | null>(null);
+  const [summary, setSummary] = useState<{ totalRows: number; validRows: number; invalidRows: number } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [validationLoading, setValidationLoading] = useState(false);
   const [commitLoading, setCommitLoading] = useState(false);
   const [logs, setLogs] = useState<AdminLog[]>([]);
 
@@ -27,21 +46,19 @@ const UploadPreview: React.FC = () => {
   }, []);
 
   const handleFileUpload = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const response = await api.post('/upload-excel', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await previewUploadFile(file);
 
-      const { columns, rows, rowErrors, summary } = response.data;
-      setColumns(columns);
-      setRows(rows);
-      setRowErrors(rowErrors || []);
-      setSummary(summary || null);
+      setRawHeaders(response.rawHeaders);
+      setRawRows(response.rawRows);
+      setColumns(response.columns);
+      setMapping(response.suggestedMapping || {});
+      setRequiredFields(response.requiredFields || []);
+      setRows([]);
+      setRowErrors([]);
+      setFieldErrors([]);
+      setUploadSummary(response.summary || null);
+      setSummary(null);
       setActiveView('preview');
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -49,25 +66,74 @@ const UploadPreview: React.FC = () => {
     }
   };
 
-  const handleCommit = async () => {
-    if (!rows.length) {
+  const handleValidateMapping = async (nextMapping: UploadFieldMapping) => {
+    if (!rawRows.length) {
+      return;
+    }
+
+    setValidationLoading(true);
+    try {
+      const response = await validateUploadData({
+        rawRows,
+        mapping: nextMapping
+      });
+
+      setMapping(nextMapping);
+      setRows(response.rows);
+      setRowErrors(response.rowErrors || []);
+      setFieldErrors(response.fieldErrors || []);
+      setSummary(response.summary || null);
+    } catch (error: any) {
+      console.error('Failed to validate mapped upload:', error);
+      const message = error?.response?.data?.mappingErrors?.join('\n')
+        || error?.response?.data?.error
+        || 'Error validating mapped rows. Please review the field mapping.';
+      alert(message);
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  const handleRevalidate = async (nextRows: Record<string, any>[]) => {
+    setValidationLoading(true);
+    try {
+      const response = await validateUploadData({
+        rows: nextRows
+      });
+
+      setRows(response.rows);
+      setRowErrors(response.rowErrors || []);
+      setFieldErrors(response.fieldErrors || []);
+      setSummary(response.summary || null);
+    } catch (error: any) {
+      console.error('Failed to validate edited rows:', error);
+      const message = error?.response?.data?.error || 'Error validating rows. Please review the highlighted fields.';
+      alert(message);
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  const handleCommit = async (finalRows: Record<string, any>[]) => {
+    if (!finalRows.length) {
       alert('No rows to commit.');
       return;
     }
 
     setCommitLoading(true);
     try {
-      const response = await api.post('/commit-upload', {
-        rows,
+      const response = await commitUploadData({
+        rows: finalRows,
         filename: uploadedFile?.name
       });
-      const { inserted, updated, skipped, errors } = response.data;
+      const { inserted, updated, skipped, errors } = response;
       alert(`Commit complete. Inserted: ${inserted}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
       const refreshedLogs = await fetchAdminLogs();
       setLogs(refreshedLogs.filter((log) => log.action === 'UPLOAD' || log.action === 'UPLOAD_PREVIEW').slice(0, 8));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to commit data:', error);
-      alert('Error committing data. Please try again.');
+      const rowErrorMessage = error?.response?.data?.rowErrors?.[0]?.messages?.join('; ');
+      alert(rowErrorMessage || 'Error committing data. Please try again.');
     } finally {
       setCommitLoading(false);
     }
@@ -100,38 +166,6 @@ const UploadPreview: React.FC = () => {
           boxShadow: '0 2px 10px rgba(45, 41, 38, 0.05)'
         }}
       >
-        <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
-          {[
-            { key: 'upload', label: 'Upload' },
-            { key: 'preview', label: 'Preview' }
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => {
-                if (item.key === 'upload') {
-                  setActiveView('upload');
-                }
-                if (item.key === 'preview' && uploadedFile) {
-                  setActiveView('preview');
-                }
-              }}
-              style={{
-                border: 'none',
-                borderRadius: 999,
-                padding: '8px 14px',
-                background: activeView === item.key ? deepGold : softGold,
-                color: activeView === item.key ? '#fff' : '#2D2926',
-                fontWeight: 700,
-                cursor: item.key === 'preview' && !uploadedFile ? 'not-allowed' : 'pointer',
-                opacity: item.key === 'preview' && !uploadedFile ? 0.5 : 1
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
         {activeView === 'upload' && (
           <UploadComponent onFileUpload={handleFileUpload} setFile={setUploadedFile} />
         )}
@@ -139,11 +173,20 @@ const UploadPreview: React.FC = () => {
         {activeView === 'preview' && uploadedFile && (
           <PreviewComponent
             file={uploadedFile}
+            rawHeaders={rawHeaders}
+            rawRows={rawRows}
             columns={columns}
             rows={rows}
+            mapping={mapping}
+            requiredFields={requiredFields}
+            fieldErrors={fieldErrors}
             rowErrors={rowErrors}
+            uploadSummary={uploadSummary}
             summary={summary}
+            onValidateMapping={handleValidateMapping}
+            onRevalidate={handleRevalidate}
             onCommit={handleCommit}
+            validationLoading={validationLoading}
             commitLoading={commitLoading}
           />
         )}

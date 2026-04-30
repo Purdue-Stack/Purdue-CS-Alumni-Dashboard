@@ -7,6 +7,8 @@ import { fetchHomeStats } from '../api/api';
 
 import salaryImg from '../assets/images/salary.jpg';
 
+const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
+const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
 
 const defaultStats = [
   { number: "0", label: "Alumni Tracked" },
@@ -140,14 +142,14 @@ const Home: React.FC = () => {
         <div className="hero__content">
           <div className="hero__left">
             <div className="hero__tag">
-              <span className="hero__tag-text">SEE THE FUTURE</span>
+              <span className="hero__tag-text" style={{ fontFamily: condensedFontFamily }}>SEE THE FUTURE</span>
             </div>
-            <h1 className="hero__title">
+            <h1 className="hero__title" style={{ fontFamily: condensedFontFamily }}>
               EXPLORE ALUMNI SUCCESS
               <span className="hero__subtitle">Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
             </h1>
             <div className="hero__buttons">
-              <Link to="/dashboard" className="hero-data-button" style={{ textDecoration: 'none' }}>
+              <Link to="/dashboard" className="hero-data-button" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
                 EXPLORE DATA
                 <svg 
                   className="hero-data-button__arrow" 
@@ -166,7 +168,7 @@ const Home: React.FC = () => {
                   />
                 </svg>
               </Link>
-              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none' }}>
+              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
                 RESOURCES
                 <svg 
                   className="hero-data-button__arrow" 
@@ -198,8 +200,8 @@ const Home: React.FC = () => {
               >
                 {stats.map((stat, index) => (
                   <div key={index} className="stats-card">
-                    <h3 className="stats-card__number">{stat.number}</h3>
-                    <p className="stats-card__label">{stat.label}</p>
+                    <h3 className="stats-card__number" style={{ fontFamily: condensedFontFamily }}>{stat.number}</h3>
+                    <p className="stats-card__label" style={{ fontFamily: bodyFontFamily }}>{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -288,7 +290,7 @@ const Home: React.FC = () => {
                 </svg>
               </div>
               <div className="hero__tag exploration__tag" style={{ background: '#2D2926' }}>
-                <span className="hero__tag-text" style={{ color: '#fff' }}>CHOOSE EXPLORATION</span>
+                <span className="hero__tag-text" style={{ color: '#fff', fontFamily: condensedFontFamily }}>CHOOSE EXPLORATION</span>
               </div>
               {explorations.map((exp, idx) => (
                 <button
@@ -314,7 +316,7 @@ const Home: React.FC = () => {
               <div className="exploration__details-info">
                 <h3 style={{ color: explorationText }}>{active.title}</h3>
                 <p style={{ color: explorationText }}>{active.description}</p>
-                <Link to={active.link} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none' }}>
+                <Link to={active.link} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none', fontFamily: condensedFontFamily }}>
                   EXPLORE
                   <svg
                     className="hero-data-button__arrow"

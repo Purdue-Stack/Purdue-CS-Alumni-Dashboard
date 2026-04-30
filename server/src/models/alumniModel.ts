@@ -10,14 +10,11 @@ export interface Alumni {
   Employer: string | null;
   "Job Title": string | null;
   "Expected Field of Study": string | null;
-  Track: string | null;
   "Degree Seeking": string | null;
   University: string | null;
   City: string | null;
   State: string | null;
   "Base Salary": number | null;
-  "Signing Bonus": number | null;
-  "Relocation Reimbursement": number | null;
   "Student ID": number | null;
   "Degree Level": string | null;
   "Salary Pay Period": string | null;
@@ -35,7 +32,6 @@ export interface PublicAlumniProfile {
   graduation_term: string | null;
   outcome_type: string | null;
   expected_field_of_study: string | null;
-  track: string | null;
   degree_seeking: string | null;
   university: string | null;
   degree_level: string | null;
@@ -54,7 +50,6 @@ export interface PendingMentorCandidate {
   job_title: string | null;
   email: string | null;
   linkedin: string | null;
-  track: string | null;
   city: string | null;
   state: string | null;
   mentorship_areas: string[];
@@ -75,14 +70,11 @@ export interface AdminAlumniUpdateInput {
   isDeleted?: boolean;
   isAnonymized?: boolean;
   isDirectoryVisible?: boolean;
-  track?: string | null;
   degreeSeeking?: string | null;
   university?: string | null;
   city?: string | null;
   state?: string | null;
   baseSalary?: number | null;
-  signingBonus?: number | null;
-  relocationReimbursement?: number | null;
   studentId?: number | null;
   degreeLevel?: string | null;
   salaryPayPeriod?: string | null;
@@ -96,7 +88,6 @@ export interface AdminAlumniUpdateInput {
 export interface AlumniDirectoryOptions {
   graduationYears?: string[];
   majors?: string[];
-  tracks?: string[];
   outcomeTypes?: string[];
   search?: string;
   limit?: number;
@@ -122,14 +113,11 @@ const alumniColumns: (keyof Alumni)[] = [
   "Employer",
   "Job Title",
   "Expected Field of Study",
-  "Track",
   "Degree Seeking",
   "University",
   "City",
   "State",
   "Base Salary",
-  "Signing Bonus",
-  "Relocation Reimbursement",
   "Student ID",
   "Degree Level",
   "Salary Pay Period",
@@ -172,14 +160,11 @@ function rowToValues(data: Alumni): any[] {
     data.Employer,
     data["Job Title"],
     data["Expected Field of Study"],
-    data.Track,
     data["Degree Seeking"],
     data.University,
     data.City,
     data.State,
     data["Base Salary"],
-    data["Signing Bonus"],
-    data["Relocation Reimbursement"],
     data["Student ID"],
     data["Degree Level"],
     data["Salary Pay Period"],
@@ -190,20 +175,34 @@ function rowToValues(data: Alumni): any[] {
   ];
 }
 
+function importIdentityValues(data: Alumni): any[] {
+  return [
+    data["Student ID"],
+    data["First Name"],
+    data["Last Name"],
+    data["Graduation Year"],
+    data["Degree Level"],
+    data["Outcome Type"],
+    data.Employer,
+    data["Job Title"],
+    data.University,
+    data["Degree Seeking"]
+  ];
+}
+
 export async function insertAlumni(data: Alumni, client?: Queryable): Promise<void> {
   const executor = client ?? { query };
   const sql = `
     INSERT INTO alumni (
       "First Name", "Last Name", "Graduation Year", "Graduation Term", "Outcome Type",
-      "Employer", "Job Title", "Expected Field of Study", "Track", "Degree Seeking",
-      "University", "City", "State", "Base Salary", "Signing Bonus",
-      "Relocation Reimbursement", "Student ID", "Degree Level", "Salary Pay Period",
+      "Employer", "Job Title", "Expected Field of Study", "Degree Seeking",
+      "University", "City", "State", "Base Salary", "Student ID", "Degree Level", "Salary Pay Period",
       "Email", "LinkedIn", mentorship_opt_in, mentorship_areas,
       mentorship_status, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-      $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-      $21, $22, $23, CASE WHEN $22 THEN 'pending' ELSE 'none' END, NOW()
+      $11, $12, $13, $14, $15, $16, $17, $18, $19,
+      $20, CASE WHEN $19 THEN 'pending' ELSE 'none' END, NOW()
     )
   `;
   await executor.query(sql, rowToValues(data));
@@ -221,27 +220,24 @@ export async function updateAlumniByStudentId(data: Alumni, client?: Queryable):
       "Employer" = $6,
       "Job Title" = $7,
       "Expected Field of Study" = $8,
-      "Track" = $9,
-      "Degree Seeking" = $10,
-      "University" = $11,
-      "City" = $12,
-      "State" = $13,
-      "Base Salary" = $14,
-      "Signing Bonus" = $15,
-      "Relocation Reimbursement" = $16,
-      "Degree Level" = $17,
-      "Salary Pay Period" = $18,
-      "Email" = $19,
-      "LinkedIn" = $20,
-      mentorship_opt_in = $21,
-      mentorship_areas = $22,
+      "Degree Seeking" = $9,
+      "University" = $10,
+      "City" = $11,
+      "State" = $12,
+      "Base Salary" = $13,
+      "Degree Level" = $14,
+      "Salary Pay Period" = $15,
+      "Email" = $16,
+      "LinkedIn" = $17,
+      mentorship_opt_in = $18,
+      mentorship_areas = $19,
       mentorship_status = CASE
-        WHEN mentorship_status = 'approved' AND $21 THEN 'approved'
-        WHEN $21 THEN 'pending'
+        WHEN mentorship_status = 'approved' AND $18 THEN 'approved'
+        WHEN $18 THEN 'pending'
         ELSE 'none'
       END,
       updated_at = NOW()
-    WHERE "Student ID" = $23
+    WHERE "Student ID" = $20
   `;
   await executor.query(sql, [
     data["First Name"],
@@ -252,14 +248,11 @@ export async function updateAlumniByStudentId(data: Alumni, client?: Queryable):
     data.Employer,
     data["Job Title"],
     data["Expected Field of Study"],
-    data.Track,
     data["Degree Seeking"],
     data.University,
     data.City,
     data.State,
     data["Base Salary"],
-    data["Signing Bonus"],
-    data["Relocation Reimbursement"],
     data["Degree Level"],
     data["Salary Pay Period"],
     data.Email,
@@ -279,30 +272,27 @@ export async function updateAlumniByNameGradYear(data: Alumni, client?: Queryabl
       "Employer" = $3,
       "Job Title" = $4,
       "Expected Field of Study" = $5,
-      "Track" = $6,
-      "Degree Seeking" = $7,
-      "University" = $8,
-      "City" = $9,
-      "State" = $10,
-      "Base Salary" = $11,
-      "Signing Bonus" = $12,
-      "Relocation Reimbursement" = $13,
-      "Student ID" = $14,
-      "Degree Level" = $15,
-      "Salary Pay Period" = $16,
-      "Email" = $17,
-      "LinkedIn" = $18,
-      mentorship_opt_in = $19,
-      mentorship_areas = $20,
+      "Degree Seeking" = $6,
+      "University" = $7,
+      "City" = $8,
+      "State" = $9,
+      "Base Salary" = $10,
+      "Student ID" = $11,
+      "Degree Level" = $12,
+      "Salary Pay Period" = $13,
+      "Email" = $14,
+      "LinkedIn" = $15,
+      mentorship_opt_in = $16,
+      mentorship_areas = $17,
       mentorship_status = CASE
-        WHEN mentorship_status = 'approved' AND $19 THEN 'approved'
-        WHEN $19 THEN 'pending'
+        WHEN mentorship_status = 'approved' AND $16 THEN 'approved'
+        WHEN $16 THEN 'pending'
         ELSE 'none'
       END,
       updated_at = NOW()
-    WHERE "First Name" = $21
-      AND "Last Name" = $22
-      AND "Graduation Year" = $23
+    WHERE "First Name" = $18
+      AND "Last Name" = $19
+      AND "Graduation Year" = $20
   `;
   const values = rowToValues(data);
   await executor.query(sql, [
@@ -311,24 +301,88 @@ export async function updateAlumniByNameGradYear(data: Alumni, client?: Queryabl
     data.Employer,
     data["Job Title"],
     data["Expected Field of Study"],
-    data.Track,
     data["Degree Seeking"],
     data.University,
     data.City,
     data.State,
     data["Base Salary"],
-    data["Signing Bonus"],
-    data["Relocation Reimbursement"],
     data["Student ID"],
     data["Degree Level"],
     data["Salary Pay Period"],
     data.Email,
     data["LinkedIn"],
-    values[21],
-    values[22],
+    values[18],
+    values[19],
     data["First Name"],
     data["Last Name"],
     data["Graduation Year"]
+  ]);
+}
+
+export async function findAlumniByImportIdentity(data: Alumni, client?: Queryable): Promise<Alumni | null> {
+  const executor = client ?? { query };
+  const result = await executor.query(
+    `SELECT * FROM alumni
+     WHERE "Student ID" IS NOT DISTINCT FROM $1
+       AND "First Name" IS NOT DISTINCT FROM $2
+       AND "Last Name" IS NOT DISTINCT FROM $3
+       AND "Graduation Year" IS NOT DISTINCT FROM $4
+       AND "Degree Level" IS NOT DISTINCT FROM $5
+       AND "Outcome Type" IS NOT DISTINCT FROM $6
+       AND "Employer" IS NOT DISTINCT FROM $7
+       AND "Job Title" IS NOT DISTINCT FROM $8
+       AND "University" IS NOT DISTINCT FROM $9
+       AND "Degree Seeking" IS NOT DISTINCT FROM $10
+     LIMIT 1`,
+    importIdentityValues(data)
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateAlumniByImportIdentity(data: Alumni, client?: Queryable): Promise<void> {
+  const executor = client ?? { query };
+  const sql = `
+    UPDATE alumni SET
+      "Graduation Term" = $1,
+      "Expected Field of Study" = $2,
+      "City" = $3,
+      "State" = $4,
+      "Base Salary" = $5,
+      "Salary Pay Period" = $6,
+      "Email" = $7,
+      "LinkedIn" = $8,
+      mentorship_opt_in = $9,
+      mentorship_areas = $10,
+      mentorship_status = CASE
+        WHEN mentorship_status = 'approved' AND $9 THEN 'approved'
+        WHEN $9 THEN 'pending'
+        ELSE 'none'
+      END,
+      updated_at = NOW()
+    WHERE "Student ID" IS NOT DISTINCT FROM $11
+      AND "First Name" IS NOT DISTINCT FROM $12
+      AND "Last Name" IS NOT DISTINCT FROM $13
+      AND "Graduation Year" IS NOT DISTINCT FROM $14
+      AND "Degree Level" IS NOT DISTINCT FROM $15
+      AND "Outcome Type" IS NOT DISTINCT FROM $16
+      AND "Employer" IS NOT DISTINCT FROM $17
+      AND "Job Title" IS NOT DISTINCT FROM $18
+      AND "University" IS NOT DISTINCT FROM $19
+      AND "Degree Seeking" IS NOT DISTINCT FROM $20
+  `;
+  const values = rowToValues(data);
+  await executor.query(sql, [
+    data["Graduation Term"],
+    data["Expected Field of Study"],
+    data.City,
+    data.State,
+    data["Base Salary"],
+    data["Salary Pay Period"],
+    data.Email,
+    data["LinkedIn"],
+    values[18],
+    values[19],
+    ...importIdentityValues(data)
   ]);
 }
 
@@ -372,7 +426,6 @@ export async function listAlumni(options: AlumniListOptions = {}): Promise<{ row
       '"University"',
       '"City"',
       '"State"',
-      '"Track"',
       '"Email"',
       '"LinkedIn"'
     ];
@@ -419,10 +472,6 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
     params.push(options.majors);
     clauses.push(`"Expected Field of Study" = ANY($${params.length}::text[])`);
   }
-  if (options.tracks?.length) {
-    params.push(options.tracks);
-    clauses.push(`"Track" = ANY($${params.length}::text[])`);
-  }
   if (options.outcomeTypes?.length) {
     const patterns: string[] = [];
     options.outcomeTypes.forEach((type) => {
@@ -454,7 +503,6 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
       OR "Job Title" ILIKE $${idx}
       OR "City" ILIKE $${idx}
       OR "State" ILIKE $${idx}
-      OR "Track" ILIKE $${idx}
     )`);
   }
 
@@ -478,7 +526,6 @@ export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Prom
       "Graduation Term" AS graduation_term,
       "Outcome Type" AS outcome_type,
       "Expected Field of Study" AS expected_field_of_study,
-      "Track" AS track,
       "Degree Seeking" AS degree_seeking,
       "University" AS university,
       "Degree Level" AS degree_level,
@@ -509,7 +556,6 @@ export async function listPendingMentorCandidates(): Promise<PendingMentorCandid
       "Job Title" AS job_title,
       "Email" AS email,
       "LinkedIn" AS linkedin,
-      "Track" AS track,
       "City" AS city,
       "State" AS state,
       mentorship_areas,
@@ -554,14 +600,11 @@ export async function updateAlumniAdmin(alumniId: number, input: AdminAlumniUpda
   if (input.isDeleted !== undefined) setField('is_deleted', input.isDeleted);
   if (input.isAnonymized !== undefined) setField('is_anonymized', input.isAnonymized);
   if (input.isDirectoryVisible !== undefined) setField('is_directory_visible', input.isDirectoryVisible);
-  if (input.track !== undefined) setField(`"Track"`, input.track);
   if (input.degreeSeeking !== undefined) setField(`"Degree Seeking"`, input.degreeSeeking);
   if (input.university !== undefined) setField(`"University"`, input.university);
   if (input.city !== undefined) setField(`"City"`, input.city);
   if (input.state !== undefined) setField(`"State"`, input.state);
   if (input.baseSalary !== undefined) setField(`"Base Salary"`, input.baseSalary);
-  if (input.signingBonus !== undefined) setField(`"Signing Bonus"`, input.signingBonus);
-  if (input.relocationReimbursement !== undefined) setField(`"Relocation Reimbursement"`, input.relocationReimbursement);
   if (input.studentId !== undefined) setField(`"Student ID"`, input.studentId);
   if (input.degreeLevel !== undefined) setField(`"Degree Level"`, input.degreeLevel);
   if (input.salaryPayPeriod !== undefined) setField(`"Salary Pay Period"`, input.salaryPayPeriod);

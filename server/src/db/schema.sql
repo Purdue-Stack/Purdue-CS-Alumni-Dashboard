@@ -16,14 +16,11 @@ CREATE TABLE alumni (
   "Employer" TEXT,
   "Job Title" TEXT,
   "Expected Field of Study" TEXT,
-  "Track" TEXT,
   "Degree Seeking" TEXT,
   "University" TEXT,
   "City" TEXT,
   "State" TEXT,
   "Base Salary" NUMERIC,
-  "Signing Bonus" NUMERIC,
-  "Relocation Reimbursement" NUMERIC,
   "Student ID" BIGINT,
   "Degree Level" TEXT,
   "Salary Pay Period" TEXT,
@@ -49,7 +46,6 @@ CREATE TABLE mentorship_directory (
   email TEXT,
   linkedin TEXT,
   role TEXT,
-  track TEXT,
   location_city TEXT,
   location_state TEXT,
   mentorship_areas TEXT[] NOT NULL DEFAULT '{}',
@@ -88,15 +84,11 @@ CREATE TABLE admin_logs (
   target TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX alumni_student_id_unique
-  ON alumni ("Student ID")
-  WHERE "Student ID" IS NOT NULL;
-
+CREATE INDEX alumni_student_id_idx ON alumni ("Student ID");
 CREATE INDEX alumni_grad_year_idx ON alumni ("Graduation Year");
 CREATE INDEX alumni_outcome_type_idx ON alumni ("Outcome Type");
 CREATE INDEX alumni_degree_level_idx ON alumni ("Degree Level");
 CREATE INDEX alumni_expected_field_idx ON alumni ("Expected Field of Study");
-CREATE INDEX alumni_track_idx ON alumni ("Track");
 CREATE INDEX alumni_employer_idx ON alumni ("Employer");
 CREATE INDEX alumni_job_title_idx ON alumni ("Job Title");
 CREATE INDEX alumni_city_idx ON alumni ("City");
@@ -106,7 +98,6 @@ CREATE INDEX alumni_directory_visibility_idx ON alumni (is_directory_visible, is
 CREATE INDEX alumni_mentorship_status_idx ON alumni (mentorship_opt_in, mentorship_status);
 
 CREATE UNIQUE INDEX mentorship_directory_alumni_unique ON mentorship_directory (alumni_id);
-CREATE INDEX mentors_track_idx ON mentorship_directory (track);
 CREATE INDEX mentors_role_idx ON mentorship_directory (role);
 CREATE INDEX mentors_location_idx ON mentorship_directory (location_state);
 CREATE INDEX mentors_visibility_idx ON mentorship_directory (is_visible, is_deleted, is_approved);
@@ -129,7 +120,6 @@ WITH generated_alumni AS (
     2018 + ((gs - 1) % 8) AS graduation_year,
     (ARRAY['Spring','Fall'])[1 + (gs % 2)] AS graduation_term,
     (ARRAY['Computer Science','Data Science','Artificial Intelligence','Computer Engineering','Statistics'])[1 + ((gs - 1) % 5)] AS major,
-    (ARRAY['Systems','Software','Artificial Intelligence','Data Science','Security'])[1 + ((gs - 1) % 5)] AS track,
     (ARRAY['BS','BS','MS','BS','PhD'])[1 + ((gs - 1) % 5)] AS degree_level,
     (ARRAY['Bachelor''s','Bachelor''s','Master''s','Bachelor''s','Doctorate'])[1 + ((gs - 1) % 5)] AS degree_seeking,
     (ARRAY['Seattle','San Francisco','New York','Chicago','Austin','Boston','Los Angeles','Atlanta','West Lafayette','Washington'])[1 + ((gs - 1) % 10)] AS city,
@@ -165,14 +155,11 @@ INSERT INTO alumni (
   "Employer",
   "Job Title",
   "Expected Field of Study",
-  "Track",
   "Degree Seeking",
   "University",
   "City",
   "State",
   "Base Salary",
-  "Signing Bonus",
-  "Relocation Reimbursement",
   "Student ID",
   "Degree Level",
   "Salary Pay Period",
@@ -198,7 +185,6 @@ SELECT
   CASE WHEN outcome_type = 'Graduate School' THEN NULL ELSE employer END,
   CASE WHEN outcome_type = 'Graduate School' THEN NULL ELSE job_title END,
   CASE WHEN outcome_type = 'Graduate School' THEN major ELSE NULL END,
-  track,
   CASE WHEN outcome_type = 'Graduate School' THEN degree_seeking ELSE NULL END,
   CASE WHEN outcome_type = 'Graduate School' THEN grad_university ELSE NULL END,
   city,
@@ -206,14 +192,6 @@ SELECT
   CASE
     WHEN outcome_type = 'Graduate School' THEN NULL
     ELSE 82000 + (gs * 1750)
-  END,
-  CASE
-    WHEN outcome_type = 'Graduate School' THEN NULL
-    ELSE 4000 + ((gs % 6) * 1500)
-  END,
-  CASE
-    WHEN outcome_type = 'Graduate School' THEN NULL
-    ELSE 1500 + ((gs % 5) * 700)
   END,
   10000000 + gs,
   degree_level,
@@ -241,14 +219,11 @@ INSERT INTO alumni (
   "Employer",
   "Job Title",
   "Expected Field of Study",
-  "Track",
   "Degree Seeking",
   "University",
   "City",
   "State",
   "Base Salary",
-  "Signing Bonus",
-  "Relocation Reimbursement",
   "Student ID",
   "Degree Level",
   "Salary Pay Period",
@@ -266,31 +241,31 @@ INSERT INTO alumni (
   updated_at
 )
 VALUES
-  ('Avery', 'Chen', 2024, 'Spring', 'Internship', 'Google', 'Software Engineering Intern', 'Computer Science', 'Software', NULL, NULL, 'Seattle', 'WA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'avery.chen@example.com', 'https://www.linkedin.com/in/avery-chen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '210 days', NOW() - INTERVAL '190 days'),
-  ('Avery', 'Chen', 2024, 'Spring', 'Job', 'Google', 'Software Engineer', 'Computer Science', 'Software', NULL, NULL, 'Seattle', 'WA', 142000, 12000, 6000, NULL, 'Bachelor''s', 'Annual', 'avery.chen@example.com', 'https://www.linkedin.com/in/avery-chen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '90 days', NOW() - INTERVAL '70 days'),
-  ('Maya', 'Patel', 2024, 'Spring', 'Internship', 'Microsoft', 'Product Engineering Intern', 'Data Science', 'Data Science', NULL, NULL, 'Redmond', 'WA', NULL, NULL, NULL, NULL, 'Master''s', NULL, 'maya.patel@example.com', 'https://www.linkedin.com/in/maya-patel', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '220 days', NOW() - INTERVAL '205 days'),
-  ('Maya', 'Patel', 2024, 'Spring', 'Job', 'Datadog', 'Data Engineer', 'Data Science', 'Data Science', NULL, NULL, 'New York', 'NY', 136000, 10000, 5000, NULL, 'Master''s', 'Annual', 'maya.patel@example.com', 'https://www.linkedin.com/in/maya-patel', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '85 days', NOW() - INTERVAL '60 days'),
-  ('Jordan', 'Rivera', 2025, 'Spring', 'Internship', 'NVIDIA', 'Machine Learning Intern', 'Artificial Intelligence', 'Artificial Intelligence', NULL, NULL, 'Santa Clara', 'CA', NULL, NULL, NULL, NULL, 'Master''s', NULL, 'jordan.rivera@example.com', 'https://www.linkedin.com/in/jordan-rivera', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '160 days', NOW() - INTERVAL '145 days'),
-  ('Elena', 'Brooks', 2024, 'Fall', 'Internship', 'Amazon', 'Software Development Engineer Intern', 'Computer Science', 'Systems', NULL, NULL, 'Austin', 'TX', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'elena.brooks@example.com', 'https://www.linkedin.com/in/elena-brooks', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '200 days', NOW() - INTERVAL '180 days'),
-  ('Elena', 'Brooks', 2024, 'Fall', 'Job', 'Amazon', 'Software Development Engineer I', 'Computer Science', 'Systems', NULL, NULL, 'Austin', 'TX', 138000, 15000, 7000, NULL, 'Bachelor''s', 'Annual', 'elena.brooks@example.com', 'https://www.linkedin.com/in/elena-brooks', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '75 days', NOW() - INTERVAL '50 days'),
-  ('Noah', 'Kim', 2025, 'Spring', 'Internship', 'Stripe', 'Security Engineering Intern', 'Computer Science', 'Systems', NULL, NULL, 'San Francisco', 'CA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'noah.kim@example.com', 'https://www.linkedin.com/in/noah-kim', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '155 days', NOW() - INTERVAL '140 days'),
-  ('Priya', 'Shah', 2025, 'Spring', 'Internship', 'Apple', 'Machine Learning Intern', 'Artificial Intelligence', 'Artificial Intelligence', NULL, NULL, 'Cupertino', 'CA', NULL, NULL, NULL, NULL, 'Master''s', NULL, 'priya.shah@example.com', 'https://www.linkedin.com/in/priya-shah', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '175 days', NOW() - INTERVAL '160 days'),
-  ('Priya', 'Shah', 2025, 'Spring', 'Job', 'Anthropic', 'Applied AI Engineer', 'Artificial Intelligence', 'Artificial Intelligence', NULL, NULL, 'San Francisco', 'CA', 168000, 18000, 8000, NULL, 'Master''s', 'Annual', 'priya.shah@example.com', 'https://www.linkedin.com/in/priya-shah', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '65 days', NOW() - INTERVAL '45 days'),
-  ('Marcus', 'Lee', 2024, 'Fall', 'Internship', 'Meta', 'Software Engineering Intern', 'Computer Science', 'Software', NULL, NULL, 'Menlo Park', 'CA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '205 days', NOW() - INTERVAL '190 days'),
-  ('Marcus', 'Lee', 2024, 'Fall', 'Internship', 'Databricks', 'Infrastructure Intern', 'Computer Science', 'Systems', NULL, NULL, 'San Francisco', 'CA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '170 days', NOW() - INTERVAL '150 days'),
-  ('Marcus', 'Lee', 2024, 'Fall', 'Job', 'Databricks', 'Software Engineer', 'Computer Science', 'Systems', NULL, NULL, 'San Francisco', 'CA', 158000, 16000, 7000, NULL, 'Bachelor''s', 'Annual', 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '55 days', NOW() - INTERVAL '35 days'),
-  ('Sofia', 'Nguyen', 2025, 'Fall', 'Internship', 'HubSpot', 'Product Analytics Intern', 'Data Science', 'Data Science', NULL, NULL, 'Cambridge', 'MA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'sofia.nguyen@example.com', 'https://www.linkedin.com/in/sofia-nguyen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '145 days', NOW() - INTERVAL '130 days'),
-  ('Caleb', 'Turner', 2025, 'Spring', 'Internship', 'Salesforce', 'Software Engineering Intern', 'Computer Science', 'Software', NULL, NULL, 'Indianapolis', 'IN', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'caleb.turner@example.com', 'https://www.linkedin.com/in/caleb-turner', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '185 days', NOW() - INTERVAL '170 days'),
-  ('Caleb', 'Turner', 2025, 'Spring', 'Job', 'Salesforce', 'Associate Software Engineer', 'Computer Science', 'Software', NULL, NULL, 'Indianapolis', 'IN', 129000, 9000, 4000, NULL, 'Bachelor''s', 'Annual', 'caleb.turner@example.com', 'https://www.linkedin.com/in/caleb-turner', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '50 days', NOW() - INTERVAL '30 days'),
-  ('Tessa', 'Morgan', 2025, 'Spring', 'Internship', 'Netflix', 'Software Engineering Intern', 'Computer Science', 'Software', NULL, NULL, 'Los Gatos', 'CA', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'tessa.morgan@example.com', 'https://www.linkedin.com/in/tessa-morgan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '168 days', NOW() - INTERVAL '150 days'),
-  ('Tessa', 'Morgan', 2025, 'Spring', 'Job', 'Netflix', 'Software Engineer I', 'Computer Science', 'Software', NULL, NULL, 'Los Gatos', 'CA', 171000, 22000, 9000, NULL, 'Bachelor''s', 'Annual', 'tessa.morgan@example.com', 'https://www.linkedin.com/in/tessa-morgan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '42 days', NOW() - INTERVAL '22 days'),
-  ('Ryan', 'Oconnor', 2024, 'Fall', 'Internship', 'Jane Street', 'Quantitative Trading Intern', 'Computer Science', 'Systems', NULL, NULL, 'New York', 'NY', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'ryan.oconnor@example.com', 'https://www.linkedin.com/in/ryan-oconnor', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '190 days', NOW() - INTERVAL '172 days'),
-  ('Ryan', 'Oconnor', 2024, 'Fall', 'Job', 'Jane Street', 'Quantitative Trader', 'Computer Science', 'Systems', NULL, NULL, 'New York', 'NY', 205000, 30000, 12000, NULL, 'Bachelor''s', 'Annual', 'ryan.oconnor@example.com', 'https://www.linkedin.com/in/ryan-oconnor', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '48 days', NOW() - INTERVAL '26 days'),
-  ('Leila', 'Hassan', 2025, 'Spring', 'Internship', 'Citadel', 'Quantitative Research Intern', 'Data Science', 'Data Science', NULL, NULL, 'Chicago', 'IL', NULL, NULL, NULL, NULL, 'Master''s', NULL, 'leila.hassan@example.com', 'https://www.linkedin.com/in/leila-hassan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '176 days', NOW() - INTERVAL '160 days'),
-  ('Leila', 'Hassan', 2025, 'Spring', 'Job', 'Hudson River Trading', 'Quantitative Researcher', 'Data Science', 'Data Science', NULL, NULL, 'New York', 'NY', 198000, 26000, 10000, NULL, 'Master''s', 'Annual', 'leila.hassan@example.com', 'https://www.linkedin.com/in/leila-hassan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '38 days', NOW() - INTERVAL '19 days'),
-  ('Victor', 'Alvarez', 2025, 'Spring', 'Internship', 'Two Sigma', 'Software Engineering Intern', 'Computer Science', 'Systems', NULL, NULL, 'New York', 'NY', NULL, NULL, NULL, NULL, 'Bachelor''s', NULL, 'victor.alvarez@example.com', 'https://www.linkedin.com/in/victor-alvarez', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '162 days', NOW() - INTERVAL '144 days'),
-  ('Grace', 'Park', 2024, 'Fall', 'Internship', 'Microsoft', 'Program Management Intern', 'Artificial Intelligence', 'Artificial Intelligence', NULL, NULL, 'Redmond', 'WA', NULL, NULL, NULL, NULL, 'Master''s', NULL, 'grace.park@example.com', 'https://www.linkedin.com/in/grace-park', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '188 days', NOW() - INTERVAL '168 days'),
-  ('Grace', 'Park', 2024, 'Fall', 'Job', 'Microsoft', 'Product Manager', 'Artificial Intelligence', 'Artificial Intelligence', NULL, NULL, 'Redmond', 'WA', 154000, 18000, 8000, NULL, 'Master''s', 'Annual', 'grace.park@example.com', 'https://www.linkedin.com/in/grace-park', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '40 days', NOW() - INTERVAL '24 days');
+  ('Avery', 'Chen', 2024, 'Spring', 'Internship', 'Google', 'Software Engineering Intern', 'Computer Science', NULL, NULL, 'Seattle', 'WA', NULL, NULL, 'Bachelor''s', NULL, 'avery.chen@example.com', 'https://www.linkedin.com/in/avery-chen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '210 days', NOW() - INTERVAL '190 days'),
+  ('Avery', 'Chen', 2024, 'Spring', 'Job', 'Google', 'Software Engineer', 'Computer Science', NULL, NULL, 'Seattle', 'WA', 142000, NULL, 'Bachelor''s', 'Annual', 'avery.chen@example.com', 'https://www.linkedin.com/in/avery-chen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '90 days', NOW() - INTERVAL '70 days'),
+  ('Maya', 'Patel', 2024, 'Spring', 'Internship', 'Microsoft', 'Product Engineering Intern', 'Data Science', NULL, NULL, 'Redmond', 'WA', NULL, NULL, 'Master''s', NULL, 'maya.patel@example.com', 'https://www.linkedin.com/in/maya-patel', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '220 days', NOW() - INTERVAL '205 days'),
+  ('Maya', 'Patel', 2024, 'Spring', 'Job', 'Datadog', 'Data Engineer', 'Data Science', NULL, NULL, 'New York', 'NY', 136000, NULL, 'Master''s', 'Annual', 'maya.patel@example.com', 'https://www.linkedin.com/in/maya-patel', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '85 days', NOW() - INTERVAL '60 days'),
+  ('Jordan', 'Rivera', 2025, 'Spring', 'Internship', 'NVIDIA', 'Machine Learning Intern', 'Artificial Intelligence', NULL, NULL, 'Santa Clara', 'CA', NULL, NULL, 'Master''s', NULL, 'jordan.rivera@example.com', 'https://www.linkedin.com/in/jordan-rivera', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '160 days', NOW() - INTERVAL '145 days'),
+  ('Elena', 'Brooks', 2024, 'Fall', 'Internship', 'Amazon', 'Software Development Engineer Intern', 'Computer Science', NULL, NULL, 'Austin', 'TX', NULL, NULL, 'Bachelor''s', NULL, 'elena.brooks@example.com', 'https://www.linkedin.com/in/elena-brooks', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '200 days', NOW() - INTERVAL '180 days'),
+  ('Elena', 'Brooks', 2024, 'Fall', 'Job', 'Amazon', 'Software Development Engineer I', 'Computer Science', NULL, NULL, 'Austin', 'TX', 138000, NULL, 'Bachelor''s', 'Annual', 'elena.brooks@example.com', 'https://www.linkedin.com/in/elena-brooks', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '75 days', NOW() - INTERVAL '50 days'),
+  ('Noah', 'Kim', 2025, 'Spring', 'Internship', 'Stripe', 'Security Engineering Intern', 'Computer Science', NULL, NULL, 'San Francisco', 'CA', NULL, NULL, 'Bachelor''s', NULL, 'noah.kim@example.com', 'https://www.linkedin.com/in/noah-kim', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '155 days', NOW() - INTERVAL '140 days'),
+  ('Priya', 'Shah', 2025, 'Spring', 'Internship', 'Apple', 'Machine Learning Intern', 'Artificial Intelligence', NULL, NULL, 'Cupertino', 'CA', NULL, NULL, 'Master''s', NULL, 'priya.shah@example.com', 'https://www.linkedin.com/in/priya-shah', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '175 days', NOW() - INTERVAL '160 days'),
+  ('Priya', 'Shah', 2025, 'Spring', 'Job', 'Anthropic', 'Applied AI Engineer', 'Artificial Intelligence', NULL, NULL, 'San Francisco', 'CA', 168000, NULL, 'Master''s', 'Annual', 'priya.shah@example.com', 'https://www.linkedin.com/in/priya-shah', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '65 days', NOW() - INTERVAL '45 days'),
+  ('Marcus', 'Lee', 2024, 'Fall', 'Internship', 'Meta', 'Software Engineering Intern', 'Computer Science', NULL, NULL, 'Menlo Park', 'CA', NULL, NULL, 'Bachelor''s', NULL, 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '205 days', NOW() - INTERVAL '190 days'),
+  ('Marcus', 'Lee', 2024, 'Fall', 'Internship', 'Databricks', 'Infrastructure Intern', 'Computer Science', NULL, NULL, 'San Francisco', 'CA', NULL, NULL, 'Bachelor''s', NULL, 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '170 days', NOW() - INTERVAL '150 days'),
+  ('Marcus', 'Lee', 2024, 'Fall', 'Job', 'Databricks', 'Software Engineer', 'Computer Science', NULL, NULL, 'San Francisco', 'CA', 158000, NULL, 'Bachelor''s', 'Annual', 'marcus.lee@example.com', 'https://www.linkedin.com/in/marcus-lee', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '55 days', NOW() - INTERVAL '35 days'),
+  ('Sofia', 'Nguyen', 2025, 'Fall', 'Internship', 'HubSpot', 'Product Analytics Intern', 'Data Science', NULL, NULL, 'Cambridge', 'MA', NULL, NULL, 'Bachelor''s', NULL, 'sofia.nguyen@example.com', 'https://www.linkedin.com/in/sofia-nguyen', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '145 days', NOW() - INTERVAL '130 days'),
+  ('Caleb', 'Turner', 2025, 'Spring', 'Internship', 'Salesforce', 'Software Engineering Intern', 'Computer Science', NULL, NULL, 'Indianapolis', 'IN', NULL, NULL, 'Bachelor''s', NULL, 'caleb.turner@example.com', 'https://www.linkedin.com/in/caleb-turner', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '185 days', NOW() - INTERVAL '170 days'),
+  ('Caleb', 'Turner', 2025, 'Spring', 'Job', 'Salesforce', 'Associate Software Engineer', 'Computer Science', NULL, NULL, 'Indianapolis', 'IN', 129000, NULL, 'Bachelor''s', 'Annual', 'caleb.turner@example.com', 'https://www.linkedin.com/in/caleb-turner', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '50 days', NOW() - INTERVAL '30 days'),
+  ('Tessa', 'Morgan', 2025, 'Spring', 'Internship', 'Netflix', 'Software Engineering Intern', 'Computer Science', NULL, NULL, 'Los Gatos', 'CA', NULL, NULL, 'Bachelor''s', NULL, 'tessa.morgan@example.com', 'https://www.linkedin.com/in/tessa-morgan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '168 days', NOW() - INTERVAL '150 days'),
+  ('Tessa', 'Morgan', 2025, 'Spring', 'Job', 'Netflix', 'Software Engineer I', 'Computer Science', NULL, NULL, 'Los Gatos', 'CA', 171000, NULL, 'Bachelor''s', 'Annual', 'tessa.morgan@example.com', 'https://www.linkedin.com/in/tessa-morgan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '42 days', NOW() - INTERVAL '22 days'),
+  ('Ryan', 'Oconnor', 2024, 'Fall', 'Internship', 'Jane Street', 'Quantitative Trading Intern', 'Computer Science', NULL, NULL, 'New York', 'NY', NULL, NULL, 'Bachelor''s', NULL, 'ryan.oconnor@example.com', 'https://www.linkedin.com/in/ryan-oconnor', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '190 days', NOW() - INTERVAL '172 days'),
+  ('Ryan', 'Oconnor', 2024, 'Fall', 'Job', 'Jane Street', 'Quantitative Trader', 'Computer Science', NULL, NULL, 'New York', 'NY', 205000, NULL, 'Bachelor''s', 'Annual', 'ryan.oconnor@example.com', 'https://www.linkedin.com/in/ryan-oconnor', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '48 days', NOW() - INTERVAL '26 days'),
+  ('Leila', 'Hassan', 2025, 'Spring', 'Internship', 'Citadel', 'Quantitative Research Intern', 'Data Science', NULL, NULL, 'Chicago', 'IL', NULL, NULL, 'Master''s', NULL, 'leila.hassan@example.com', 'https://www.linkedin.com/in/leila-hassan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '176 days', NOW() - INTERVAL '160 days'),
+  ('Leila', 'Hassan', 2025, 'Spring', 'Job', 'Hudson River Trading', 'Quantitative Researcher', 'Data Science', NULL, NULL, 'New York', 'NY', 198000, NULL, 'Master''s', 'Annual', 'leila.hassan@example.com', 'https://www.linkedin.com/in/leila-hassan', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '38 days', NOW() - INTERVAL '19 days'),
+  ('Victor', 'Alvarez', 2025, 'Spring', 'Internship', 'Two Sigma', 'Software Engineering Intern', 'Computer Science', NULL, NULL, 'New York', 'NY', NULL, NULL, 'Bachelor''s', NULL, 'victor.alvarez@example.com', 'https://www.linkedin.com/in/victor-alvarez', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '162 days', NOW() - INTERVAL '144 days'),
+  ('Grace', 'Park', 2024, 'Fall', 'Internship', 'Microsoft', 'Program Management Intern', 'Artificial Intelligence', NULL, NULL, 'Redmond', 'WA', NULL, NULL, 'Master''s', NULL, 'grace.park@example.com', 'https://www.linkedin.com/in/grace-park', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '188 days', NOW() - INTERVAL '168 days'),
+  ('Grace', 'Park', 2024, 'Fall', 'Job', 'Microsoft', 'Product Manager', 'Artificial Intelligence', NULL, NULL, 'Redmond', 'WA', 154000, NULL, 'Master''s', 'Annual', 'grace.park@example.com', 'https://www.linkedin.com/in/grace-park', false, 'none', ARRAY[]::TEXT[], true, true, true, false, false, NOW() - INTERVAL '40 days', NOW() - INTERVAL '24 days');
 
 INSERT INTO mentorship_directory (
   alumni_id,
@@ -299,7 +274,6 @@ INSERT INTO mentorship_directory (
   email,
   linkedin,
   role,
-  track,
   location_city,
   location_state,
   mentorship_areas,
@@ -317,7 +291,6 @@ SELECT
   "Email",
   "LinkedIn",
   "Job Title",
-  "Track",
   "City",
   "State",
   mentorship_areas,

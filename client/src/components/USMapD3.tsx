@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
+const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
+
 interface OutcomesData {
   state: string;
   value: number;
@@ -149,7 +151,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
               .style('color', 'black')
               .style('padding', '8px 12px')
               .style('border-radius', '4px')
-              .style('font-family', 'Acumin Pro')
+              .style('font-family', bodyFontFamily)
               .style('font-size', '14px')
               .style('pointer-events', 'none')
               .style('z-index', '1000')
@@ -210,7 +212,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
       svg.append('text')
         .attr('x', legendX)
         .attr('y', legendY - 5)
-        .style('font-family', 'Acumin Pro')
+        .style('font-family', bodyFontFamily)
         .style('font-size', '12px')
         .style('fill', '#333')
         .text(minValue.toString());
@@ -219,7 +221,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
         .attr('x', legendX + legendWidth)
         .attr('y', legendY - 5)
         .attr('text-anchor', 'end')
-        .style('font-family', 'Acumin Pro')
+        .style('font-family', bodyFontFamily)
         .style('font-size', '12px')
         .style('fill', '#333')
         .text(maxValue.toString());
@@ -228,7 +230,7 @@ const USMapD3: React.FC<USMapD3Props> = ({
         .attr('x', legendX + legendWidth / 2)
         .attr('y', legendY + legendHeight + 20)
         .attr('text-anchor', 'middle')
-        .style('font-family', 'Acumin Pro')
+        .style('font-family', bodyFontFamily)
         .style('font-size', '12px')
         .style('fill', '#333')
         .text(legendLabel);

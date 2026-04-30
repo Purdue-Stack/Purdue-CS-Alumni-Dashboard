@@ -1,7 +1,18 @@
 import axios from 'axios';
 import { apiBaseUrl } from '../config/runtime';
 
-const api = axios.create({ baseURL: apiBaseUrl });
+const api = axios.create({ baseURL: apiBaseUrl, withCredentials: true });
+
+export type AuthUser = {
+  id: string;
+  username: string;
+  displayName: string;
+  role: 'student' | 'admin';
+};
+
+export type AuthMeResponse = {
+  user: AuthUser | null;
+};
 
 export type DashboardAnalyticsResponse = {
   outcomeBreakdown: { name: string; value: number }[];
@@ -18,11 +29,27 @@ export type DashboardAnalyticsResponse = {
   internshipPlacementsTop10: { name: string; value: number }[];
 };
 
+export const fetchCurrentUser = async (): Promise<AuthMeResponse> => {
+  const response = await api.get<AuthMeResponse>('/auth/me');
+  return response.data;
+};
+
+export const loginWithPassword = async (
+  username: string,
+  password: string
+): Promise<AuthMeResponse> => {
+  const response = await api.post<AuthMeResponse>('/auth/login', { username, password });
+  return response.data;
+};
+
+export const logoutCurrentUser = async (): Promise<void> => {
+  await api.post('/auth/logout');
+};
+
 export type DashboardAnalyticsParams = {
   graduationYears?: string[];
   majors?: string[];
   degreeLevels?: string[];
-  tracks?: string[];
   locations?: string[];
   search?: string;
 };
@@ -41,7 +68,6 @@ export type AlumniDirectoryRow = {
   graduation_term: string | null;
   outcome_type: string | null;
   expected_field_of_study: string | null;
-  track: string | null;
   degree_seeking: string | null;
   university: string | null;
   degree_level: string | null;
@@ -54,7 +80,6 @@ export type AlumniDirectoryRow = {
 export type AlumniQueryParams = {
   graduationYears?: string[];
   majors?: string[];
-  tracks?: string[];
   outcomeTypes?: string[];
   search?: string;
   page?: number;
@@ -98,7 +123,6 @@ export type MentorRow = {
   email: string | null;
   linkedin: string | null;
   role: string | null;
-  track: string | null;
   location_city: string | null;
   location_state: string | null;
   mentorship_areas: string[];
@@ -111,7 +135,6 @@ export type MentorRow = {
 };
 
 export type MentorQueryParams = {
-  tracks?: string[];
   roles?: string[];
   locations?: string[];
   areas?: string[];
@@ -137,7 +160,6 @@ export type PendingMentorCandidate = {
   job_title: string | null;
   email: string | null;
   linkedin: string | null;
-  track: string | null;
   city: string | null;
   state: string | null;
   mentorship_areas: string[];
@@ -169,14 +191,11 @@ export type AdminAlumniUpdatePayload = {
   isDeleted?: boolean;
   isAnonymized?: boolean;
   isDirectoryVisible?: boolean;
-  track?: string | null;
   degreeSeeking?: string | null;
   university?: string | null;
   city?: string | null;
   state?: string | null;
   baseSalary?: number | null;
-  signingBonus?: number | null;
-  relocationReimbursement?: number | null;
   studentId?: number | null;
   degreeLevel?: string | null;
   salaryPayPeriod?: string | null;
@@ -194,6 +213,40 @@ export type MentorApprovalPayload = {
   mentorshipAreas?: string[];
 };
 
+export type UploadFieldMapping = Partial<Record<string, string | null>>;
+
+export type UploadPreviewResponse = {
+  rawHeaders: string[];
+  rawRows: Record<string, any>[];
+  columns: string[];
+  suggestedMapping: UploadFieldMapping;
+  requiredFields: string[];
+  summary: {
+    totalRows: number;
+    missingColumns: string[];
+    unmappedHeaders: string[];
+    mappingErrors: string[];
+  };
+};
+
+export type UploadFieldError = {
+  rowIndex: number;
+  field: string;
+  message: string;
+};
+
+export type UploadValidationResponse = {
+  columns: string[];
+  rows: Record<string, any>[];
+  rowErrors: { rowIndex: number; messages: string[] }[];
+  fieldErrors: UploadFieldError[];
+  summary: {
+    totalRows: number;
+    validRows: number;
+    invalidRows: number;
+  };
+};
+
 export const fetchDashboardAnalytics = async (
   params: DashboardAnalyticsParams
 ): Promise<DashboardAnalyticsResponse> => {
@@ -202,11 +255,46 @@ export const fetchDashboardAnalytics = async (
       graduationYears: params.graduationYears?.join(','),
       majors: params.majors?.join(','),
       degreeLevels: params.degreeLevels?.join(','),
-      tracks: params.tracks?.join(','),
       locations: params.locations?.join(','),
       search: params.search
     }
   });
+  return response.data;
+};
+
+export const previewUploadFile = async (file: File): Promise<UploadPreviewResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post<UploadPreviewResponse>('/upload-excel', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+
+  return response.data;
+};
+
+export const validateUploadData = async (payload: {
+  rawRows?: Record<string, any>[];
+  rows?: Record<string, any>[];
+  mapping?: UploadFieldMapping;
+}): Promise<UploadValidationResponse> => {
+  const response = await api.post<UploadValidationResponse>('/validate-upload', payload);
+  return response.data;
+};
+
+export const commitUploadData = async (payload: {
+  rows: Record<string, any>[];
+  filename?: string;
+}): Promise<{
+  inserted: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  rowErrors?: { rowIndex: number; messages: string[] }[];
+}> => {
+  const response = await api.post('/commit-upload', payload);
   return response.data;
 };
 
@@ -222,7 +310,6 @@ export const fetchPublicAlumni = async (
     params: {
       graduationYears: params.graduationYears?.join(','),
       majors: params.majors?.join(','),
-      tracks: params.tracks?.join(','),
       outcomeTypes: params.outcomeTypes?.join(','),
       search: params.search,
       page: params.page,
@@ -255,7 +342,6 @@ export const fetchMentors = async (
 ): Promise<ListResponse<MentorRow>> => {
   const response = await api.get<ListResponse<MentorRow>>('/mentors', {
     params: {
-      tracks: params.tracks?.join(','),
       roles: params.roles?.join(','),
       locations: params.locations?.join(','),
       areas: params.areas?.join(','),

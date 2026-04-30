@@ -16,8 +16,6 @@ const EXPORT_COLUMNS = [
   "City",
   "State",
   "Base Salary",
-  "Signing Bonus",
-  "Relocation Reimbursement",
   "Student ID",
   "Degree Level",
   "Salary Pay Period"

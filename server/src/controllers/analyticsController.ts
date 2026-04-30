@@ -150,12 +150,6 @@ function buildFilters(req: Request, options: BuildFilterOptions = {}) {
     clauses.push(`"Degree Level" = ANY($${params.length}::text[])`);
   }
 
-  const tracks = parseList(req.query.tracks);
-  if (tracks.length) {
-    params.push(tracks);
-    clauses.push(`"Track" = ANY($${params.length}::text[])`);
-  }
-
   const locations = parseList(req.query.locations);
   if (locations.length) {
     params.push(locations);
@@ -188,7 +182,6 @@ function buildFilters(req: Request, options: BuildFilterOptions = {}) {
       OR "Last Name" ILIKE $${idx}
       OR "Employer" ILIKE $${idx}
       OR "Job Title" ILIKE $${idx}
-      OR "Track" ILIKE $${idx}
       OR "Expected Field of Study" ILIKE $${idx}
       OR "University" ILIKE $${idx}
       OR "City" ILIKE $${idx}

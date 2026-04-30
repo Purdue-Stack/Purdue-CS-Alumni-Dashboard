@@ -11,14 +11,11 @@ type AdminAlumniRow = {
   Employer: string | null;
   'Job Title': string | null;
   'Expected Field of Study': string | null;
-  Track: string | null;
   'Degree Seeking': string | null;
   University: string | null;
   City: string | null;
   State: string | null;
   'Base Salary': number | null;
-  'Signing Bonus': number | null;
-  'Relocation Reimbursement': number | null;
   'Student ID': number | null;
   'Degree Level': string | null;
   'Salary Pay Period': string | null;
@@ -35,14 +32,11 @@ type EditDraft = {
   employer: string;
   jobTitle: string;
   expectedFieldOfStudy: string;
-  track: string;
   degreeSeeking: string;
   university: string;
   city: string;
   state: string;
   baseSalary: string;
-  signingBonus: string;
-  relocationReimbursement: string;
   studentId: string;
   degreeLevel: string;
   salaryPayPeriod: string;
@@ -78,14 +72,11 @@ const columns: ColumnConfig[] = [
   { key: 'Employer', label: 'Employer', editKey: 'employer' },
   { key: 'Job Title', label: 'Job Title', editKey: 'jobTitle' },
   { key: 'Expected Field of Study', label: 'Expected Field of Study', editKey: 'expectedFieldOfStudy' },
-  { key: 'Track', label: 'Track', editKey: 'track' },
   { key: 'Degree Seeking', label: 'Degree Seeking', editKey: 'degreeSeeking' },
   { key: 'University', label: 'University', editKey: 'university' },
   { key: 'City', label: 'City', editKey: 'city' },
   { key: 'State', label: 'State', editKey: 'state' },
   { key: 'Base Salary', label: 'Base Salary', editKey: 'baseSalary' },
-  { key: 'Signing Bonus', label: 'Signing Bonus', editKey: 'signingBonus' },
-  { key: 'Relocation Reimbursement', label: 'Relocation Reimbursement', editKey: 'relocationReimbursement' },
   { key: 'Student ID', label: 'Student ID', editKey: 'studentId' },
   { key: 'Degree Level', label: 'Degree Level', editKey: 'degreeLevel' },
   { key: 'Salary Pay Period', label: 'Salary Pay Period', editKey: 'salaryPayPeriod' },
@@ -102,14 +93,11 @@ const fields: FieldConfig[] = [
   { key: 'employer', label: 'Employer' },
   { key: 'jobTitle', label: 'Job Title' },
   { key: 'expectedFieldOfStudy', label: 'Expected Field of Study' },
-  { key: 'track', label: 'Track' },
   { key: 'degreeSeeking', label: 'Degree Seeking', type: 'select', options: ["Bachelor's", "Master's", 'Doctorate'] },
   { key: 'university', label: 'University' },
   { key: 'city', label: 'City' },
   { key: 'state', label: 'State' },
   { key: 'baseSalary', label: 'Base Salary', type: 'number' },
-  { key: 'signingBonus', label: 'Signing Bonus', type: 'number' },
-  { key: 'relocationReimbursement', label: 'Relocation Reimbursement', type: 'number' },
   { key: 'studentId', label: 'Student ID', type: 'number' },
   { key: 'degreeLevel', label: 'Degree Level', type: 'select', options: ['BS', 'MS', 'PhD'] },
   { key: 'salaryPayPeriod', label: 'Salary Pay Period', type: 'select', options: ['Annual'] },
@@ -136,14 +124,11 @@ const createDraft = (row: AdminAlumniRow): EditDraft => ({
   employer: row.Employer ?? '',
   jobTitle: row['Job Title'] ?? '',
   expectedFieldOfStudy: row['Expected Field of Study'] ?? '',
-  track: row.Track ?? '',
   degreeSeeking: row['Degree Seeking'] ?? '',
   university: row.University ?? '',
   city: row.City ?? '',
   state: row.State ?? '',
   baseSalary: row['Base Salary'] == null ? '' : String(row['Base Salary']),
-  signingBonus: row['Signing Bonus'] == null ? '' : String(row['Signing Bonus']),
-  relocationReimbursement: row['Relocation Reimbursement'] == null ? '' : String(row['Relocation Reimbursement']),
   studentId: row['Student ID'] == null ? '' : String(row['Student ID']),
   degreeLevel: row['Degree Level'] ?? '',
   salaryPayPeriod: row['Salary Pay Period'] ?? '',
@@ -245,14 +230,11 @@ const AdminAlumniTable = () => {
       employer: draft.employer.trim() || null,
       jobTitle: draft.jobTitle.trim() || null,
       expectedFieldOfStudy: draft.expectedFieldOfStudy.trim() || null,
-      track: draft.track.trim() || null,
       degreeSeeking: draft.degreeSeeking.trim() || null,
       university: draft.university.trim() || null,
       city: draft.city.trim() || null,
       state: draft.state.trim() || null,
       baseSalary: parseNullableNumber(draft.baseSalary),
-      signingBonus: parseNullableNumber(draft.signingBonus),
-      relocationReimbursement: parseNullableNumber(draft.relocationReimbursement),
       studentId: parseNullableNumber(draft.studentId),
       degreeLevel: draft.degreeLevel.trim() || null,
       salaryPayPeriod: draft.salaryPayPeriod.trim() || null,

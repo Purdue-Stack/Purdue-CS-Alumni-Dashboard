@@ -1,6 +1,65 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 const Header = () => {
+  const { isAdmin, isLoggedIn, loading, login, logout, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    const username = window.prompt('Username');
+
+    if (!username) {
+      return;
+    }
+
+    const password = window.prompt('Password');
+
+    if (!password) {
+      return;
+    }
+
+    try {
+      await login(username, password);
+      const from = (location.state as { from?: string } | null)?.from;
+
+      if (from) {
+        navigate(from, { replace: true });
+      }
+    } catch {
+      window.alert('Invalid username or password');
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+
+    if (
+      location.pathname.startsWith('/admin') ||
+      location.pathname === '/alumni-directory' ||
+      location.pathname === '/internships' ||
+      location.pathname === '/mentors'
+    ) {
+      navigate('/', { replace: true });
+    }
+  };
+
+  const renderAuthButton = () => (
+    loading ? (
+      <button type="button" disabled>
+        Checking...
+      </button>
+    ) : isLoggedIn ? (
+      <button type="button" onClick={handleLogout}>
+        Logout{user ? ` (${user.displayName})` : ''}
+      </button>
+    ) : (
+      <button type="button" onClick={handleLogin}>
+        Login
+      </button>
+    )
+  );
+
   return (
     <header className="header container">
       <section className="header__goldBar container">
@@ -11,9 +70,9 @@ const Header = () => {
               <ul role="menu">
                 <li role="none"><Link role="menuitem" to="/">Home</Link></li>
                 <li role="none"><Link role="menuitem" to="/dashboard">Dashboard</Link></li>
-                <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>
-                <li role="none"><Link role="menuitem" to="/mentors">Mentors</Link></li>
-                <li role="none"><Link role="menuitem" to="/admin/analytics">Admin</Link></li>
+                {isLoggedIn && <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>}
+                {isLoggedIn && <li role="none"><Link role="menuitem" to="/mentors">Mentors</Link></li>}
+                {isAdmin && <li role="none"><Link role="menuitem" to="/admin/upload">Admin</Link></li>}
               </ul>
             </nav>
           </section>
@@ -23,7 +82,7 @@ const Header = () => {
         <section className="header__signature--inner">
           <a className="header__signature--logo" id="purdueLogo" href="https://www.purdue.edu" aria-label="Purdue Logo">
             <div>
-              <object data="https://www.purdue.edu/purdue/images/PU-H.svg" tabIndex={-1} type="image/svg+xml" aria-labelledby="purdueLogo"></object>
+              <img src="https://www.purdue.edu/purdue/images/PU-H.svg" alt="Purdue University" />
             </div>
           </a>
           <article className="header__signature--siteName">
@@ -39,9 +98,10 @@ const Header = () => {
           <ul role="menubar" aria-label="Main Navigation">
             <li role="none"><Link role="menuitem" to="/">Home</Link></li>
             <li role="none"><Link role="menuitem" to="/dashboard">Career Outcomes</Link></li>
-            <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>
-            <li role="none"><Link role="menuitem" to="/mentors">Mentor Explorer</Link></li>
-            <li role="none"><Link role="menuitem" to="/admin/analytics">Admin</Link></li>
+            {isLoggedIn && <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>}
+            {isLoggedIn && <li role="none"><Link role="menuitem" to="/mentors">Mentor Explorer</Link></li>}
+            {isAdmin && <li role="none"><Link role="menuitem" to="/admin/upload">Admin</Link></li>}
+            <li role="none">{renderAuthButton()}</li>
           </ul>
         </section>
       </nav>

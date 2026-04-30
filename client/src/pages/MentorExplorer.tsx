@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchMentors, type MentorRow } from '../api/api';
 
-type MentorSortKey = 'last_name' | 'role' | 'track' | 'location_state';
+type MentorSortKey = 'last_name' | 'role' | 'location_state';
 type SortDirection = 'asc' | 'desc';
 
 type DropdownProps = {
@@ -149,17 +149,13 @@ function sortRows(rows: Array<MentorRow & { role_label: string }>, sortKey: Ment
         ? left.last_name
         : sortKey === 'role'
           ? left.role_label
-          : sortKey === 'track'
-            ? left.track ?? ''
-            : left.location_state ?? '';
+          : left.location_state ?? '';
     const rightValue =
       sortKey === 'last_name'
         ? right.last_name
         : sortKey === 'role'
           ? right.role_label
-          : sortKey === 'track'
-            ? right.track ?? ''
-            : right.location_state ?? '';
+          : right.location_state ?? '';
     return leftValue.localeCompare(rightValue) * direction;
   });
 }
@@ -167,7 +163,6 @@ function sortRows(rows: Array<MentorRow & { role_label: string }>, sortKey: Ment
 const MentorExplorer = () => {
   const [rows, setRows] = useState<MentorRow[]>([]);
   const [search, setSearch] = useState('');
-  const [tracks, setTracks] = useState<string[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [states, setStates] = useState<string[]>([]);
   const [areas, setAreas] = useState<string[]>([]);
@@ -199,7 +194,6 @@ const MentorExplorer = () => {
     role_label: buildRole(mentor)
   }));
 
-  const trackOptions = uniqueSorted(enhancedRows.map((row) => row.track));
   const roleOptions = uniqueSorted(enhancedRows.map((row) => row.role_label));
   const stateOptions = uniqueSorted(enhancedRows.map((row) => row.location_state));
   const areaOptions = uniqueSorted(enhancedRows.flatMap((row) => row.mentorship_areas));
@@ -209,7 +203,6 @@ const MentorExplorer = () => {
       mentor.first_name,
       mentor.last_name,
       mentor.role_label,
-      mentor.track,
       mentor.location_city,
       mentor.location_state,
       mentor.email,
@@ -218,7 +211,6 @@ const MentorExplorer = () => {
     ].join(' ').toLowerCase();
 
     if (search && !haystack.includes(search.toLowerCase())) return false;
-    if (tracks.length && !tracks.includes(String(mentor.track ?? ''))) return false;
     if (roles.length && !roles.includes(mentor.role_label)) return false;
     if (states.length && !states.includes(String(mentor.location_state ?? ''))) return false;
     if (areas.length && !mentor.mentorship_areas.some((area) => areas.includes(area))) return false;
@@ -254,7 +246,7 @@ const MentorExplorer = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by name, role, track, state, mentorship area, or contact"
+              placeholder="Search by name, role, state, mentorship area, or contact"
               style={{ padding: 14, border: `1px solid ${warmBorder}`, borderRadius: 14, background: '#fff' }}
             />
           </label>
@@ -270,7 +262,6 @@ const MentorExplorer = () => {
                 >
                   <option value="last_name">Last Name</option>
                   <option value="role">Role</option>
-                  <option value="track">Track</option>
                   <option value="location_state">State</option>
                 </select>
                 <button
@@ -308,13 +299,6 @@ const MentorExplorer = () => {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-          <SearchableCheckboxDropdown
-            label="Track"
-            options={trackOptions}
-            selected={tracks}
-            onToggle={(value) => setTracks((current) => toggleValue(current, value))}
-            accent={deepGold}
-          />
           <SearchableCheckboxDropdown
             label="Role"
             options={roleOptions}
@@ -359,7 +343,6 @@ const MentorExplorer = () => {
                 <th style={{ padding: 14 }}>First Name</th>
                 <th style={{ padding: 14 }}>Last Name</th>
                 <th style={{ padding: 14 }}>Role</th>
-                <th style={{ padding: 14 }}>Track</th>
                 <th style={{ padding: 14 }}>Location</th>
                 <th style={{ padding: 14 }}>Mentorship Areas</th>
                 <th style={{ padding: 14 }}>Email</th>
@@ -372,7 +355,6 @@ const MentorExplorer = () => {
                   <td style={{ padding: 14 }}>{mentor.first_name}</td>
                   <td style={{ padding: 14 }}>{mentor.last_name}</td>
                   <td style={{ padding: 14, fontWeight: 700 }}>{mentor.role_label || 'N/A'}</td>
-                  <td style={{ padding: 14 }}>{mentor.track || 'N/A'}</td>
                   <td style={{ padding: 14 }}>{mentor.location_city || mentor.location_state ? `${mentor.location_city || 'Unknown city'}${mentor.location_state ? `, ${mentor.location_state}` : ''}` : 'N/A'}</td>
                   <td style={{ padding: 14 }}>{mentor.mentorship_areas.length ? mentor.mentorship_areas.join(', ') : 'N/A'}</td>
                   <td style={{ padding: 14 }}>{mentor.email ? <a href={`mailto:${mentor.email}`}>{mentor.email}</a> : 'N/A'}</td>
@@ -381,7 +363,7 @@ const MentorExplorer = () => {
               ))}
               {!sortedRows.length && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 24, textAlign: 'center' }}>No mentors match the current filters.</td>
+                  <td colSpan={7} style={{ padding: 24, textAlign: 'center' }}>No mentors match the current filters.</td>
                 </tr>
               )}
             </tbody>

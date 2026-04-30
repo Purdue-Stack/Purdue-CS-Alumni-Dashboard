@@ -34,6 +34,8 @@ type GraphDefinition = {
 const pieColors = ["#8E6F3E", "#CFB991", "#6F7A85", "#D9D9D9"];
 const tabAccent = "rgba(207, 185, 145, 0.18)";
 const activeTabColor = "#9D7A28";
+const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
+const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
 const emptyStateData: StateDatum[] = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS",
   "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
@@ -386,7 +388,7 @@ const Dashboard: React.FC = () => {
           return (
             <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 12, height: 12, borderRadius: 999, background: colors[index] }} />
-              <span style={{ fontFamily: "Acumin Pro", fontSize: 14, color: "#333" }}>
+              <span style={{ fontFamily: bodyFontFamily, fontSize: 14, color: "#333" }}>
                 {item.name}: {item.value}
               </span>
             </div>
@@ -493,7 +495,7 @@ const Dashboard: React.FC = () => {
           <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
             <a
               className="hero-data-button hero-data-button--border"
-              style={{ width: 130, margin: 0, cursor: "pointer" }}
+              style={{ width: 130, margin: 0, cursor: "pointer", fontFamily: condensedFontFamily }}
               onClick={applyFilters}
             >
               FILTER
@@ -516,7 +518,7 @@ const Dashboard: React.FC = () => {
             </a>
             <a
               className="hero-data-button hero-data-button--red-border"
-              style={{ width: 130, margin: 0, cursor: "pointer" }}
+              style={{ width: 130, margin: 0, cursor: "pointer", fontFamily: condensedFontFamily }}
               onClick={clearAllFilters}
             >
               CLEAR
@@ -568,7 +570,7 @@ const Dashboard: React.FC = () => {
                     borderRadius: 12,
                     background: selectedTab === option ? activeTabColor : "transparent",
                     color: selectedTab === option ? "#fff" : "#2D2926",
-                    fontFamily: "Acumin Pro",
+                    fontFamily: bodyFontFamily,
                     fontSize: 14,
                     fontWeight: 800,
                     letterSpacing: 0.2,
@@ -619,7 +621,7 @@ const Dashboard: React.FC = () => {
                   border: "none",
                   outline: "none",
                   fontSize: 16,
-                  fontFamily: "Acumin Pro",
+                  fontFamily: bodyFontFamily,
                   color: "#333",
                   backgroundColor: "transparent",
                 }}
@@ -733,7 +735,7 @@ const Dashboard: React.FC = () => {
               <h2
                 style={{
                   margin: 0,
-                  fontFamily: "United Sans Condensed",
+                  fontFamily: condensedFontFamily,
                   fontWeight: 600,
                   fontSize: 32,
                   color: "black",
@@ -761,7 +763,7 @@ const Dashboard: React.FC = () => {
                   >
                     {"<"}
                   </button>
-                  <span style={{ fontFamily: "Acumin Pro", fontSize: 13, color: "#6B6768", minWidth: 36, textAlign: "center" }}>
+                  <span style={{ fontFamily: bodyFontFamily, fontSize: 13, color: "#6B6768", minWidth: 36, textAlign: "center" }}>
                     {currentGraphIndex + 1}/{currentGraphSet.length}
                   </span>
                   <button

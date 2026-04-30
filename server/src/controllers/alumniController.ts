@@ -51,7 +51,6 @@ export const fetchPublicAlumni = async (req: Request, res: Response): Promise<vo
   try {
     const graduationYears = parseList(req.query.graduationYears);
     const majors = parseList(req.query.majors);
-    const tracks = parseList(req.query.tracks);
     const outcomeTypes = parseList(req.query.outcomeTypes);
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 24;
@@ -60,7 +59,6 @@ export const fetchPublicAlumni = async (req: Request, res: Response): Promise<vo
     const { rows, total } = await listDirectoryAlumni({
       graduationYears,
       majors,
-      tracks,
       outcomeTypes,
       search,
       limit: pageSize,
@@ -123,14 +121,11 @@ function buildAdminUpdateInput(body: Record<string, unknown>): AdminAlumniUpdate
     isDeleted: typeof body.isDeleted === 'boolean' ? body.isDeleted : undefined,
     isAnonymized: typeof body.isAnonymized === 'boolean' ? body.isAnonymized : undefined,
     isDirectoryVisible: typeof body.isDirectoryVisible === 'boolean' ? body.isDirectoryVisible : undefined,
-    track: parseNullableString(body.track),
     degreeSeeking: parseNullableString(body.degreeSeeking),
     university: parseNullableString(body.university),
     city: parseNullableString(body.city),
     state: parseNullableString(body.state),
     baseSalary: parseNullableNumber(body.baseSalary),
-    signingBonus: parseNullableNumber(body.signingBonus),
-    relocationReimbursement: parseNullableNumber(body.relocationReimbursement),
     studentId: parseNullableNumber(body.studentId),
     degreeLevel: parseNullableString(body.degreeLevel),
     salaryPayPeriod: parseNullableString(body.salaryPayPeriod),

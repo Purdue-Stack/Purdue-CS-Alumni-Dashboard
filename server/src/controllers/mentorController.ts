@@ -11,7 +11,6 @@ function parseList(value: unknown): string[] {
 
 export const fetchMentors = async (req: Request, res: Response): Promise<void> => {
   try {
-    const tracks = parseList(req.query.tracks);
     const roles = parseList(req.query.roles);
     const locations = parseList(req.query.locations);
     const areas = parseList(req.query.areas);
@@ -20,7 +19,6 @@ export const fetchMentors = async (req: Request, res: Response): Promise<void> =
     const page = req.query.page ? Number(req.query.page) : 0;
 
     const { rows, total } = await listMentors({
-      tracks,
       roles,
       locations,
       areas,

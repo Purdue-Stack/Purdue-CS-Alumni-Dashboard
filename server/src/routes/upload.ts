@@ -5,7 +5,7 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { uploadExcelPreview } from '../controllers/uploadController';
+import { uploadExcelPreview, validateUploadData } from '../controllers/uploadController';
 import { commitUpload } from '../controllers/commitController';
 
 const router: Router = express.Router();
@@ -51,6 +51,9 @@ router.post('/upload-excel', upload.single('file'), uploadExcelPreview);
 
 // Commit upload data to DB
 router.post('/commit-upload', commitUpload);
+
+// Validate upload mappings and edited rows
+router.post('/validate-upload', validateUploadData);
 
 // Mock database for upload logs (replace with real database)
 let uploadLogs: any[] = [

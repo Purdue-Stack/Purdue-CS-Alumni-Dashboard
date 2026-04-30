@@ -8,7 +8,6 @@ type AlumniSortKey =
   | 'graduation_year'
   | 'employer'
   | 'job_title'
-  | 'track'
   | 'degree_level'
   | 'university';
 type SortDirection = 'asc' | 'desc';
@@ -170,7 +169,6 @@ const AlumniDirectory = () => {
   const [rows, setRows] = useState<AlumniDirectoryRow[]>([]);
   const [search, setSearch] = useState('');
   const [graduationYears, setGraduationYears] = useState<string[]>([]);
-  const [tracks, setTracks] = useState<string[]>([]);
   const [majors, setMajors] = useState<string[]>([]);
   const [companies, setCompanies] = useState<string[]>([]);
   const [jobTitles, setJobTitles] = useState<string[]>([]);
@@ -217,7 +215,6 @@ const AlumniDirectory = () => {
   useEffect(() => {
     setSearch('');
     setGraduationYears([]);
-    setTracks([]);
     setMajors([]);
     setCompanies([]);
     setJobTitles([]);
@@ -229,7 +226,6 @@ const AlumniDirectory = () => {
   }, [tab]);
 
   const graduationYearOptions = uniqueSorted(rows.map((row) => String(row.graduation_year)));
-  const trackOptions = uniqueSorted(rows.map((row) => row.track));
   const majorOptions = uniqueSorted(rows.map((row) => row.expected_field_of_study));
   const companyOptions = uniqueSorted(rows.map((row) => row.employer));
   const jobTitleOptions = uniqueSorted(rows.map((row) => row.job_title));
@@ -244,7 +240,6 @@ const AlumniDirectory = () => {
       row.employer,
       row.job_title,
       row.expected_field_of_study,
-      row.track,
       row.city,
       row.state,
       row.university,
@@ -253,7 +248,6 @@ const AlumniDirectory = () => {
 
     if (search && !haystack.includes(search.toLowerCase())) return false;
     if (graduationYears.length && !graduationYears.includes(String(row.graduation_year))) return false;
-    if (!matchesSelection(row.track, tracks)) return false;
     if (!matchesSelection(row.expected_field_of_study, majors)) return false;
     if (!matchesSelection(row.state, states)) return false;
 
@@ -278,7 +272,6 @@ const AlumniDirectory = () => {
         { value: 'graduation_year', label: 'Graduation Year' },
         { value: 'last_name', label: 'Last Name' },
         { value: 'university', label: 'University' },
-        { value: 'track', label: 'Track' },
         { value: 'degree_level', label: 'Degree Level' }
       ]
     : [
@@ -286,7 +279,6 @@ const AlumniDirectory = () => {
         { value: 'last_name', label: 'Last Name' },
         { value: 'employer', label: 'Company' },
         { value: 'job_title', label: 'Job Title' },
-        { value: 'track', label: 'Track' },
         { value: 'degree_level', label: 'Degree Level' }
       ];
 
@@ -340,7 +332,7 @@ const AlumniDirectory = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder={tab === 'Graduate School' ? 'Search by name, expected field, university, degree, city, state, or track' : 'Search by name, company, title, city, state, or track'}
+              placeholder={tab === 'Graduate School' ? 'Search by name, expected field, university, degree, city, or state' : 'Search by name, company, title, city, or state'}
               style={{
                 padding: 14,
                 border: `1px solid ${warmBorder}`,
@@ -403,13 +395,6 @@ const AlumniDirectory = () => {
             options={graduationYearOptions}
             selected={graduationYears}
             onToggle={(value) => setGraduationYears((current) => toggleValue(current, value))}
-            accent={deepGold}
-          />
-          <SearchableCheckboxDropdown
-            label="Track"
-            options={trackOptions}
-            selected={tracks}
-            onToggle={(value) => setTracks((current) => toggleValue(current, value))}
             accent={deepGold}
           />
           <SearchableCheckboxDropdown
@@ -489,7 +474,6 @@ const AlumniDirectory = () => {
                 {(tab === 'Job' || tab === 'Internship') && <th style={{ padding: 14 }}>Employer</th>}
                 {(tab === 'Job' || tab === 'Internship') && <th style={{ padding: 14 }}>Job Title</th>}
                 {tab === 'Graduate School' && <th style={{ padding: 14 }}>Expected Field of Study</th>}
-                <th style={{ padding: 14 }}>Track</th>
                 {tab === 'Graduate School' && <th style={{ padding: 14 }}>Degree Seeking</th>}
                 {tab === 'Graduate School' && <th style={{ padding: 14 }}>University</th>}
                 <th style={{ padding: 14 }}>City</th>
@@ -507,7 +491,6 @@ const AlumniDirectory = () => {
                   {(tab === 'Job' || tab === 'Internship') && <td style={{ padding: 14 }}>{row.employer || 'N/A'}</td>}
                   {(tab === 'Job' || tab === 'Internship') && <td style={{ padding: 14 }}>{row.job_title || 'N/A'}</td>}
                   {tab === 'Graduate School' && <td style={{ padding: 14 }}>{row.expected_field_of_study || 'N/A'}</td>}
-                  <td style={{ padding: 14 }}>{row.track || 'N/A'}</td>
                   {tab === 'Graduate School' && <td style={{ padding: 14 }}>{row.degree_seeking || 'N/A'}</td>}
                   {tab === 'Graduate School' && <td style={{ padding: 14 }}>{row.university || 'N/A'}</td>}
                   <td style={{ padding: 14 }}>{row.city || 'N/A'}</td>
@@ -517,7 +500,7 @@ const AlumniDirectory = () => {
               ))}
               {!sortedRows.length && (
                 <tr>
-                  <td colSpan={11} style={{ padding: 24, textAlign: 'center' }}>No alumni match the current {tab.toLowerCase()} filters.</td>
+                  <td colSpan={10} style={{ padding: 24, textAlign: 'center' }}>No alumni match the current {tab.toLowerCase()} filters.</td>
                 </tr>
               )}
             </tbody>
