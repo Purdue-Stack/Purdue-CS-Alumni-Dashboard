@@ -93,7 +93,7 @@ export async function listMentors(filters: MentorFilters): Promise<{ rows: Mento
   const countResult = await query(`SELECT COUNT(*) FROM mentorship_directory md ${where}`, params.slice(0, params.length - 2));
 
   return {
-    rows: dataResult.rows.map((row) => ({
+    rows: dataResult.rows.map((row: Record<string, unknown>) => ({
       ...row,
       mentorship_areas: Array.isArray(row.mentorship_areas) ? row.mentorship_areas : []
     })) as Mentor[],

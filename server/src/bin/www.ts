@@ -84,13 +84,13 @@ function onListening(): void {
 
   // Test Neon DB connection
   query('SELECT "First Name", "Last Name", "Graduation Year" FROM alumni LIMIT 5;')
-    .then(res => {
+    .then((res: { rows: Array<Record<string, unknown>> }) => {
       console.log('DB connected. Sample rows:');
-      res.rows.forEach((row, i) => {
+      res.rows.forEach((row: Record<string, unknown>, i: number) => {
         console.log(`${i + 1}. ${row['First Name']} ${row['Last Name']} (${row['Graduation Year']})`);
       });
     })
-    .catch(err => {
+    .catch((err: Error) => {
       console.error('Failed to connect to DB or fetch data:', err.message);
     });
 }

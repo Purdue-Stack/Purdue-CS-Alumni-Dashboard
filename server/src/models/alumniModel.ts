@@ -614,13 +614,13 @@ export async function listDirectoryFilterOptions(options: AlumniDirectoryOptions
   ]);
 
   return {
-    graduationYears: yearsResult.rows.map((row) => String(row.value)),
-    majors: majorsResult.rows.map((row) => row.value),
-    companies: companiesResult.rows.map((row) => row.value),
-    jobTitles: jobTitlesResult.rows.map((row) => row.value),
-    states: statesResult.rows.map((row) => row.value),
-    degreeSeeking: degreeSeekingResult.rows.map((row) => row.value),
-    universities: universitiesResult.rows.map((row) => row.value)
+    graduationYears: yearsResult.rows.map((row: { value?: unknown }) => String(row.value)),
+    majors: majorsResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    companies: companiesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    jobTitles: jobTitlesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    states: statesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    degreeSeeking: degreeSeekingResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    universities: universitiesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value))
   };
 }
 
@@ -646,7 +646,7 @@ export async function listPendingMentorCandidates(): Promise<PendingMentorCandid
     ORDER BY updated_at DESC, "Last Name" ASC`
   );
 
-  return result.rows.map((row) => ({
+  return result.rows.map((row: Record<string, unknown>) => ({
     ...row,
     mentorship_areas: Array.isArray(row.mentorship_areas) ? row.mentorship_areas : []
   })) as PendingMentorCandidate[];

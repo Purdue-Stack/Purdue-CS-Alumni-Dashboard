@@ -99,7 +99,7 @@ export const exportAlumniCsv = async (req: Request, res: Response): Promise<void
     );
 
     const header = EXPORT_COLUMNS.join(',');
-    const lines = rowsResult.rows.map((row) =>
+    const lines = rowsResult.rows.map((row: Record<string, unknown>) =>
       EXPORT_COLUMNS.map((col) => escapeCsvValue(row[col])).join(',')
     );
     const csv = [header, ...lines].join('\n');

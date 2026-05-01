@@ -24,10 +24,12 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.1",
     "passport": "^0.7.0",
+    "pg": "^8.13.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/passport": "^1.0.17",
+    "@types/pg": "^8.11.10",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/debug": "^4.1.12",

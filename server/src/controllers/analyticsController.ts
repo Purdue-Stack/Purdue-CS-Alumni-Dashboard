@@ -204,7 +204,7 @@ async function buildInternshipConversionData(req: Request) {
   );
 
   const eligibleStudentKeys = eligibleStudentsResult.rows
-    .map((row) => String(row.student_key ?? '').trim())
+    .map((row: { student_key?: unknown }) => String(row.student_key ?? '').trim())
     .filter(Boolean);
 
   const counts = {
@@ -239,7 +239,7 @@ async function buildInternshipConversionData(req: Request) {
   );
 
   const studentMap = new Map<string, { internships: Set<string>; jobs: Set<string>; hasJob: boolean; hasSameCompanyJob: boolean }>();
-  conversionRowsResult.rows.forEach((row) => {
+  conversionRowsResult.rows.forEach((row: { student_key?: unknown; outcome_type?: unknown; employer?: unknown }) => {
     const studentKey = String(row.student_key ?? '').trim();
     if (!studentKey) return;
 
@@ -251,7 +251,7 @@ async function buildInternshipConversionData(req: Request) {
     };
 
     const outcomeType = String(row.outcome_type ?? '');
-    const employer = normalizeEmployer(row.employer ?? null);
+    const employer = normalizeEmployer(typeof row.employer === 'string' ? row.employer : null);
 
     if (isInternshipOutcome(outcomeType)) {
       if (employer) {
@@ -425,7 +425,7 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
     ]);
 
     const salaryBands = SALARY_BANDS.map((band) => ({ name: band.label, value: 0 }));
-    salaryResult.rows.forEach((row) => {
+    salaryResult.rows.forEach((row: Record<string, unknown>) => {
       const salary = Number(row['Base Salary']);
       if (!Number.isFinite(salary)) return;
       const target = SALARY_BANDS.findIndex((band) => band.max == null ? salary >= band.min : salary >= band.min && salary <= band.max);
@@ -433,17 +433,17 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
     });
 
     const placementFocusMap = new Map<string, number>();
-    topPlacementsFocusResult.rows.forEach((row) => {
+    topPlacementsFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
       placementFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
     });
 
     const gradFocusMap = new Map<string, number>();
-    gradAdmissionsFocusResult.rows.forEach((row) => {
+    gradAdmissionsFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
       gradFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
     });
 
     const internshipFocusMap = new Map<string, number>();
-    internshipPlacementFocusResult.rows.forEach((row) => {
+    internshipPlacementFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
       internshipFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
     });
 
@@ -499,9 +499,9 @@ export const fetchDashboardFilterOptions = async (_req: Request, res: Response):
     ]);
 
     res.status(200).json({
-      graduationYears: yearsResult.rows.map((row) => String(row.value)),
-      majors: majorsResult.rows.map((row) => row.value),
-      degreeLevels: degreeLevelsResult.rows.map((row) => row.value)
+      graduationYears: yearsResult.rows.map((row: { value?: unknown }) => String(row.value)),
+      majors: majorsResult.rows.map((row: { value?: string }) => row.value),
+      degreeLevels: degreeLevelsResult.rows.map((row: { value?: string }) => row.value)
     });
   } catch (error) {
     console.error('Failed to fetch dashboard filter options:', error);
