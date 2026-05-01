@@ -2,11 +2,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 const Header = () => {
-  const { isAdmin, isLoggedIn, loading, login, logout, user } = useAuth();
+  const { authMode, beginSamlLogin, isAdmin, isLoggedIn, loading, login, logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    if (authMode === 'saml') {
+      const from = (location.state as { from?: string } | null)?.from;
+      beginSamlLogin(from ?? `${location.pathname}${location.search}`);
+      return;
+    }
+
     const username = window.prompt('Username');
 
     if (!username) {
@@ -27,7 +33,7 @@ const Header = () => {
         navigate(from, { replace: true });
       }
     } catch {
-      window.alert('Login failed. Use student/student or admin/admin, then make sure the backend server was restarted.');
+      window.alert('Login failed. Check the configured credentials or auth mode, then make sure the backend server was restarted.');
     }
   };
 

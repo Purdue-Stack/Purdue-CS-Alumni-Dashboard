@@ -13,8 +13,10 @@ import authRouter from './routes/auth';
 import analyticsRouter from './routes/analytics';
 import publicRouter from './routes/public';
 import { attachSession, requireAdminAccess } from './middleware/auth';
+import { getPassport } from './services/saml';
 
 const app = express();
+const passport = getPassport();
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -33,6 +35,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(attachSession);
 

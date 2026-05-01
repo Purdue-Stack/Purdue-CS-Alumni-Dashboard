@@ -14,6 +14,14 @@ export type AuthMeResponse = {
   user: AuthUser | null;
 };
 
+export type AuthConfigResponse = {
+  authMode: 'local' | 'saml';
+  localLoginEnabled: boolean;
+  samlConfigured: boolean;
+  samlMetadataConfigured: boolean;
+  samlLoginPath: string;
+};
+
 export type DashboardAnalyticsResponse = {
   outcomeBreakdown: { name: string; value: number }[];
   salaryHistogram: { name: string; value: number }[];
@@ -31,6 +39,11 @@ export type DashboardAnalyticsResponse = {
 
 export const fetchCurrentUser = async (): Promise<AuthMeResponse> => {
   const response = await api.get<AuthMeResponse>('/auth/me');
+  return response.data;
+};
+
+export const fetchAuthConfig = async (): Promise<AuthConfigResponse> => {
+  const response = await api.get<AuthConfigResponse>('/auth/config');
   return response.data;
 };
 

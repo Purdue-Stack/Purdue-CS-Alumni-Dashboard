@@ -69,7 +69,7 @@ const stories = [
 
 
 const Home: React.FC = () => {
-  const { isLoggedIn, login } = useAuth();
+  const { authMode, beginSamlLogin, isLoggedIn, login } = useAuth();
   const navigate = useNavigate();
   const explorationBackground = '#CFB991';
   const explorationAccent = '#2D2926';
@@ -130,6 +130,11 @@ const Home: React.FC = () => {
 
     event.preventDefault();
 
+    if (authMode === 'saml') {
+      beginSamlLogin(path);
+      return;
+    }
+
     const username = window.prompt('Username');
 
     if (!username) {
@@ -148,7 +153,7 @@ const Home: React.FC = () => {
     } catch (error) {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.error ?? error.message
-        : 'Use student/student or admin/admin.';
+        : 'Check the configured credentials or auth mode.';
       window.alert(`Login failed. ${message}`);
     }
   };

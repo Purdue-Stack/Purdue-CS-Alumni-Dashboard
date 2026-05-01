@@ -8,6 +8,8 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@node-saml/node-saml": "^5.1.0",
+    "@node-saml/passport-saml": "^5.1.0",
     "@types/dotenv": "^6.1.1",
     "@types/mongoose": "^5.11.96",
     "cookie-parser": "~1.4.4",
@@ -21,9 +23,11 @@
     "mongoose": "^8.15.1",
     "morgan": "^1.10.1",
     "multer": "^2.0.1",
+    "passport": "^0.7.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/passport": "^1.0.17",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/debug": "^4.1.12",
