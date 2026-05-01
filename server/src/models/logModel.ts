@@ -3,9 +3,11 @@ import type { PoolClient } from 'pg';
 
 export interface LogEntry {
   timestamp?: Date; // optional since DB defaults to now
-  action: 'UPLOAD_PREVIEW' | 'UPLOAD' | 'EDIT' | 'APPROVE' | 'DENY' | 'EXPORT';
-  description: string;
+  action: 'UPLOAD' | 'EDIT' | 'APPROVE' | 'DENY' | 'EXPORT';
   target: string;
+  totalRowsRead?: number | null;
+  errors?: number | null;
+  totalUploaded?: number | null;
 }
 
 type Queryable = Pick<PoolClient, 'query'>;
@@ -14,8 +16,14 @@ type Queryable = Pick<PoolClient, 'query'>;
 export async function addLog(entry: LogEntry, client?: Queryable): Promise<void> {
   const executor = client ?? { query };
   await executor.query(
-    `INSERT INTO admin_logs (action, description, target) VALUES ($1, $2, $3)`,
-    [entry.action, entry.description, entry.target]
+    `INSERT INTO admin_logs (action, target, total_rows_read, errors, total_uploaded) VALUES ($1, $2, $3, $4, $5)`,
+    [
+      entry.action,
+      entry.target,
+      entry.totalRowsRead ?? null,
+      entry.errors ?? null,
+      entry.totalUploaded ?? null
+    ]
   );
 }
 

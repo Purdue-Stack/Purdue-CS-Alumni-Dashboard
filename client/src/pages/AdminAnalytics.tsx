@@ -163,7 +163,12 @@ const AdminAnalytics = () => {
                   {log.action}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ color: '#2D2926', lineHeight: 1.45 }}>{log.description}</div>
+                  <div style={{ color: '#2D2926', lineHeight: 1.45, fontWeight: 700 }}>{log.target}</div>
+                  {log.action === 'UPLOAD' && (
+                    <div style={{ color: '#534B45', fontSize: 13 }}>
+                      Rows read: {log.total_rows_read ?? 0} · Errors: {log.errors ?? 0} · Uploaded: {log.total_uploaded ?? 0}
+                    </div>
+                  )}
                   <small style={{ color: '#6B625B' }}>
                     {new Date(log.timestamp).toLocaleString()}
                   </small>

@@ -3,7 +3,6 @@ import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
-import { addLog } from '../models/logModel';
 import {
   CANONICAL_COLUMNS,
   REQUIRED_COLUMNS,
@@ -71,16 +70,6 @@ export const uploadExcelPreview = async (req: Request, res: Response): Promise<v
       ...getDuplicateMappingErrors(suggestedMapping)
     ];
     const totalRows = rawRows.length;
-
-    try {
-      await addLog({
-        action: 'UPLOAD_PREVIEW',
-        description: `Previewed upload file with ${totalRows} rows`,
-        target: file.originalname
-      });
-    } catch (logError) {
-      console.error('Failed to write upload preview log:', logError);
-    }
 
     res.status(200).json({
       rawHeaders,

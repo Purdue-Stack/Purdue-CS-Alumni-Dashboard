@@ -39,7 +39,7 @@ const UploadPreview: React.FC = () => {
 
   useEffect(() => {
     fetchAdminLogs()
-      .then((data) => setLogs(data.filter((log) => log.action === 'UPLOAD' || log.action === 'UPLOAD_PREVIEW').slice(0, 8)))
+      .then((data) => setLogs(data.filter((log) => log.action === 'UPLOAD').slice(0, 8)))
       .catch((error) => {
         console.error('Failed to fetch admin logs:', error);
       });
@@ -129,7 +129,7 @@ const UploadPreview: React.FC = () => {
       const { inserted, updated, skipped, errors } = response;
       alert(`Commit complete. Inserted: ${inserted}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
       const refreshedLogs = await fetchAdminLogs();
-      setLogs(refreshedLogs.filter((log) => log.action === 'UPLOAD' || log.action === 'UPLOAD_PREVIEW').slice(0, 8));
+      setLogs(refreshedLogs.filter((log) => log.action === 'UPLOAD').slice(0, 8));
     } catch (error: any) {
       console.error('Failed to commit data:', error);
       const rowErrorMessage = error?.response?.data?.rowErrors?.[0]?.messages?.join('; ');
@@ -213,7 +213,7 @@ const UploadPreview: React.FC = () => {
           <div>
             <h2 style={{ margin: 0, color: '#2D2926' }}>Upload Log</h2>
             <p style={{ margin: '6px 0 0', color: '#6B625B' }}>
-              Recent upload previews and committed import activity.
+              Recent committed import activity.
             </p>
           </div>
 
@@ -248,12 +248,6 @@ const UploadPreview: React.FC = () => {
                   >
                     {log.action}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <strong style={{ color: '#2D2926' }}>{log.description}</strong>
-                    <small style={{ color: '#6B625B' }}>
-                      {new Date(log.timestamp).toLocaleString()}
-                    </small>
-                  </div>
                   <div
                     style={{
                       padding: '8px 12px',
@@ -270,6 +264,23 @@ const UploadPreview: React.FC = () => {
                   >
                     {log.target}
                   </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    <div style={{ color: '#534B45', fontSize: 12 }}>
+                      <strong style={{ display: 'block', color: '#2D2926', fontSize: 16 }}>{log.total_rows_read ?? 0}</strong>
+                      Rows read
+                    </div>
+                    <div style={{ color: '#534B45', fontSize: 12 }}>
+                      <strong style={{ display: 'block', color: '#2D2926', fontSize: 16 }}>{log.errors ?? 0}</strong>
+                      Errors
+                    </div>
+                    <div style={{ color: '#534B45', fontSize: 12 }}>
+                      <strong style={{ display: 'block', color: '#2D2926', fontSize: 16 }}>{log.total_uploaded ?? 0}</strong>
+                      Uploaded
+                    </div>
+                  </div>
+                  <small style={{ color: '#6B625B' }}>
+                    {new Date(log.timestamp).toLocaleString()}
+                  </small>
                 </div>
               ))
             ) : (

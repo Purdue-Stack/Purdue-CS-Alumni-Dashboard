@@ -89,9 +89,16 @@ export interface AlumniDirectoryOptions {
   graduationYears?: string[];
   majors?: string[];
   outcomeTypes?: string[];
+  companies?: string[];
+  jobTitles?: string[];
+  states?: string[];
+  degreeSeeking?: string[];
+  universities?: string[];
   search?: string;
   limit?: number;
   offset?: number;
+  sortKey?: 'last_name' | 'graduation_year' | 'employer' | 'job_title' | 'degree_level' | 'university';
+  sortDir?: 'asc' | 'desc';
 }
 
 export interface AlumniListOptions {
@@ -472,6 +479,26 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
     params.push(options.majors);
     clauses.push(`"Expected Field of Study" = ANY($${params.length}::text[])`);
   }
+  if (options.companies?.length) {
+    params.push(options.companies);
+    clauses.push(`"Employer" = ANY($${params.length}::text[])`);
+  }
+  if (options.jobTitles?.length) {
+    params.push(options.jobTitles);
+    clauses.push(`"Job Title" = ANY($${params.length}::text[])`);
+  }
+  if (options.states?.length) {
+    params.push(options.states);
+    clauses.push(`"State" = ANY($${params.length}::text[])`);
+  }
+  if (options.degreeSeeking?.length) {
+    params.push(options.degreeSeeking);
+    clauses.push(`"Degree Seeking" = ANY($${params.length}::text[])`);
+  }
+  if (options.universities?.length) {
+    params.push(options.universities);
+    clauses.push(`"University" = ANY($${params.length}::text[])`);
+  }
   if (options.outcomeTypes?.length) {
     const patterns: string[] = [];
     options.outcomeTypes.forEach((type) => {
@@ -501,12 +528,30 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
       OR "Last Name" ILIKE $${idx}
       OR "Employer" ILIKE $${idx}
       OR "Job Title" ILIKE $${idx}
+      OR "Expected Field of Study" ILIKE $${idx}
+      OR "Degree Seeking" ILIKE $${idx}
+      OR "University" ILIKE $${idx}
+      OR "Degree Level" ILIKE $${idx}
       OR "City" ILIKE $${idx}
       OR "State" ILIKE $${idx}
     )`);
   }
 
   return { params, clauses };
+}
+
+function directoryOrderSql(sortKey: AlumniDirectoryOptions['sortKey'], sortDir: AlumniDirectoryOptions['sortDir']) {
+  const sortableColumns: Record<NonNullable<AlumniDirectoryOptions['sortKey']>, string> = {
+    last_name: '"Last Name"',
+    graduation_year: '"Graduation Year"',
+    employer: '"Employer"',
+    job_title: '"Job Title"',
+    degree_level: '"Degree Level"',
+    university: '"University"'
+  };
+  const column = sortKey && sortableColumns[sortKey] ? sortableColumns[sortKey] : sortableColumns.graduation_year;
+  const direction = sortDir === 'asc' ? 'ASC' : 'DESC';
+  return `ORDER BY ${column} ${direction}, "Last Name" ASC, "First Name" ASC, alumni_id ASC`;
 }
 
 export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Promise<{ rows: PublicAlumniProfile[]; total: number }> {
@@ -535,7 +580,7 @@ export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Prom
       "State" AS state
     FROM alumni
     ${where}
-    ORDER BY "Graduation Year" DESC, "Last Name" ASC
+    ${directoryOrderSql(options.sortKey, options.sortDir)}
     LIMIT $${params.length - 1}
     OFFSET $${params.length}`,
     params
@@ -543,6 +588,40 @@ export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Prom
 
   const countResult = await query(`SELECT COUNT(*) FROM alumni ${where}`, params.slice(0, params.length - 2));
   return { rows: dataResult.rows as PublicAlumniProfile[], total: Number(countResult.rows[0]?.count ?? 0) };
+}
+
+export type DirectoryFilterOptions = {
+  graduationYears: string[];
+  majors: string[];
+  companies: string[];
+  jobTitles: string[];
+  states: string[];
+  degreeSeeking: string[];
+  universities: string[];
+};
+
+export async function listDirectoryFilterOptions(options: AlumniDirectoryOptions): Promise<DirectoryFilterOptions> {
+  const { params, clauses } = buildDirectoryFilters({ outcomeTypes: options.outcomeTypes });
+  const where = `WHERE ${clauses.join(' AND ')}`;
+  const [yearsResult, majorsResult, companiesResult, jobTitlesResult, statesResult, degreeSeekingResult, universitiesResult] = await Promise.all([
+    query(`SELECT DISTINCT "Graduation Year" AS value FROM alumni ${where} AND "Graduation Year" IS NOT NULL ORDER BY "Graduation Year" ASC`, params),
+    query(`SELECT DISTINCT "Expected Field of Study" AS value FROM alumni ${where} AND "Expected Field of Study" IS NOT NULL AND "Expected Field of Study" <> '' ORDER BY "Expected Field of Study" ASC`, params),
+    query(`SELECT DISTINCT "Employer" AS value FROM alumni ${where} AND "Employer" IS NOT NULL AND "Employer" <> '' ORDER BY "Employer" ASC`, params),
+    query(`SELECT DISTINCT "Job Title" AS value FROM alumni ${where} AND "Job Title" IS NOT NULL AND "Job Title" <> '' ORDER BY "Job Title" ASC`, params),
+    query(`SELECT DISTINCT "State" AS value FROM alumni ${where} AND "State" IS NOT NULL AND "State" <> '' ORDER BY "State" ASC`, params),
+    query(`SELECT DISTINCT "Degree Seeking" AS value FROM alumni ${where} AND "Degree Seeking" IS NOT NULL AND "Degree Seeking" <> '' ORDER BY "Degree Seeking" ASC`, params),
+    query(`SELECT DISTINCT "University" AS value FROM alumni ${where} AND "University" IS NOT NULL AND "University" <> '' ORDER BY "University" ASC`, params)
+  ]);
+
+  return {
+    graduationYears: yearsResult.rows.map((row) => String(row.value)),
+    majors: majorsResult.rows.map((row) => row.value),
+    companies: companiesResult.rows.map((row) => row.value),
+    jobTitles: jobTitlesResult.rows.map((row) => row.value),
+    states: statesResult.rows.map((row) => row.value),
+    degreeSeeking: degreeSeekingResult.rows.map((row) => row.value),
+    universities: universitiesResult.rows.map((row) => row.value)
+  };
 }
 
 export async function listPendingMentorCandidates(): Promise<PendingMentorCandidate[]> {

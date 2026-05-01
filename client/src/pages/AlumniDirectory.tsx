@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchPublicAlumni, type AlumniDirectoryRow } from '../api/api';
+import {
+  fetchPublicAlumni,
+  fetchPublicAlumniFilterOptions,
+  type AlumniDirectoryFilterOptionsResponse,
+  type AlumniDirectoryRow
+} from '../api/api';
 
 type AlumniTab = 'Job' | 'Graduate School' | 'Internship';
 type AlumniSortKey =
@@ -25,21 +30,22 @@ const deepGold = '#9D7A28';
 const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
 const offWhite = '#FFFCF7';
+const pageSize = 50;
+const defaultFilterOptions: AlumniDirectoryFilterOptionsResponse = {
+  graduationYears: [],
+  majors: [],
+  companies: [],
+  jobTitles: [],
+  states: [],
+  degreeSeeking: [],
+  universities: []
+};
 
 function parseTab(value: string | null): AlumniTab {
   if (value === 'Job' || value === 'Graduate School' || value === 'Internship') {
     return value;
   }
   return 'Job';
-}
-
-function uniqueSorted(values: Array<string | null | undefined>) {
-  return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
-}
-
-function matchesSelection(value: string | null | undefined, selected: string[]) {
-  if (!selected.length) return true;
-  return selected.includes(String(value ?? ''));
 }
 
 function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent }: DropdownProps) {
@@ -146,19 +152,6 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent
   );
 }
 
-function sortRows(rows: AlumniDirectoryRow[], sortKey: AlumniSortKey, sortDirection: SortDirection) {
-  const direction = sortDirection === 'asc' ? 1 : -1;
-
-  return [...rows].sort((left, right) => {
-    if (sortKey === 'graduation_year') {
-      return (left.graduation_year - right.graduation_year) * direction;
-    }
-    const leftValue = String(left[sortKey] ?? '');
-    const rightValue = String(right[sortKey] ?? '');
-    return leftValue.localeCompare(rightValue) * direction;
-  });
-}
-
 function toggleValue(values: string[], value: string) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
@@ -167,6 +160,8 @@ const AlumniDirectory = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<AlumniTab>(() => parseTab(searchParams.get('tab')));
   const [rows, setRows] = useState<AlumniDirectoryRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [filterOptions, setFilterOptions] = useState<AlumniDirectoryFilterOptionsResponse>(defaultFilterOptions);
   const [search, setSearch] = useState('');
   const [graduationYears, setGraduationYears] = useState<string[]>([]);
   const [majors, setMajors] = useState<string[]>([]);
@@ -177,6 +172,7 @@ const AlumniDirectory = () => {
   const [universities, setUniversities] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<AlumniSortKey>('graduation_year');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     const nextTab = parseTab(searchParams.get('tab'));
@@ -193,14 +189,52 @@ const AlumniDirectory = () => {
 
   useEffect(() => {
     let active = true;
+    fetchPublicAlumniFilterOptions({ outcomeTypes: [tab] })
+      .then((data) => {
+        if (!active) return;
+        setFilterOptions(data);
+        setGraduationYears((current) => current.filter((value) => data.graduationYears.includes(value)));
+        setMajors((current) => current.filter((value) => data.majors.includes(value)));
+        setCompanies((current) => current.filter((value) => data.companies.includes(value)));
+        setJobTitles((current) => current.filter((value) => data.jobTitles.includes(value)));
+        setStates((current) => current.filter((value) => data.states.includes(value)));
+        setDegreeSeeking((current) => current.filter((value) => data.degreeSeeking.includes(value)));
+        setUniversities((current) => current.filter((value) => data.universities.includes(value)));
+      })
+      .catch((error) => {
+        console.error('Failed to fetch alumni filter options:', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [tab]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [tab, search, graduationYears, majors, companies, jobTitles, states, degreeSeeking, universities, sortKey, sortDirection]);
+
+  useEffect(() => {
+    let active = true;
     fetchPublicAlumni({
       outcomeTypes: [tab],
-      page: 0,
-      pageSize: 250
+      graduationYears,
+      majors,
+      companies,
+      jobTitles,
+      states,
+      degreeSeeking,
+      universities,
+      search,
+      sortKey,
+      sortDir: sortDirection,
+      page,
+      pageSize
     })
       .then((data) => {
         if (active) {
           setRows(data.rows);
+          setTotal(data.total);
         }
       })
       .catch((error) => {
@@ -210,7 +244,7 @@ const AlumniDirectory = () => {
     return () => {
       active = false;
     };
-  }, [tab]);
+  }, [tab, graduationYears, majors, companies, jobTitles, states, degreeSeeking, universities, search, sortKey, sortDirection, page]);
 
   useEffect(() => {
     setSearch('');
@@ -223,49 +257,13 @@ const AlumniDirectory = () => {
     setUniversities([]);
     setSortKey('graduation_year');
     setSortDirection('desc');
+    setPage(0);
   }, [tab]);
 
-  const graduationYearOptions = uniqueSorted(rows.map((row) => String(row.graduation_year)));
-  const majorOptions = uniqueSorted(rows.map((row) => row.expected_field_of_study));
-  const companyOptions = uniqueSorted(rows.map((row) => row.employer));
-  const jobTitleOptions = uniqueSorted(rows.map((row) => row.job_title));
-  const stateOptions = uniqueSorted(rows.map((row) => row.state));
-  const degreeSeekingOptions = uniqueSorted(rows.map((row) => row.degree_seeking));
-  const universityOptions = uniqueSorted(rows.map((row) => row.university));
-
-  const filteredRows = rows.filter((row) => {
-    const haystack = [
-      row.first_name,
-      row.last_name,
-      row.employer,
-      row.job_title,
-      row.expected_field_of_study,
-      row.city,
-      row.state,
-      row.university,
-      row.degree_seeking
-    ].join(' ').toLowerCase();
-
-    if (search && !haystack.includes(search.toLowerCase())) return false;
-    if (graduationYears.length && !graduationYears.includes(String(row.graduation_year))) return false;
-    if (!matchesSelection(row.expected_field_of_study, majors)) return false;
-    if (!matchesSelection(row.state, states)) return false;
-
-    if (tab === 'Job' || tab === 'Internship') {
-      if (!matchesSelection(row.employer, companies)) return false;
-      if (!matchesSelection(row.job_title, jobTitles)) return false;
-    }
-
-    if (tab === 'Graduate School') {
-      if (!matchesSelection(row.degree_seeking, degreeSeeking)) return false;
-      if (!matchesSelection(row.university, universities)) return false;
-    }
-
-    return true;
-  });
-
-  const sortedRows = sortRows(filteredRows, sortKey, sortDirection);
-  const activeCount = sortedRows.length;
+  const activeCount = total;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const firstResult = total ? page * pageSize + 1 : 0;
+  const lastResult = Math.min(total, page * pageSize + rows.length);
 
   const visibleSortOptions: Array<{ value: AlumniSortKey; label: string }> = tab === 'Graduate School'
     ? [
@@ -392,14 +390,14 @@ const AlumniDirectory = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <SearchableCheckboxDropdown
             label="Graduation Year"
-            options={graduationYearOptions}
+            options={filterOptions.graduationYears}
             selected={graduationYears}
             onToggle={(value) => setGraduationYears((current) => toggleValue(current, value))}
             accent={deepGold}
           />
           <SearchableCheckboxDropdown
             label="State"
-            options={stateOptions}
+            options={filterOptions.states}
             selected={states}
             onToggle={(value) => setStates((current) => toggleValue(current, value))}
             accent={deepGold}
@@ -408,14 +406,14 @@ const AlumniDirectory = () => {
             <>
               <SearchableCheckboxDropdown
                 label="Company"
-                options={companyOptions}
+                options={filterOptions.companies}
                 selected={companies}
                 onToggle={(value) => setCompanies((current) => toggleValue(current, value))}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
                 label="Job Title"
-                options={jobTitleOptions}
+                options={filterOptions.jobTitles}
                 selected={jobTitles}
                 onToggle={(value) => setJobTitles((current) => toggleValue(current, value))}
                 accent={deepGold}
@@ -426,21 +424,21 @@ const AlumniDirectory = () => {
             <>
               <SearchableCheckboxDropdown
                 label="Expected Field of Study"
-                options={majorOptions}
+                options={filterOptions.majors}
                 selected={majors}
                 onToggle={(value) => setMajors((current) => toggleValue(current, value))}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
                 label="Degree Seeking"
-                options={degreeSeekingOptions}
+                options={filterOptions.degreeSeeking}
                 selected={degreeSeeking}
                 onToggle={(value) => setDegreeSeeking((current) => toggleValue(current, value))}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
                 label="University"
-                options={universityOptions}
+                options={filterOptions.universities}
                 selected={universities}
                 onToggle={(value) => setUniversities((current) => toggleValue(current, value))}
                 accent={deepGold}
@@ -482,7 +480,7 @@ const AlumniDirectory = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedRows.map((row, index) => (
+              {rows.map((row, index) => (
                 <tr key={row.alumni_id} style={{ borderTop: '1px solid #EEE5D8', verticalAlign: 'top', background: index % 2 === 0 ? '#fff' : '#FFFCF7' }}>
                   <td style={{ padding: 14 }}>{row.first_name}</td>
                   <td style={{ padding: 14 }}>{row.last_name}</td>
@@ -498,13 +496,66 @@ const AlumniDirectory = () => {
                   <td style={{ padding: 14 }}>{row.degree_level || 'N/A'}</td>
                 </tr>
               ))}
-              {!sortedRows.length && (
+              {!rows.length && (
                 <tr>
                   <td colSpan={10} style={{ padding: 24, textAlign: 'center' }}>No alumni match the current {tab.toLowerCase()} filters.</td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            padding: '14px 18px',
+            borderTop: '1px solid #EEE5D8',
+            background: '#FFFCF7',
+            flexWrap: 'wrap'
+          }}
+        >
+          <span style={{ color: '#534B45', fontWeight: 700 }}>
+            Showing {firstResult}-{lastResult} of {total}
+          </span>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 12,
+                border: `1px solid ${warmBorder}`,
+                background: page === 0 ? '#F4EFE7' : '#fff',
+                color: page === 0 ? '#8A8178' : deepGold,
+                cursor: page === 0 ? 'not-allowed' : 'pointer',
+                fontWeight: 800
+              }}
+            >
+              Previous
+            </button>
+            <span style={{ color: '#2D2926', fontWeight: 800 }}>
+              Page {page + 1} of {pageCount}
+            </span>
+            <button
+              type="button"
+              disabled={page + 1 >= pageCount}
+              onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 12,
+                border: `1px solid ${warmBorder}`,
+                background: page + 1 >= pageCount ? '#F4EFE7' : '#fff',
+                color: page + 1 >= pageCount ? '#8A8178' : deepGold,
+                cursor: page + 1 >= pageCount ? 'not-allowed' : 'pointer',
+                fontWeight: 800
+              }}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </section>
     </div>

@@ -107,8 +107,10 @@ export const exportAlumniCsv = async (req: Request, res: Response): Promise<void
     try {
       await addLog({
         action: 'EXPORT',
-        description: `Exported ${rowsResult.rows.length} alumni records`,
-        target: 'alumni_export.csv'
+        target: 'alumni_export.csv',
+        totalRowsRead: rowsResult.rows.length,
+        errors: 0,
+        totalUploaded: null
       });
     } catch (logError) {
       console.error('Failed to write export log:', logError);

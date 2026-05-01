@@ -79,9 +79,11 @@ CREATE TABLE internships (
 CREATE TABLE admin_logs (
   id SERIAL PRIMARY KEY,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  action TEXT NOT NULL CHECK (action IN ('UPLOAD_PREVIEW', 'UPLOAD', 'EDIT', 'APPROVE', 'DENY', 'EXPORT')),
-  description TEXT NOT NULL,
-  target TEXT NOT NULL
+  action TEXT NOT NULL CHECK (action IN ('UPLOAD', 'EDIT', 'APPROVE', 'DENY', 'EXPORT')),
+  target TEXT NOT NULL,
+  total_rows_read INTEGER,
+  errors INTEGER,
+  total_uploaded INTEGER
 );
 
 CREATE INDEX alumni_student_id_idx ON alumni ("Student ID");
@@ -340,18 +342,14 @@ SELECT
 FROM alumni
 WHERE alumni_id <= 72;
 
-INSERT INTO admin_logs (timestamp, action, description, target) VALUES
-  (NOW() - INTERVAL '12 days', 'UPLOAD_PREVIEW', 'Previewed alumni import batch spring-seed-1', 'upload:spring-seed-1'),
-  (NOW() - INTERVAL '12 days' + INTERVAL '20 minutes', 'UPLOAD', 'Committed alumni import batch spring-seed-1', 'upload:spring-seed-1'),
-  (NOW() - INTERVAL '10 days', 'UPLOAD_PREVIEW', 'Previewed alumni import batch spring-seed-2', 'upload:spring-seed-2'),
-  (NOW() - INTERVAL '10 days' + INTERVAL '15 minutes', 'UPLOAD', 'Committed alumni import batch spring-seed-2', 'upload:spring-seed-2'),
-  (NOW() - INTERVAL '8 days', 'APPROVE', 'Approved mentor candidate 4', 'mentor:4'),
-  (NOW() - INTERVAL '8 days' + INTERVAL '10 minutes', 'APPROVE', 'Approved mentor candidate 7', 'mentor:7'),
-  (NOW() - INTERVAL '7 days', 'DENY', 'Denied mentor candidate 34', 'mentor:34'),
-  (NOW() - INTERVAL '6 days', 'EDIT', 'Updated alumni record 18', 'alumni:18'),
-  (NOW() - INTERVAL '5 days', 'APPROVE', 'Approved mentor candidate 12', 'mentor:12'),
-  (NOW() - INTERVAL '3 days', 'EXPORT', 'Exported 100 alumni records', 'alumni_export.csv'),
-  (NOW() - INTERVAL '2 days', 'EDIT', 'Updated alumni record 41', 'alumni:41'),
-  (NOW() - INTERVAL '1 day', 'APPROVE', 'Approved mentor candidate 15', 'mentor:15');
+INSERT INTO admin_logs (timestamp, action, target, total_rows_read, errors, total_uploaded) VALUES
+  (NOW() - INTERVAL '8 days', 'UPLOAD', 'Full academic yr placement, Fall n Summer 2015 and Spring 2016.xls', 177, 0, 177),
+  (NOW() - INTERVAL '7 days', 'UPLOAD', 'CustomReport full academic yr Fall16, Summer16, Spring 17.xls', 221, 0, 221),
+  (NOW() - INTERVAL '6 days', 'UPLOAD', '2017-18 Final Placement Results (Fall17, Summer 17, Spring 18).xlsx', 314, 27, 287),
+  (NOW() - INTERVAL '5 days', 'UPLOAD', '2018-19 full academic yr custom report.xls', 282, 1, 281),
+  (NOW() - INTERVAL '4 days', 'UPLOAD', '2019-20 full academic yr custom report.xls', 375, 0, 375),
+  (NOW() - INTERVAL '3 days', 'UPLOAD', '2020-21 full academic yr CS and DS 12Twenty report4.8.22.xlsx', 341, 0, 341),
+  (NOW() - INTERVAL '2 days', 'UPLOAD', '12Twenty 2021-22 full academic yr CS and DS.xlsx', 304, 0, 304),
+  (NOW() - INTERVAL '1 day', 'UPLOAD', '12Twenty report 2022-23 full academic yr CS, DS, AI.xlsx', 443, 1, 442);
 
 COMMIT;

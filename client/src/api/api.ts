@@ -87,9 +87,26 @@ export type AlumniQueryParams = {
   graduationYears?: string[];
   majors?: string[];
   outcomeTypes?: string[];
+  companies?: string[];
+  jobTitles?: string[];
+  states?: string[];
+  degreeSeeking?: string[];
+  universities?: string[];
   search?: string;
+  sortKey?: string;
+  sortDir?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
+};
+
+export type AlumniDirectoryFilterOptionsResponse = {
+  graduationYears: string[];
+  majors: string[];
+  companies: string[];
+  jobTitles: string[];
+  states: string[];
+  degreeSeeking: string[];
+  universities: string[];
 };
 
 export type ListResponse<T> = {
@@ -153,8 +170,10 @@ export type AdminLog = {
   id: number;
   timestamp: string;
   action: string;
-  description: string;
   target: string;
+  total_rows_read: number | null;
+  errors: number | null;
+  total_uploaded: number | null;
 };
 
 export type PendingMentorCandidate = {
@@ -322,9 +341,27 @@ export const fetchPublicAlumni = async (
       graduationYears: params.graduationYears?.join(','),
       majors: params.majors?.join(','),
       outcomeTypes: params.outcomeTypes?.join(','),
+      companies: params.companies?.join(','),
+      jobTitles: params.jobTitles?.join(','),
+      states: params.states?.join(','),
+      degreeSeeking: params.degreeSeeking?.join(','),
+      universities: params.universities?.join(','),
       search: params.search,
+      sortKey: params.sortKey,
+      sortDir: params.sortDir,
       page: params.page,
       pageSize: params.pageSize
+    }
+  });
+  return response.data;
+};
+
+export const fetchPublicAlumniFilterOptions = async (
+  params: Pick<AlumniQueryParams, 'outcomeTypes'>
+): Promise<AlumniDirectoryFilterOptionsResponse> => {
+  const response = await api.get<AlumniDirectoryFilterOptionsResponse>('/alumni/filter-options', {
+    params: {
+      outcomeTypes: params.outcomeTypes?.join(',')
     }
   });
   return response.data;

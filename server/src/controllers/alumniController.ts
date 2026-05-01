@@ -3,6 +3,7 @@ import {
   listAlumni,
   AlumniListOptions,
   listDirectoryAlumni,
+  listDirectoryFilterOptions,
   updateAlumniAdmin,
   getAlumniById,
   listPendingMentorCandidates,
@@ -52,22 +53,51 @@ export const fetchPublicAlumni = async (req: Request, res: Response): Promise<vo
     const graduationYears = parseList(req.query.graduationYears);
     const majors = parseList(req.query.majors);
     const outcomeTypes = parseList(req.query.outcomeTypes);
+    const companies = parseList(req.query.companies);
+    const jobTitles = parseList(req.query.jobTitles);
+    const states = parseList(req.query.states);
+    const degreeSeeking = parseList(req.query.degreeSeeking);
+    const universities = parseList(req.query.universities);
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
-    const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 24;
-    const page = req.query.page ? Number(req.query.page) : 0;
+    const requestedPageSize = req.query.pageSize ? Number(req.query.pageSize) : 24;
+    const pageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0
+      ? Math.min(Math.floor(requestedPageSize), 100)
+      : 24;
+    const requestedPage = req.query.page ? Number(req.query.page) : 0;
+    const page = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 0;
+    const sortKey = typeof req.query.sortKey === 'string' ? req.query.sortKey : undefined;
+    const sortDir = req.query.sortDir === 'asc' ? 'asc' : req.query.sortDir === 'desc' ? 'desc' : undefined;
 
     const { rows, total } = await listDirectoryAlumni({
       graduationYears,
       majors,
       outcomeTypes,
+      companies,
+      jobTitles,
+      states,
+      degreeSeeking,
+      universities,
       search,
       limit: pageSize,
-      offset: page * pageSize
+      offset: page * pageSize,
+      sortKey: sortKey as Parameters<typeof listDirectoryAlumni>[0]['sortKey'],
+      sortDir
     });
     res.status(200).json({ rows, total });
   } catch (error) {
     console.error('Error fetching public alumni:', error);
     res.status(500).json({ error: 'Failed to fetch alumni records' });
+  }
+};
+
+export const fetchPublicAlumniFilterOptions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const outcomeTypes = parseList(req.query.outcomeTypes);
+    const options = await listDirectoryFilterOptions({ outcomeTypes });
+    res.status(200).json(options);
+  } catch (error) {
+    console.error('Error fetching public alumni filter options:', error);
+    res.status(500).json({ error: 'Failed to fetch alumni filter options' });
   }
 };
 
@@ -164,7 +194,6 @@ export const updateAdminAlumni = async (req: Request, res: Response): Promise<vo
     try {
       await addLog({
         action: 'EDIT',
-        description: `Updated alumni record ${alumniId}`,
         target: `alumni:${alumniId}`
       });
     } catch (logError) {
@@ -210,7 +239,6 @@ export const approveMentorCandidate = async (req: Request, res: Response): Promi
     try {
       await addLog({
         action: 'APPROVE',
-        description: `Approved mentor candidate ${alumniId}`,
         target: `mentor:${alumniId}`
       });
     } catch (logError) {
@@ -247,7 +275,6 @@ export const denyMentorCandidate = async (req: Request, res: Response): Promise<
     try {
       await addLog({
         action: 'DENY',
-        description: `Denied mentor candidate ${alumniId}`,
         target: `mentor:${alumniId}`
       });
     } catch (logError) {
