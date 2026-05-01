@@ -38,6 +38,10 @@ const tabAccent = "rgba(207, 185, 145, 0.18)";
 const activeTabColor = "#9D7A28";
 const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
 const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
+
+const getTooltipNumber = (value: unknown) => (typeof value === "number" ? value : Number(value ?? 0));
+const getTooltipName = (value: unknown) => (typeof value === "string" ? value : String(value ?? ""));
+
 const emptyStateData: StateDatum[] = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS",
   "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
@@ -371,8 +375,8 @@ const Dashboard: React.FC = () => {
         />
         <YAxis type="category" dataKey="name" width={220} tick={{ fontSize: 12 }} />
         <Tooltip
-          formatter={(value: number) => [
-            valueFormatter === "currency" ? formatCurrency(value) : value,
+          formatter={(value) => [
+            valueFormatter === "currency" ? formatCurrency(getTooltipNumber(value)) : getTooltipNumber(value),
             valueLabel,
           ]}
         />
@@ -387,7 +391,7 @@ const Dashboard: React.FC = () => {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis allowDecimals={false} />
-        <Tooltip formatter={(value: number) => [value, valueLabel]} />
+        <Tooltip formatter={(value) => [getTooltipNumber(value), valueLabel]} />
         <Bar dataKey="value" fill="#CFB991" radius={[6, 6, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -409,7 +413,7 @@ const Dashboard: React.FC = () => {
             <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: number) => [value, "Outcomes"]} />
+        <Tooltip formatter={(value) => [getTooltipNumber(value), "Outcomes"]} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>
@@ -447,11 +451,14 @@ const Dashboard: React.FC = () => {
           <XAxis type="number" allowDecimals={false} />
           <YAxis type="category" dataKey="name" width={140} />
           <Tooltip
-            formatter={(value: number, name: string) => {
-              if (name === "sameCompany") return [value, "Converted at Same Company"];
-              if (name === "differentCompany") return [value, "Hired at Different Company"];
-              if (name === "noRecordedJob") return [value, "No Recorded Job Outcome"];
-              return [value, name];
+            formatter={(value, name) => {
+              const numericValue = getTooltipNumber(value);
+              const dataKeyName = getTooltipName(name);
+
+              if (dataKeyName === "sameCompany") return [numericValue, "Converted at Same Company"];
+              if (dataKeyName === "differentCompany") return [numericValue, "Hired at Different Company"];
+              if (dataKeyName === "noRecordedJob") return [numericValue, "No Recorded Job Outcome"];
+              return [numericValue, dataKeyName];
             }}
           />
           <Bar dataKey="sameCompany" stackId="a" fill="#8E6F3E" radius={[6, 0, 0, 6]} />
