@@ -27,7 +27,7 @@ const Header = () => {
         navigate(from, { replace: true });
       }
     } catch {
-      window.alert('Invalid username or password');
+      window.alert('Login failed. Use student/student or admin/admin, then make sure the backend server was restarted.');
     }
   };
 
@@ -44,19 +44,33 @@ const Header = () => {
     }
   };
 
-  const renderAuthButton = () => (
+  const renderAuthLink = () => (
     loading ? (
-      <button type="button" disabled>
+      <span role="menuitem" aria-disabled="true">
         Checking...
-      </button>
+      </span>
     ) : isLoggedIn ? (
-      <button type="button" onClick={handleLogout}>
+      <a
+        href="/"
+        role="menuitem"
+        onClick={(event) => {
+          event.preventDefault();
+          void handleLogout();
+        }}
+      >
         Logout{user ? ` (${user.displayName})` : ''}
-      </button>
+      </a>
     ) : (
-      <button type="button" onClick={handleLogin}>
+      <a
+        href="/"
+        role="menuitem"
+        onClick={(event) => {
+          event.preventDefault();
+          void handleLogin();
+        }}
+      >
         Login
-      </button>
+      </a>
     )
   );
 
@@ -80,9 +94,18 @@ const Header = () => {
       </section>
       <section className="header__signature container">
         <section className="header__signature--inner">
-          <a className="header__signature--logo" id="purdueLogo" href="https://www.purdue.edu" aria-label="Purdue Logo">
+          <a className="header__signature--logo svgLinkContainer" id="purdueLogo" href="https://www.purdue.edu" aria-label="Purdue Logo">
             <div>
-              <img src="https://www.purdue.edu/purdue/images/PU-H.svg" alt="Purdue University" />
+              <object
+                aria-label="Purdue Logo"
+                className="svgContainer"
+                data="https://www.purdue.edu/purdue/images/PU-H.svg"
+                tabIndex={-1}
+                title="Purdue logo"
+                type="image/svg+xml"
+              >
+                <img alt="Purdue University" src="https://www.purdue.edu/purdue/images/PU-H.svg" />
+              </object>
             </div>
           </a>
           <article className="header__signature--siteName">
@@ -101,7 +124,7 @@ const Header = () => {
             {isLoggedIn && <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>}
             {isLoggedIn && <li role="none"><Link role="menuitem" to="/mentors">Mentor Explorer</Link></li>}
             {isAdmin && <li role="none"><Link role="menuitem" to="/admin/upload">Admin</Link></li>}
-            <li role="none">{renderAuthButton()}</li>
+            <li role="none" style={{ marginLeft: 'auto' }}>{renderAuthLink()}</li>
           </ul>
         </section>
       </nav>

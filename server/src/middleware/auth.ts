@@ -13,11 +13,11 @@ export type AuthUser = {
 type LoginUser = AuthUser & { password: string };
 
 const sessionCookieName = 'purdue_cs_alumni_session';
+const sessionSecret = process.env.SESSION_SECRET ?? 'dev-purdue-cs-alumni-dashboard-secret';
 const users = new Map<string, LoginUser>([
   ['student', { id: 'student', username: 'student', password: 'student', displayName: 'Student User', role: 'student' }],
   ['admin', { id: 'admin', username: 'admin', password: 'admin', displayName: 'Admin User', role: 'admin' }]
 ]);
-const sessions = new Map<string, AuthUser>();
 
 function cookieOptions() {
   return {
@@ -42,9 +42,49 @@ function getRequestUser(req: Request): AuthUser | undefined {
   return (req as Request & { user?: AuthUser }).user;
 }
 
+function encodeBase64Url(value: string) {
+  return Buffer.from(value).toString('base64url');
+}
+
+function decodeBase64Url(value: string) {
+  return Buffer.from(value, 'base64url').toString('utf8');
+}
+
+function signPayload(payload: string) {
+  return crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url');
+}
+
+function createSessionToken(user: AuthUser) {
+  const payload = encodeBase64Url(JSON.stringify(user));
+  return `${payload}.${signPayload(payload)}`;
+}
+
+function parseSessionToken(token: string | undefined): AuthUser | undefined {
+  if (!token) return undefined;
+
+  const [payload, signature] = token.split('.');
+
+  if (!payload || !signature || signature !== signPayload(payload)) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(decodeBase64Url(payload)) as Partial<AuthUser>;
+    const knownUser = parsed.username ? users.get(parsed.username) : undefined;
+
+    if (!knownUser || knownUser.role !== parsed.role) {
+      return undefined;
+    }
+
+    return publicUser(knownUser);
+  } catch {
+    return undefined;
+  }
+}
+
 export const attachSession = (req: Request, _res: Response, next: NextFunction): void => {
-  const sessionId = (req as Request & { cookies?: Record<string, string> }).cookies?.[sessionCookieName];
-  const user = sessionId ? sessions.get(sessionId) : undefined;
+  const token = (req as Request & { cookies?: Record<string, string> }).cookies?.[sessionCookieName];
+  const user = parseSessionToken(token);
 
   if (user) {
     (req as Request & { user?: AuthUser }).user = user;
@@ -62,27 +102,20 @@ export const login = (req: Request, res: Response): void => {
   }
 
   const normalizedUsername = username.trim().toLowerCase();
+  const normalizedPassword = password.trim();
   const user = users.get(normalizedUsername);
 
-  if (!user || user.password !== password) {
+  if (!user || user.password !== normalizedPassword) {
     res.status(401).json({ error: 'Invalid username or password' });
     return;
   }
 
-  const sessionId = crypto.randomUUID();
   const authUser = publicUser(user);
-  sessions.set(sessionId, authUser);
-  res.cookie(sessionCookieName, sessionId, cookieOptions());
+  res.cookie(sessionCookieName, createSessionToken(authUser), cookieOptions());
   res.status(200).json({ user: authUser });
 };
 
-export const logout = (req: Request, res: Response): void => {
-  const sessionId = (req as Request & { cookies?: Record<string, string> }).cookies?.[sessionCookieName];
-
-  if (sessionId) {
-    sessions.delete(sessionId);
-  }
-
+export const logout = (_req: Request, res: Response): void => {
   res.clearCookie(sessionCookieName, { path: '/' });
   res.status(200).json({ message: 'Logged out' });
 };

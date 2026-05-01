@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoggedIn: Boolean(user),
     isAdmin: user?.role === 'admin',
     login: async (username: string, password: string) => {
-      const response = await loginWithPassword(username, password);
+      const response = await loginWithPassword(username.trim(), password.trim());
 
       if (!response.user) {
         throw new Error('Login failed');

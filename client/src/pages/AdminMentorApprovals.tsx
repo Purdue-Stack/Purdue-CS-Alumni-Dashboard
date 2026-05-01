@@ -139,7 +139,7 @@ const AdminMentorApprovals = () => {
             height: 'min(70vh, 900px)',
             minHeight: 420,
             overflowY: 'auto',
-            padding: 16,
+            padding: 12,
             border: `1px solid ${warmBorder}`,
             borderRadius: 18,
             background: '#F7F3EA',

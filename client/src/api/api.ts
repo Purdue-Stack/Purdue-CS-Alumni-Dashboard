@@ -54,6 +54,12 @@ export type DashboardAnalyticsParams = {
   search?: string;
 };
 
+export type DashboardFilterOptionsResponse = {
+  graduationYears: string[];
+  majors: string[];
+  degreeLevels: string[];
+};
+
 export type HomeStatsResponse = {
   alumniTracked: number;
   averageSalary: number;
@@ -259,6 +265,11 @@ export const fetchDashboardAnalytics = async (
       search: params.search
     }
   });
+  return response.data;
+};
+
+export const fetchDashboardFilterOptions = async (): Promise<DashboardFilterOptionsResponse> => {
+  const response = await api.get<DashboardFilterOptionsResponse>('/analytics/dashboard/filter-options');
   return response.data;
 };
 

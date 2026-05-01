@@ -467,6 +467,48 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
   }
 };
 
+export const fetchDashboardFilterOptions = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const [yearsResult, majorsResult, degreeLevelsResult] = await Promise.all([
+      query(`
+        SELECT DISTINCT "Graduation Year" AS value
+        FROM alumni
+        WHERE is_deleted = false
+          AND is_approved = true
+          AND "Graduation Year" IS NOT NULL
+        ORDER BY "Graduation Year" ASC
+      `),
+      query(`
+        SELECT DISTINCT "Expected Field of Study" AS value
+        FROM alumni
+        WHERE is_deleted = false
+          AND is_approved = true
+          AND "Expected Field of Study" IS NOT NULL
+          AND "Expected Field of Study" <> ''
+        ORDER BY "Expected Field of Study" ASC
+      `),
+      query(`
+        SELECT DISTINCT "Degree Level" AS value
+        FROM alumni
+        WHERE is_deleted = false
+          AND is_approved = true
+          AND "Degree Level" IS NOT NULL
+          AND "Degree Level" <> ''
+        ORDER BY "Degree Level" ASC
+      `)
+    ]);
+
+    res.status(200).json({
+      graduationYears: yearsResult.rows.map((row) => String(row.value)),
+      majors: majorsResult.rows.map((row) => row.value),
+      degreeLevels: degreeLevelsResult.rows.map((row) => row.value)
+    });
+  } catch (error) {
+    console.error('Failed to fetch dashboard filter options:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard filter options' });
+  }
+};
+
 export const fetchHomeStats = async (_req: Request, res: Response): Promise<void> => {
   try {
     const [countResult, salaryResult, mentorResult] = await Promise.all([

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchAdminAlumni, getAdminExportUrl, updateAdminAlumni } from '../api/api';
+import { fetchAdminAlumni, updateAdminAlumni } from '../api/api';
 
 type AdminAlumniRow = {
   alumni_id: number;
@@ -22,6 +22,10 @@ type AdminAlumniRow = {
   Email: string | null;
   LinkedIn: string | null;
 };
+
+type AlumniTab = 'Job' | 'Graduate School' | 'Internship';
+type AdminSortKey = keyof AdminAlumniRow;
+type SortDirection = 'asc' | 'desc';
 
 type EditDraft = {
   firstName: string;
@@ -57,6 +61,14 @@ type FieldConfig = {
   options?: string[];
 };
 
+type DropdownProps = {
+  label: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  accent: string;
+};
+
 const gold = '#CFB991';
 const deepGold = '#9D7A28';
 const warmBorder = '#D9CFC0';
@@ -89,7 +101,7 @@ const fields: FieldConfig[] = [
   { key: 'lastName', label: 'Last Name' },
   { key: 'graduationYear', label: 'Graduation Year', type: 'number' },
   { key: 'graduationTerm', label: 'Graduation Term', type: 'select', options: ['Spring', 'Fall'] },
-  { key: 'outcomeType', label: 'Outcome Type', type: 'select', options: ['Job', 'Graduate School'] },
+  { key: 'outcomeType', label: 'Outcome Type', type: 'select', options: ['Job', 'Graduate School', 'Internship'] },
   { key: 'employer', label: 'Employer' },
   { key: 'jobTitle', label: 'Job Title' },
   { key: 'expectedFieldOfStudy', label: 'Expected Field of Study' },
@@ -114,6 +126,126 @@ const inputStyle = {
   boxSizing: 'border-box' as const,
   font: 'inherit'
 };
+
+function uniqueSorted(values: Array<string | number | null | undefined>) {
+  return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+
+function matchesSelection(value: string | number | null | undefined, selected: string[]) {
+  if (!selected.length) return true;
+  return selected.includes(String(value ?? ''));
+}
+
+function toggleValue(values: string[], value: string) {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+}
+
+function sortRows(rows: AdminAlumniRow[], sortKey: AdminSortKey, sortDirection: SortDirection) {
+  const direction = sortDirection === 'asc' ? 1 : -1;
+
+  return [...rows].sort((left, right) => {
+    const leftValue = left[sortKey];
+    const rightValue = right[sortKey];
+
+    if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+      return (leftValue - rightValue) * direction;
+    }
+
+    return String(leftValue ?? '').localeCompare(String(rightValue ?? '')) * direction;
+  });
+}
+
+function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent }: DropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery('');
+      setShowAll(false);
+    }
+  }, [isOpen]);
+
+  const matchingOptions = options.filter((option) => option.toLowerCase().includes(query.toLowerCase()));
+  const visibleOptions = query || showAll ? matchingOptions : matchingOptions.slice(0, 3);
+  const summary = selected.length ? `${selected.length} selected` : 'All';
+
+  return (
+    <div style={{ position: 'relative', minWidth: 220 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
+        <button
+          type="button"
+          onClick={() => setIsOpen((current) => !current)}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 14px',
+            border: `1px solid ${isOpen ? accent : warmBorder}`,
+            borderRadius: 12,
+            background: '#fff',
+            cursor: 'pointer',
+            boxShadow: isOpen ? `0 0 0 3px ${softGold}` : 'none'
+          }}
+        >
+          <span>{summary}</span>
+          <span style={{ color: accent, fontWeight: 700 }}>{isOpen ? '−' : '+'}</span>
+        </button>
+      </div>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            width: '100%',
+            minWidth: 240,
+            border: `1px solid ${warmBorder}`,
+            borderRadius: 14,
+            background: '#fff',
+            padding: 14,
+            zIndex: 20,
+            boxShadow: '0 16px 40px rgba(45, 41, 38, 0.14)'
+          }}
+        >
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={`Search ${label.toLowerCase()}`}
+            style={{ width: '100%', padding: 10, border: `1px solid ${warmBorder}`, borderRadius: 10, marginBottom: 12 }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
+            {visibleOptions.map((option) => (
+              <label key={option} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(option)}
+                  onChange={() => onToggle(option)}
+                  style={{ accentColor: accent }}
+                />
+                {option}
+              </label>
+            ))}
+            {!visibleOptions.length && <div style={{ color: '#666' }}>No matching options.</div>}
+          </div>
+          {!query && matchingOptions.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((current) => !current)}
+              style={{ marginTop: 12, border: 'none', background: 'transparent', color: accent, cursor: 'pointer', fontWeight: 700, padding: 0 }}
+            >
+              {showAll ? 'Show less' : `Show all ${matchingOptions.length}`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const createDraft = (row: AdminAlumniRow): EditDraft => ({
   firstName: row['First Name'] ?? '',
@@ -150,8 +282,18 @@ function parseNullableNumber(value: string) {
 }
 
 const AdminAlumniTable = () => {
+  const [tab, setTab] = useState<AlumniTab>('Job');
   const [rows, setRows] = useState<AdminAlumniRow[]>([]);
   const [search, setSearch] = useState('');
+  const [graduationYears, setGraduationYears] = useState<string[]>([]);
+  const [majors, setMajors] = useState<string[]>([]);
+  const [companies, setCompanies] = useState<string[]>([]);
+  const [jobTitles, setJobTitles] = useState<string[]>([]);
+  const [states, setStates] = useState<string[]>([]);
+  const [degreeSeeking, setDegreeSeeking] = useState<string[]>([]);
+  const [universities, setUniversities] = useState<string[]>([]);
+  const [sortKey, setSortKey] = useState<AdminSortKey>('Graduation Year');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [drafts, setDrafts] = useState<Record<number, EditDraft>>({});
 
@@ -174,17 +316,82 @@ const AdminAlumniTable = () => {
     });
   }, []);
 
+  const tabRows = useMemo(
+    () => rows.filter((row) => row['Outcome Type'] === tab),
+    [rows, tab]
+  );
+  const graduationYearOptions = uniqueSorted(tabRows.map((row) => row['Graduation Year']));
+  const majorOptions = uniqueSorted(tabRows.map((row) => row['Expected Field of Study']));
+  const companyOptions = uniqueSorted(tabRows.map((row) => row.Employer));
+  const jobTitleOptions = uniqueSorted(tabRows.map((row) => row['Job Title']));
+  const stateOptions = uniqueSorted(tabRows.map((row) => row.State));
+  const degreeSeekingOptions = uniqueSorted(tabRows.map((row) => row['Degree Seeking']));
+  const universityOptions = uniqueSorted(tabRows.map((row) => row.University));
+
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return rows;
 
-    return rows.filter((row) =>
-      columns.some(({ key }) => {
+    return tabRows.filter((row) => {
+      if (term && !columns.some(({ key }) => {
         const value = row[key];
         return value !== null && value !== undefined && String(value).toLowerCase().includes(term);
-      })
-    );
-  }, [rows, search]);
+      })) {
+        return false;
+      }
+
+      if (!matchesSelection(row['Graduation Year'], graduationYears)) return false;
+      if (!matchesSelection(row.State, states)) return false;
+
+      if (tab === 'Job' || tab === 'Internship') {
+        if (!matchesSelection(row.Employer, companies)) return false;
+        if (!matchesSelection(row['Job Title'], jobTitles)) return false;
+      }
+
+      if (tab === 'Graduate School') {
+        if (!matchesSelection(row['Expected Field of Study'], majors)) return false;
+        if (!matchesSelection(row['Degree Seeking'], degreeSeeking)) return false;
+        if (!matchesSelection(row.University, universities)) return false;
+      }
+
+      return true;
+    });
+  }, [companies, degreeSeeking, graduationYears, jobTitles, majors, search, states, tab, tabRows, universities]);
+  const sortedRows = useMemo(
+    () => sortRows(filteredRows, sortKey, sortDirection),
+    [filteredRows, sortDirection, sortKey]
+  );
+  const visibleSortOptions: Array<{ value: AdminSortKey; label: string }> = tab === 'Graduate School'
+    ? [
+        { value: 'Graduation Year', label: 'Graduation Year' },
+        { value: 'Last Name', label: 'Last Name' },
+        { value: 'University', label: 'University' },
+        { value: 'Degree Level', label: 'Degree Level' }
+      ]
+    : [
+        { value: 'Graduation Year', label: 'Graduation Year' },
+        { value: 'Last Name', label: 'Last Name' },
+        { value: 'Employer', label: 'Company' },
+        { value: 'Job Title', label: 'Job Title' },
+        { value: 'Degree Level', label: 'Degree Level' }
+      ];
+
+  const clearFilters = () => {
+    setSearch('');
+    setGraduationYears([]);
+    setMajors([]);
+    setCompanies([]);
+    setJobTitles([]);
+    setStates([]);
+    setDegreeSeeking([]);
+    setUniversities([]);
+    setSortKey('Graduation Year');
+    setSortDirection('desc');
+  };
+
+  useEffect(() => {
+    clearFilters();
+    setSelectedId(null);
+  }, [tab]);
 
   const updateDraft = (id: number, patch: Partial<EditDraft>) => {
     setDrafts((current) => ({
@@ -248,11 +455,34 @@ const AdminAlumniTable = () => {
 
   return (
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <h1 style={{ marginBottom: 0 }}>Moderate Entries</h1>
-        <p style={{ margin: 0, color: '#534B45' }}>
-          Raw alumni data view with inline editing. Expand a row to edit it directly beneath the record while keeping actions visible.
-        </p>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: 'fit-content' }}>
+          {(['Job', 'Graduate School', 'Internship'] as AlumniTab[]).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setTab(option)}
+              style={{
+                padding: '12px 24px',
+                border: 'none',
+                borderRadius: 12,
+                background: tab === option ? deepGold : 'transparent',
+                color: tab === option ? '#fff' : '#2D2926',
+                cursor: 'pointer',
+                fontWeight: 800,
+                letterSpacing: 0.2
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+        <div>
+          <h1 style={{ marginBottom: 8 }}>Moderate Entries</h1>
+          <p style={{ margin: 0, color: '#534B45' }}>
+            Review and edit all fields for {tab === 'Graduate School' ? 'graduate-school' : tab === 'Internship' ? 'internship' : 'job-placement'} entries.
+          </p>
+        </div>
       </section>
 
       <section
@@ -267,7 +497,7 @@ const AdminAlumniTable = () => {
           gap: 20
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'end' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'flex-end' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 360, flex: '1 1 360px' }}>
             <span style={{ fontWeight: 800, color: '#2D2926' }}>Search Raw Data</span>
             <input
@@ -277,24 +507,132 @@ const AdminAlumniTable = () => {
               style={inputStyle}
             />
           </label>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', paddingBottom: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ fontWeight: 800, color: '#2D2926' }}>Sort</span>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <select
+                  value={sortKey}
+                  onChange={(event) => setSortKey(event.target.value as AdminSortKey)}
+                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff', height: 48 }}
+                >
+                  {visibleSortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setSortDirection((current) => current === 'asc' ? 'desc' : 'asc')}
+                  style={{
+                    padding: '0 16px',
+                    borderRadius: 12,
+                    border: `1px solid ${gold}`,
+                    background: sortDirection === 'asc' ? '#fff' : deepGold,
+                    color: sortDirection === 'asc' ? deepGold : '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    height: 48
+                  }}
+                >
+                  {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                </button>
+              </div>
+            </div>
             <div
               style={{
-                padding: '12px 16px',
+                padding: '0 16px',
                 borderRadius: 14,
                 background: softGold,
                 color: '#2D2926',
                 fontWeight: 800,
                 minWidth: 120,
-                textAlign: 'center'
+                textAlign: 'center',
+                height: 48,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box'
               }}
             >
-              {filteredRows.length} rows
+              {sortedRows.length} rows
             </div>
-            <a className="hero-data-button hero-data-button--border" href={getAdminExportUrl()}>
-              EXPORT CSV
-            </a>
+            <button
+              type="button"
+              onClick={clearFilters}
+              style={{
+                padding: '0 16px',
+                borderRadius: 12,
+                border: `1px solid ${gold}`,
+                background: '#fff',
+                color: deepGold,
+                cursor: 'pointer',
+                fontWeight: 800,
+                height: 48
+              }}
+            >
+              Clear Filters
+            </button>
           </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <SearchableCheckboxDropdown
+            label="Graduation Year"
+            options={graduationYearOptions}
+            selected={graduationYears}
+            onToggle={(value) => setGraduationYears((current) => toggleValue(current, value))}
+            accent={deepGold}
+          />
+          <SearchableCheckboxDropdown
+            label="State"
+            options={stateOptions}
+            selected={states}
+            onToggle={(value) => setStates((current) => toggleValue(current, value))}
+            accent={deepGold}
+          />
+          {(tab === 'Job' || tab === 'Internship') && (
+            <>
+              <SearchableCheckboxDropdown
+                label="Company"
+                options={companyOptions}
+                selected={companies}
+                onToggle={(value) => setCompanies((current) => toggleValue(current, value))}
+                accent={deepGold}
+              />
+              <SearchableCheckboxDropdown
+                label="Job Title"
+                options={jobTitleOptions}
+                selected={jobTitles}
+                onToggle={(value) => setJobTitles((current) => toggleValue(current, value))}
+                accent={deepGold}
+              />
+            </>
+          )}
+          {tab === 'Graduate School' && (
+            <>
+              <SearchableCheckboxDropdown
+                label="Expected Field of Study"
+                options={majorOptions}
+                selected={majors}
+                onToggle={(value) => setMajors((current) => toggleValue(current, value))}
+                accent={deepGold}
+              />
+              <SearchableCheckboxDropdown
+                label="Degree Seeking"
+                options={degreeSeekingOptions}
+                selected={degreeSeeking}
+                onToggle={(value) => setDegreeSeeking((current) => toggleValue(current, value))}
+                accent={deepGold}
+              />
+              <SearchableCheckboxDropdown
+                label="University"
+                options={universityOptions}
+                selected={universities}
+                onToggle={(value) => setUniversities((current) => toggleValue(current, value))}
+                accent={deepGold}
+              />
+            </>
+          )}
         </div>
       </section>
 
@@ -334,7 +672,7 @@ const AdminAlumniTable = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((row, index) => {
+              {sortedRows.map((row, index) => {
                 const isEditing = row.alumni_id === selectedId;
                 const draft = drafts[row.alumni_id] ?? createDraft(row);
                 const rowBackground = isEditing ? '#F9F1E1' : index % 2 === 0 ? '#fff' : '#FFFCF7';
@@ -462,7 +800,7 @@ const AdminAlumniTable = () => {
                 );
               })}
 
-              {!filteredRows.length && (
+              {!sortedRows.length && (
                 <tr>
                   <td colSpan={columns.length + 1} style={{ padding: 24, textAlign: 'center' }}>
                     No alumni rows match the current search.

@@ -112,12 +112,13 @@
 
 .hero-data-button {
   font-family: 'United Sans Condensed';
-  width: 160px;
+  width: auto;
+  min-width: 136px;
   color: black;
   border: none;
   outline: none;
-  font-size: 1.25rem;
-  padding: 0.7rem 1rem;
+  font-size: 1.05rem;
+  padding: 0.55rem 0.85rem;
   border-radius: 2px;
   background-color: #cfb991;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -132,11 +133,13 @@
   justify-content: center;
   gap: 0.5rem;
   outline: 1px solid #cfb991;
+  white-space: nowrap;
 }
 
 .hero-data-button__arrow {
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
+  flex-shrink: 0;
   transition: transform 0.3s ease;
 }
 
@@ -311,16 +314,17 @@
 }
 
 .exploration__tag {
-  width: 173px;
-  margin-left: 30px;
-  display: inline;
+  width: max-content;
+  margin-left: 0;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .exploration__content {
   margin-left: auto;
   margin-right: auto;
-  width: 90%;
-  padding: 0 2rem;
+  width: 100%;
+  padding: 0 4rem;
 }
 
 .exploration__twocol {
@@ -459,17 +463,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 400px;
-  padding: 50px 0;
+  min-height: 0;
+  padding: 40px 0 24px;
 }
 
 .alumni-stories__content {
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  width: 90%;
-  max-width: 1200px;
-  padding: 0 2rem;
+  width: 100%;
+  max-width: none;
+  padding: 0 4rem;
   box-sizing: border-box;
 }
 
@@ -496,7 +500,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 2rem;
-  padding-bottom: calc(1rem + 60px);
+  padding-bottom: 1rem;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;      /* Firefox */
   -ms-overflow-style: none;   /* IE and Edge */
@@ -521,7 +525,7 @@
 
 .story-card img {
   width: 100%;
-  height: 440px;
+  height: 340px;
   object-fit: cover;
   display: block;
   filter: brightness(0.7);

@@ -138,7 +138,7 @@ const AdminAnalytics = () => {
                 style={{
                   border: `1px solid ${warmBorder}`,
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 12,
                   background: '#fff',
                   display: 'grid',
                   gridTemplateColumns: 'minmax(120px, 160px) 1fr',

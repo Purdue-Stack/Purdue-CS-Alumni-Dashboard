@@ -1,11 +1,14 @@
 // Home.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';
 import { fetchHomeStats } from '../api/api';
+import { useAuth } from '../auth/AuthContext';
 
 import salaryImg from '../assets/images/salary.jpg';
+import userPlaceholder from '../assets/images/user-placeholder.png';
 
 const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
 const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
@@ -31,16 +34,43 @@ const explorations = [
   { key: 'gradschool', title: 'Graduate School', image: salaryImg, description: 'Learn which top graduate programs our alumni attend.', link: '/dashboard?tab=Graduate%20School&graph=0' }
 ];
 
-// const stories = [
-//   { name: 'Brody Smith', company: 'Google DeepMind', img: alumni1, link: '/alumni/brody' },
-//   { name: 'Jamie Lee', company: 'Microsoft Research', img: alumni2, link: '/alumni/jamie' },
-//   { name: 'Priya Patel', company: 'Amazon', img: alumni3, link: '/alumni/priya' },
-//   { name: 'Carlos Ruiz', company: 'Tesla', img: alumni4, link: '/alumni/carlos' },
-//   { name: 'Emily Chen', company: 'Meta', img: alumni5, link: '/alumni/emily' }
-// ];
+const stories = [
+  { name: 'Snehal Antani', company: '2023 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/DSA-2023-3.png', link: 'https://www.cs.purdue.edu/alumni/2023-alumni-awards.html', objectPosition: 'left center' },
+  { name: 'Peeyush Ranjan', company: '2022 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/peeyush_ranjan_web.jpg', link: 'https://www.cs.purdue.edu/alumni/2022-alumni-awards.html', objectPosition: 'left center' },
+  { name: 'Darwin Ling', company: '2021 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/ling1.jpg', link: 'https://www.cs.purdue.edu/alumni/2021-alumni-awards.html', objectPosition: 'right center' },
+  { name: 'Anne-Marie Buibish', company: '2019 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/Buibish.jpeg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus_2019.html' },
+  { name: 'Alan Hevner', company: '2018 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/hevner.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus.html' },
+  { name: 'Brad Surak', company: '2017 Distinguished Alumnus', img: userPlaceholder, link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2017.html' },
+  { name: 'Peng-Siu Mei', company: '2016 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/Peng-Siu%20Mei%20Headshot.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2016.html' },
+  { name: 'Lee Congdon', company: '2015 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/Lee%20Congdon.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2015.html' },
+  { name: 'Anne Schowe', company: '2014 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/anne-schowe.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2014.html' },
+  { name: 'Dr. Lawrence Landweber', company: '2013 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/landweber.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2013.html' },
+  { name: 'Dr. Larry Peterson', company: '2012 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/larry-peterson.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2012.html' },
+  { name: 'David Capka', company: '2011 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/capka.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2011.html' },
+  { name: 'Thomas "Curtis" Holmes Jr.', company: '2010 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/curtis-holmes.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2010.html' },
+  { name: 'Dr. Stuart Zweben', company: '2009 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/zweben.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2009.html' },
+  { name: 'Dr. Daniel Reed', company: '2008 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/reed.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2008.html' },
+  { name: 'Dr. William Nylin', company: '2007 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/william-nylin.JPG', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2007.html' },
+  { name: 'Dr. Dorothy E. Denning', company: '2006 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/dorothy-denning.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2006.html' },
+  { name: 'Curtis Worsey', company: '2005 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/curtis-worsey.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2005.html' },
+  { name: 'Dr. David K. Schrader', company: '2004 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/dave-schrader.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2004.html' },
+  { name: 'Beatrice Yormark', company: '2003 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/beatrice-yormark.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2003.html' },
+  { name: 'H. Richard Lawson', company: '2002 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/richard-lawson.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2002.html' },
+  { name: 'Dr. Michael C. Thurk', company: '2001 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/michael-thurk.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2001.html' },
+  { name: 'Dr. Michael Farmwald', company: '2000 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/michael-farmwald.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-2000.html' },
+  { name: 'Dr. Stephen J. Tolopka', company: '1999 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/Tolopka.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1999.html', objectPosition: 'right center' },
+  { name: 'Dr. Subhash Agrawal', company: '1998 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/subhash-agrawal.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1998.html' },
+  { name: 'Dr. Dennis M. Conti', company: '1997 Distinguished Alumnus', img: userPlaceholder, link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1997.html' },
+  { name: 'Brian G. Waters', company: '1996 Distinguished Alumnus', img: userPlaceholder, link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1996.html' },
+  { name: 'Dr. Kevin C. Kahn', company: '1995 Distinguished Alumnus', img: 'https://www.cs.purdue.edu/alumni/images/kevin-kahn.jpg', link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1995.html' },
+  { name: 'Lorie L. Strong', company: '1994 Distinguished Alumnus', img: userPlaceholder, link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1994.html' },
+  { name: 'Dr. Thomas J. Aird', company: '1993 Distinguished Alumnus', img: userPlaceholder, link: 'https://www.cs.purdue.edu/alumni/distinguished-alumnus-1993.html' }
+];
 
 
 const Home: React.FC = () => {
+  const { isLoggedIn, login } = useAuth();
+  const navigate = useNavigate();
   const explorationBackground = '#CFB991';
   const explorationAccent = '#2D2926';
   const explorationText = '#2D2926';
@@ -88,6 +118,39 @@ const Home: React.FC = () => {
         : (prevIndex - 1 + stats.length) % stats.length;
       return newIndex;
     });
+  };
+
+  const handleProtectedNavigation = async (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    path: string
+  ) => {
+    if (isLoggedIn) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const username = window.prompt('Username');
+
+    if (!username) {
+      return;
+    }
+
+    const password = window.prompt('Password');
+
+    if (!password) {
+      return;
+    }
+
+    try {
+      await login(username, password);
+      navigate(path);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error ?? error.message
+        : 'Use student/student or admin/admin.';
+      window.alert(`Login failed. ${message}`);
+    }
   };
 
   // const alumniGridRef = useRef<HTMLDivElement>(null);
@@ -149,7 +212,7 @@ const Home: React.FC = () => {
               <span className="hero__subtitle">Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
             </h1>
             <div className="hero__buttons">
-              <Link to="/dashboard" className="hero-data-button" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
+              <Link to="/dashboard" onClick={(event) => void handleProtectedNavigation(event, '/dashboard')} className="hero-data-button" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
                 EXPLORE DATA
                 <svg 
                   className="hero-data-button__arrow" 
@@ -168,7 +231,7 @@ const Home: React.FC = () => {
                   />
                 </svg>
               </Link>
-              <Link to="/alumni-directory" className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
+              <Link to="/alumni-directory" onClick={(event) => void handleProtectedNavigation(event, '/alumni-directory')} className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
                 RESOURCES
                 <svg 
                   className="hero-data-button__arrow" 
@@ -316,7 +379,7 @@ const Home: React.FC = () => {
               <div className="exploration__details-info">
                 <h3 style={{ color: explorationText }}>{active.title}</h3>
                 <p style={{ color: explorationText }}>{active.description}</p>
-                <Link to={active.link} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none', fontFamily: condensedFontFamily }}>
+                <Link to={active.link} onClick={(event) => void handleProtectedNavigation(event, active.link)} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none', fontFamily: condensedFontFamily }}>
                   EXPLORE
                   <svg
                     className="hero-data-button__arrow"
@@ -340,93 +403,48 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-      {/*
       <section className="alumni-stories">
         <div className="alumni-stories__content">
           <div className="hero__tag alumni-stories__tag">
             <span className="hero__tag-text alumni-stories____tag-text">SEE ALUMNI STORIES</span>
           </div>
-          <div className="alumni-stories__tag-line"></div>
-          {canScrollLeft && (
-            <button
-              className="alumni-stories__scroll alumni-stories__scroll--left"
-              aria-label="Scroll left"
-              onClick={() => scrollAlumni("left")}
-            >
-              <svg
-                className="hero-data-button__arrow"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ transform: "scaleX(-1)" }}
+          <div className="alumni-stories__grid">
+            {stories.map((story) => (
+              <a
+                key={`${story.company}-${story.name}`}
+                className="story-card"
+                href={story.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none' }}
               >
-                <path
-                  d="M14 5L21 12M21 12L14 19M21 12H3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          )}
-          {canScrollRight && (
-            <button
-              className="alumni-stories__scroll alumni-stories__scroll--right"
-              aria-label="Scroll right"
-              onClick={() => scrollAlumni("right")}
-            >
-              <svg 
-                className="hero-data-button__arrow" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  d="M14 5L21 12M21 12L14 19M21 12H3" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          )}
-          <div className="alumni-stories__grid" ref={alumniGridRef}>
-            {stories.map((story, i) => (
-              <div key={i} className="story-card">
-                <img src={story.img} alt={story.name} />
+                <img src={story.img} alt={story.name} style={{ objectPosition: story.objectPosition }} />
                 <div className="story-card__content">
                   <h3>{story.name}</h3>
                   <p>{story.company}</p>
-                  <div className="alumni-stories-button__arrow">
-                    <svg 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
+                  <div className="alumni-stories-button__arrow" aria-hidden="true">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path 
-                        d="M14 5L21 12M21 12L14 19M21 12H3" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
+                      <path
+                        d="M14 5L21 12M21 12L14 19M21 12H3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                     </svg>
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
       </section>
-      */}
     </div>
   );
 };

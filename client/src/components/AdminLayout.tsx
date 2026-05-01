@@ -16,8 +16,8 @@ const AdminLayout = () => {
 
   return (
     <div className={styles['admin-page']}>
-      {/* Sidebar */}
-        <aside className={styles.sidebar}>
+      {/* Top navigation */}
+        <nav className={styles['admin-nav']} aria-label="Admin Navigation">
             <ul>
                 {links.map((link) => (
                 <li
@@ -31,7 +31,7 @@ const AdminLayout = () => {
                 </li>
                 ))}
             </ul>
-        </aside>
+        </nav>
 
       {/* Main content */}
       <div className={styles.main}>

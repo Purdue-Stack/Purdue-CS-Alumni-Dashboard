@@ -142,7 +142,7 @@ const UploadPreview: React.FC = () => {
   return (
     <div
       style={{
-        padding: '24px 32px',
+        padding: '32px 48px',
         display: 'flex',
         flexDirection: 'column',
         gap: 20,
@@ -157,132 +157,138 @@ const UploadPreview: React.FC = () => {
         </p>
       </header>
 
-      <section
-        style={{
-          border: `1px solid ${warmBorder}`,
-          borderRadius: 18,
-          background: '#fff',
-          padding: 20,
-          boxShadow: '0 2px 10px rgba(45, 41, 38, 0.05)'
-        }}
-      >
-        {activeView === 'upload' && (
-          <UploadComponent onFileUpload={handleFileUpload} setFile={setUploadedFile} />
-        )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2.3fr) minmax(320px, 0.7fr)', gap: 24, alignItems: 'stretch' }}>
+        <section
+          style={{
+            border: `1px solid ${warmBorder}`,
+            borderRadius: 18,
+            background: '#fff',
+            padding: 24,
+            boxShadow: '0 2px 10px rgba(45, 41, 38, 0.05)',
+            minWidth: 0,
+            height: 460,
+            overflow: 'auto'
+          }}
+        >
+          {activeView === 'upload' && (
+            <UploadComponent onFileUpload={handleFileUpload} setFile={setUploadedFile} />
+          )}
 
-        {activeView === 'preview' && uploadedFile && (
-          <PreviewComponent
-            file={uploadedFile}
-            rawHeaders={rawHeaders}
-            rawRows={rawRows}
-            columns={columns}
-            rows={rows}
-            mapping={mapping}
-            requiredFields={requiredFields}
-            fieldErrors={fieldErrors}
-            rowErrors={rowErrors}
-            uploadSummary={uploadSummary}
-            summary={summary}
-            onValidateMapping={handleValidateMapping}
-            onRevalidate={handleRevalidate}
-            onCommit={handleCommit}
-            validationLoading={validationLoading}
-            commitLoading={commitLoading}
-          />
-        )}
-      </section>
+          {activeView === 'preview' && uploadedFile && (
+            <PreviewComponent
+              file={uploadedFile}
+              rawHeaders={rawHeaders}
+              rawRows={rawRows}
+              columns={columns}
+              rows={rows}
+              mapping={mapping}
+              requiredFields={requiredFields}
+              fieldErrors={fieldErrors}
+              rowErrors={rowErrors}
+              uploadSummary={uploadSummary}
+              summary={summary}
+              onValidateMapping={handleValidateMapping}
+              onRevalidate={handleRevalidate}
+              onCommit={handleCommit}
+              validationLoading={validationLoading}
+              commitLoading={commitLoading}
+            />
+          )}
+        </section>
 
-      <section
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          border: `1px solid ${warmBorder}`,
-          borderRadius: 18,
-          background: '#F7F3EA',
-          padding: 18
-        }}
-      >
-        <div>
-          <h2 style={{ margin: 0, color: '#2D2926' }}>Upload Log</h2>
-          <p style={{ margin: '6px 0 0', color: '#6B625B' }}>
-            Recent upload previews and committed import activity.
-          </p>
-        </div>
+        <section
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            border: `1px solid ${warmBorder}`,
+            borderRadius: 18,
+            background: '#F7F3EA',
+            padding: 20,
+            minWidth: 0,
+            height: 460,
+            minHeight: 0
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0, color: '#2D2926' }}>Upload Log</h2>
+            <p style={{ margin: '6px 0 0', color: '#6B625B' }}>
+              Recent upload previews and committed import activity.
+            </p>
+          </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {logs.length ? (
-            logs.map((log) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', paddingRight: 4, minHeight: 0 }}>
+            {logs.length ? (
+              logs.map((log) => (
+                <div
+                  key={log.id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    border: `1px solid ${warmBorder}`,
+                    borderRadius: 16,
+                    padding: 16,
+                    background: '#fff'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      width: 'fit-content',
+                      padding: '6px 10px',
+                      borderRadius: 999,
+                      background: softGold,
+                      color: '#2D2926',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.4
+                    }}
+                  >
+                    {log.action}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <strong style={{ color: '#2D2926' }}>{log.description}</strong>
+                    <small style={{ color: '#6B625B' }}>
+                      {new Date(log.timestamp).toLocaleString()}
+                    </small>
+                  </div>
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      background: '#F5F3EF',
+                      color: '#534B45',
+                      border: `1px solid ${warmBorder}`,
+                      fontWeight: 700,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title={log.target}
+                  >
+                    {log.target}
+                  </div>
+                </div>
+              ))
+            ) : (
               <div
-                key={log.id}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'minmax(110px, 150px) 1fr auto',
-                  gap: 12,
-                  alignItems: 'center',
-                  border: `1px solid ${warmBorder}`,
+                  border: `1px dashed ${warmBorder}`,
                   borderRadius: 16,
-                  padding: 16,
-                  background: '#fff'
+                  padding: 24,
+                  background: '#FFFDFC',
+                  color: '#6B625B',
+                  textAlign: 'center'
                 }}
               >
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    width: 'fit-content',
-                    padding: '6px 10px',
-                    borderRadius: 999,
-                    background: softGold,
-                    color: '#2D2926',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.4
-                  }}
-                >
-                  {log.action}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <strong style={{ color: '#2D2926' }}>{log.description}</strong>
-                  <small style={{ color: '#6B625B' }}>
-                    {new Date(log.timestamp).toLocaleString()}
-                  </small>
-                </div>
-                <div
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 12,
-                    background: '#F5F3EF',
-                    color: '#534B45',
-                    border: `1px solid ${warmBorder}`,
-                    fontWeight: 700,
-                    maxWidth: 280,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                  title={log.target}
-                >
-                  {log.target}
-                </div>
+                No upload activity available yet.
               </div>
-            ))
-          ) : (
-            <div
-              style={{
-                border: `1px dashed ${warmBorder}`,
-                borderRadius: 16,
-                padding: 24,
-                background: '#FFFDFC',
-                color: '#6B625B',
-                textAlign: 'center'
-              }}
-            >
-              No upload activity available yet.
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

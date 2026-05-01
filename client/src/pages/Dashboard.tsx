@@ -17,7 +17,9 @@ import { FilterCard, FilterTag, CategoryLabel } from "../components/DashboardCom
 import USMapD3 from "../components/USMapD3";
 import {
   fetchDashboardAnalytics,
+  fetchDashboardFilterOptions,
   type DashboardAnalyticsResponse,
+  type DashboardFilterOptionsResponse,
 } from "../api/api";
 
 type DashboardTab = "Outcome" | "Salary" | "Placements" | "Graduate School" | "Internship";
@@ -72,6 +74,12 @@ const defaultAnalyticsData: DashboardAnalyticsResponse = {
   ],
   internshipPlacementFocus: [],
   internshipPlacementsTop10: [],
+};
+
+const defaultFilterOptions: DashboardFilterOptionsResponse = {
+  graduationYears: [],
+  majors: [],
+  degreeLevels: [],
 };
 
 const graphGroups: Record<DashboardTab, GraphDefinition[]> = {
@@ -184,6 +192,7 @@ const Dashboard: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<DashboardTab>(initialTab);
   const [searchTerm, setSearchTerm] = useState("");
   const [analyticsData, setAnalyticsData] = useState<DashboardAnalyticsResponse>(defaultAnalyticsData);
+  const [filterOptions, setFilterOptions] = useState<DashboardFilterOptionsResponse>(defaultFilterOptions);
 
   const [graduationYearFilters, setGraduationYearFilters] = useState<string[]>([]);
   const [majorFilters, setMajorFilters] = useState<string[]>([]);
@@ -295,6 +304,32 @@ const Dashboard: React.FC = () => {
       return { ...current, [selectedTab]: nextIndex };
     });
   };
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadFilterOptions = async () => {
+      try {
+        const options = await fetchDashboardFilterOptions();
+        if (!isMounted) return;
+
+        setFilterOptions(options);
+        setGraduationYearFilters((current) => current.filter((year) => options.graduationYears.includes(year)));
+        setMajorFilters((current) => current.filter((major) => options.majors.includes(major)));
+        setDegreeLevelFilters((current) => current.filter((level) => options.degreeLevels.includes(level)));
+        setAppliedGraduationYearFilters((current) => current.filter((year) => options.graduationYears.includes(year)));
+        setAppliedMajorFilters((current) => current.filter((major) => options.majors.includes(major)));
+        setAppliedDegreeLevelFilters((current) => current.filter((level) => options.degreeLevels.includes(level)));
+      } catch (error) {
+        console.error("Failed to load dashboard filter options:", error);
+      }
+    };
+
+    loadFilterOptions();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -476,19 +511,19 @@ const Dashboard: React.FC = () => {
         <div style={{ flex: "0 0 260px", display: "flex", flexDirection: "column", justifyContent: "flex-start", gap: 12 }}>
           <FilterCard
             title="Graduation Year"
-            options={["2020", "2021", "2022", "2023", "2024", "2025"]}
+            options={filterOptions.graduationYears}
             selectedOptions={graduationYearFilters}
             onSelectionChange={setGraduationYearFilters}
           />
           <FilterCard
             title="Major"
-            options={["Computer Science", "Data Science", "Artificial Intelligence"]}
+            options={filterOptions.majors}
             selectedOptions={majorFilters}
             onSelectionChange={setMajorFilters}
           />
           <FilterCard
             title="Degree Level"
-            options={["Bachelor's", "Master's", "PhD"]}
+            options={filterOptions.degreeLevels}
             selectedOptions={degreeLevelFilters}
             onSelectionChange={setDegreeLevelFilters}
           />
