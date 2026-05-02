@@ -1,5 +1,5 @@
 // Home.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Home.css';
@@ -79,6 +79,10 @@ const Home: React.FC = () => {
 
   const [activeExplorationIndex, setActiveExplorationIndex] = useState(0);
   const active = explorations[activeExplorationIndex];
+  const alumniGridRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [alumniScrollHintBounds, setAlumniScrollHintBounds] = useState({ top: 0, height: 0 });
+  const [isAlumniScrollHintHovered, setIsAlumniScrollHintHovered] = useState(false);
 
   const resetInterval = useCallback(() => {
     return setInterval(() => {
@@ -158,41 +162,51 @@ const Home: React.FC = () => {
     }
   };
 
-  // const alumniGridRef = useRef<HTMLDivElement>(null);
+  const updateAlumniScrollHint = useCallback(() => {
+    if (!alumniGridRef.current) {
+      return;
+    }
 
-  // const [canScrollLeft, setCanScrollLeft] = useState(false);
-  // const [canScrollRight, setCanScrollRight] = useState(true);
+    const { scrollLeft, scrollWidth, clientWidth } = alumniGridRef.current;
+    const firstCard = alumniGridRef.current.querySelector('.story-card');
+    if (firstCard instanceof HTMLElement) {
+      setAlumniScrollHintBounds({
+        top: firstCard.offsetTop,
+        height: firstCard.offsetHeight
+      });
+    }
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 8);
+  }, []);
 
-  // const updateScrollButtons = useCallback(() => {
-  //   if (alumniGridRef.current) {
-  //     const { scrollLeft, scrollWidth, clientWidth } = alumniGridRef.current;
-  //     setCanScrollLeft(scrollLeft > 0);
-  //     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
-  //   }
-  // }, []);
+  useEffect(() => {
+    updateAlumniScrollHint();
+    const grid = alumniGridRef.current;
 
-  // useEffect(() => {
-  //   updateScrollButtons();
-  //   const grid = alumniGridRef.current;
-  //   if (!grid) return;
-  //   grid.addEventListener('scroll', updateScrollButtons);
-  //   window.addEventListener('resize', updateScrollButtons);
-  //   return () => {
-  //     grid.removeEventListener('scroll', updateScrollButtons);
-  //     window.removeEventListener('resize', updateScrollButtons);
-  //   };
-  // }, [updateScrollButtons]);
+    if (!grid) {
+      return;
+    }
 
-  // const scrollAlumni = (direction: "left" | "right") => {
-  //   if (alumniGridRef.current) {
-  //     const card = alumniGridRef.current.querySelector('.story-card');
-  //     const cardWidth = card ? (card as HTMLElement).offsetWidth + 32 : 340;
-  //     alumniGridRef.current.scrollBy({
-  //       left: direction === "right" ? cardWidth : -cardWidth,
-  //       behavior: "smooth",
-  //     });
-  //   }
-  // };
+    grid.addEventListener('scroll', updateAlumniScrollHint, { passive: true });
+    window.addEventListener('resize', updateAlumniScrollHint);
+
+    return () => {
+      grid.removeEventListener('scroll', updateAlumniScrollHint);
+      window.removeEventListener('resize', updateAlumniScrollHint);
+    };
+  }, [updateAlumniScrollHint]);
+
+  const scrollAlumniRight = () => {
+    if (!alumniGridRef.current) {
+      return;
+    }
+
+    const card = alumniGridRef.current.querySelector('.story-card');
+    const cardWidth = card instanceof HTMLElement ? card.offsetWidth + 32 : 360;
+    alumniGridRef.current.scrollBy({
+      left: cardWidth,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <div className="page">
@@ -410,43 +424,88 @@ const Home: React.FC = () => {
       </section>
       <section className="alumni-stories">
         <div className="alumni-stories__content">
-          <div className="hero__tag alumni-stories__tag">
-            <span className="hero__tag-text alumni-stories____tag-text">SEE ALUMNI STORIES</span>
+          <div className="hero__tag alumni-stories__tag" style={{ background: '#2D2926' }}>
+            <span className="hero__tag-text" style={{ color: '#fff', fontFamily: condensedFontFamily }}>SEE ALUMNI STORIES</span>
           </div>
-          <div className="alumni-stories__grid">
-            {stories.map((story) => (
-              <a
-                key={`${story.company}-${story.name}`}
-                className="story-card"
-                href={story.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none' }}
-              >
-                <img src={story.img} alt={story.name} style={{ objectPosition: story.objectPosition }} />
-                <div className="story-card__content">
-                  <h3>{story.name}</h3>
-                  <p>{story.company}</p>
-                  <div className="alumni-stories-button__arrow" aria-hidden="true">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M14 5L21 12M21 12L14 19M21 12H3"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+          <div style={{ position: 'relative' }}>
+            <div ref={alumniGridRef} className="alumni-stories__grid">
+              {stories.map((story) => (
+                <a
+                  key={`${story.company}-${story.name}`}
+                  className="story-card"
+                  href={story.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <img src={story.img} alt={story.name} style={{ objectPosition: story.objectPosition }} />
+                  <div className="story-card__content">
+                    <h3>{story.name}</h3>
+                    <p>{story.company}</p>
+                    <div className="alumni-stories-button__arrow" aria-hidden="true">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M14 5L21 12M21 12L14 19M21 12H3"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-              </a>
-            ))}
+                </a>
+              ))}
+            </div>
+            {canScrollRight && (
+              <button
+                type="button"
+                className="alumni-stories__scroll alumni-stories__scroll--right"
+                aria-label="Scroll right to see more alumni stories"
+                onClick={scrollAlumniRight}
+                onMouseEnter={() => setIsAlumniScrollHintHovered(true)}
+                onMouseLeave={() => setIsAlumniScrollHintHovered(false)}
+                style={{
+                  top: alumniScrollHintBounds.top + (alumniScrollHintBounds.height / 2),
+                  height: alumniScrollHintBounds.height ? Math.max(alumniScrollHintBounds.height - 1, 0) : undefined,
+                  right: 0,
+                  width: '3.5rem',
+                  borderRadius: '18px 0 0 18px',
+                  background: isAlumniScrollHintHovered
+                    ? 'linear-gradient(270deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.44) 72%, rgba(0, 0, 0, 0) 100%)'
+                    : 'linear-gradient(270deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.3) 72%, rgba(0, 0, 0, 0) 100%)',
+                  color: '#f4efe7',
+                  boxShadow: 'none',
+                  opacity: 1,
+                  transform: 'translateY(-50%)',
+                  transition: 'background 0.2s ease'
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  style={{ flexShrink: 0 }}
+                >
+                  <path
+                    d="M9 6L15 12L9 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </section>
