@@ -11,7 +11,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { FilterCard, FilterTag, CategoryLabel } from "../components/DashboardComponents";
 import USMapD3 from "../components/USMapD3";
@@ -34,8 +33,9 @@ type GraphDefinition = {
 };
 
 const pieColors = ["#8E6F3E", "#CFB991", "#6F7A85", "#D9D9D9"];
-const tabAccent = "rgba(207, 185, 145, 0.18)";
-const activeTabColor = "#9D7A28";
+const tabAccent = "#FFFFFF";
+const activeTabColor = "#CFB991";
+const hoverTabColor = "rgba(207, 185, 145, 0.4)";
 const bodyFontFamily = 'acumin-pro, "Franklin Gothic", sans-serif';
 const condensedFontFamily = 'acumin-pro-condensed, "Franklin Gothic", sans-serif';
 
@@ -210,6 +210,7 @@ const Dashboard: React.FC = () => {
     "Graduate School": 0,
     Internship: 0,
   });
+  const [hoveredTab, setHoveredTab] = useState<DashboardTab | null>(null);
 
   const dataOptions: DashboardTab[] = dashboardTabs;
   const currentGraphSet = graphGroups[selectedTab];
@@ -374,26 +375,62 @@ const Dashboard: React.FC = () => {
     </ResponsiveContainer>
   );
 
-  const renderPie = (data: Array<{ name: string; value: number }>) => (
-    <ResponsiveContainer>
-      <PieChart>
-        <Pie
-          data={data.filter((item) => item.value > 0)}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius={140}
-          label={({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
-        >
-          {data.map((entry, index) => (
-            <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
+const renderPie = (data: Array<{ name: string; value: number }>) => (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", gap: 18, justifyContent: "center", flexWrap: "wrap" }}>
+        {data
+          .filter((item) => item.value > 0)
+          .map((item, index) => (
+            <div
+              key={item.name}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                minHeight: 18
+              }}
+            >
+              <div
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 2,
+                  background: pieColors[index % pieColors.length],
+                  flexShrink: 0
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: bodyFontFamily,
+                  fontSize: 14,
+                  lineHeight: 1.1,
+                  color: "#333"
+                }}
+              >
+                {item.name}
+              </span>
+            </div>
           ))}
-        </Pie>
-        <Tooltip formatter={(value) => [getTooltipNumber(value), "Outcomes"]} />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
+      </div>
+      <ResponsiveContainer>
+        <PieChart>
+          <Pie
+            data={data.filter((item) => item.value > 0)}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={140}
+            label={({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
+          >
+            {data.map((entry, index) => (
+              <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
+            ))}
+          </Pie>
+          <Tooltip formatter={(value) => [getTooltipNumber(value), "Outcomes"]} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 
   const renderInternshipConversions = (data: Array<{ name: string; value: number }>) => (
@@ -512,13 +549,15 @@ const Dashboard: React.FC = () => {
             <div
               style={{
                 display: "inline-flex",
-                flexWrap: "nowrap",
-                borderRadius: 16,
-                padding: 6,
+                flexWrap: "wrap",
+                borderRadius: 8,
+                padding: 4,
                 background: tabAccent,
+                border: "1px solid #C4BFC0",
                 width: "100%",
                 maxWidth: 1180,
                 justifyContent: "center",
+                gap: 4,
               }}
             >
               {dataOptions.map((option) => (
@@ -526,21 +565,35 @@ const Dashboard: React.FC = () => {
                   key={option}
                   type="button"
                   onClick={() => setSelectedTab(option)}
+                  onMouseEnter={() => setHoveredTab(option)}
+                  onMouseLeave={() => setHoveredTab((current) => (current === option ? null : current))}
                   style={{
                     flex: "1 1 0",
+                    minWidth: 140,
                     whiteSpace: "nowrap",
-                    padding: "12px 20px",
-                    border: "none",
-                    borderRadius: 12,
-                    background: selectedTab === option ? activeTabColor : "transparent",
-                    color: selectedTab === option ? "#fff" : "#2D2926",
+                    padding: "10px 18px",
+                    border: selectedTab === option ? "1px solid rgba(45, 41, 38, 0.08)" : "1px solid transparent",
+                    borderRadius: 6,
+                    background: selectedTab === option
+                      ? activeTabColor
+                      : hoveredTab === option
+                        ? hoverTabColor
+                        : "#FFFFFF",
+                    color: "#2D2926",
                     fontFamily: bodyFontFamily,
                     fontSize: 14,
-                    fontWeight: 800,
-                    letterSpacing: 0.2,
+                    fontWeight: 700,
+                    letterSpacing: 0,
+                    textTransform: "none",
+                    boxShadow: selectedTab === option
+                      ? "inset 0 0 0 1px rgba(45, 41, 38, 0.05), 0 2px 6px rgba(45, 41, 38, 0.08)"
+                      : hoveredTab === option
+                        ? "inset 0 0 0 1px rgba(45, 41, 38, 0.04)"
+                        : "none",
                     textAlign: "center",
                     cursor: "pointer",
-                    transition: "background-color 0.2s ease, color 0.2s ease",
+                    transition: "background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease",
+                    transform: "translateY(0)",
                   }}
                 >
                   {option}
