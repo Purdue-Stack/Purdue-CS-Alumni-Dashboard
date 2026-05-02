@@ -23,7 +23,7 @@ function normalizeEmployerKey(value: string | null | undefined) {
 
 function normalizeUniversityKey(value: string | null | undefined) {
   return normalizeBasic(value)
-    .replace(/\(.*?\)/g, ' ')
+    .replace(/\b(al|ak|az|ar|ca|co|ct|dc|de|fl|ga|hi|ia|id|il|in|ks|ky|la|ma|md|me|mi|mn|mo|ms|mt|nc|nd|ne|nh|nj|nm|nv|ny|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|va|vt|wa|wi|wv|wy)\b$/g, ' ')
     .replace(/\buniv\b/g, ' university ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -81,8 +81,7 @@ const universityRules: CanonicalRule[] = [
   { canonical: 'University of California, Los Angeles', aliases: ['university of california los angeles ucla'] },
   { canonical: 'University of California, Berkeley', aliases: ['university of california berkeley'] },
   { canonical: 'Georgia Institute of Technology', aliases: ['georgia institute of technology'] },
-  { canonical: 'Purdue University', aliases: ['purdue', 'purdue university'] },
-  { canonical: 'Purdue University--West Lafayette', aliases: ['purdue university west lafayette'] },
+  { canonical: 'Purdue University', aliases: ['purdue', 'purdue university', 'purdue university west lafayette'] },
   { canonical: 'Boston University', aliases: ['boston university'] },
   { canonical: 'Arizona State University', aliases: ['arizona state university', 'arizona state'] },
   { canonical: 'University of Washington', aliases: ['university of washington'] },
