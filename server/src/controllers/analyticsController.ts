@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import { query } from '../db';
 import { getAllLogs } from '../models/logModel';
 import { listPendingMentorCandidates } from '../models/alumniModel';
+import {
+  canonicalCountMap,
+  canonicalizeCompany,
+  canonicalizeUniversity,
+  topCanonicalSeries
+} from '../lib/canonicalization';
 
 const STATE_NAME_TO_CODE: Record<string, string> = {
   alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA', colorado: 'CO',
@@ -66,7 +72,7 @@ const TOP_GRAD_SCHOOLS = [
   'Princeton University',
   'Cornell University',
   'University of Illinois Urbana-Champaign',
-  'University of Michigan'
+  'University of Michigan--Ann Arbor'
 ] as const;
 
 function parseList(value: unknown): string[] {
@@ -86,16 +92,6 @@ function normalizeStateCode(value: string | null): string | null {
     return match[1];
   }
   return STATE_NAME_TO_CODE[trimmed.toLowerCase()] ?? null;
-}
-
-function normalizeEmployer(value: string | null): string {
-  return (value ?? '')
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\b(corporation|corp|incorporated|inc|llc|ltd|co|company|technologies|technology)\b/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 function isInternshipOutcome(value: string | null): boolean {
@@ -251,7 +247,7 @@ async function buildInternshipConversionData(req: Request) {
     };
 
     const outcomeType = String(row.outcome_type ?? '');
-    const employer = normalizeEmployer(typeof row.employer === 'string' ? row.employer : null);
+    const employer = canonicalizeCompany(typeof row.employer === 'string' ? row.employer : null) ?? '';
 
     if (isInternshipOutcome(outcomeType)) {
       if (employer) {
@@ -345,26 +341,21 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
         params
       ),
       query(
-        `SELECT "Employer" AS name, COUNT(*)::int AS value
+        `SELECT "Employer" AS name
          FROM alumni
          ${where}
            AND ("Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')
            AND "Employer" IS NOT NULL
-           AND "Employer" <> ''
-           AND "Employer" = ANY($${params.length + 1}::text[])
-         GROUP BY "Employer"`,
-        [...params, TOP_PLACEMENT_COMPANIES]
+           AND "Employer" <> ''`,
+        params
       ),
       query(
-        `SELECT "Employer" AS name, COUNT(*)::int AS value
+        `SELECT "Employer" AS name
          FROM alumni
          ${where}
            AND ("Outcome Type" ILIKE '%Job%' OR "Outcome Type" ILIKE '%Employed%')
            AND "Employer" IS NOT NULL
-           AND "Employer" <> ''
-         GROUP BY "Employer"
-         ORDER BY value DESC, name ASC
-         LIMIT 10`,
+           AND "Employer" <> ''`,
         params
       ),
       query(
@@ -376,49 +367,39 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
         params
       ),
       query(
-        `SELECT "University" AS name, COUNT(*)::int AS value
+        `SELECT "University" AS name
          FROM alumni
          ${where}
            AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
            AND "University" IS NOT NULL
-           AND "University" <> ''
-           AND "University" = ANY($${params.length + 1}::text[])
-         GROUP BY "University"`,
-        [...params, TOP_GRAD_SCHOOLS]
-      ),
-      query(
-        `SELECT "University" AS name, COUNT(*)::int AS value
-         FROM alumni
-         ${where}
-           AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
-           AND "University" IS NOT NULL
-           AND "University" <> ''
-         GROUP BY "University"
-         ORDER BY value DESC, name ASC
-         LIMIT 10`,
+           AND "University" <> ''`,
         params
       ),
       query(
-        `SELECT "Employer" AS name, COUNT(*)::int AS value
+        `SELECT "University" AS name
          FROM alumni
          ${where}
-           AND "Outcome Type" ILIKE '%Intern%'
-           AND "Employer" IS NOT NULL
-           AND "Employer" <> ''
-           AND "Employer" = ANY($${params.length + 1}::text[])
-         GROUP BY "Employer"`,
-        [...params, TOP_PLACEMENT_COMPANIES]
+           AND ("Outcome Type" ILIKE '%Graduate%' OR "Outcome Type" ILIKE '%Grad%' OR "Outcome Type" ILIKE '%School%')
+           AND "University" IS NOT NULL
+           AND "University" <> ''`,
+        params
       ),
       query(
-        `SELECT "Employer" AS name, COUNT(*)::int AS value
+        `SELECT "Employer" AS name
          FROM alumni
          ${where}
            AND "Outcome Type" ILIKE '%Intern%'
            AND "Employer" IS NOT NULL
-           AND "Employer" <> ''
-         GROUP BY "Employer"
-         ORDER BY value DESC, name ASC
-         LIMIT 10`,
+           AND "Employer" <> ''`,
+        params
+      ),
+      query(
+        `SELECT "Employer" AS name
+         FROM alumni
+         ${where}
+           AND "Outcome Type" ILIKE '%Intern%'
+           AND "Employer" IS NOT NULL
+           AND "Employer" <> ''`,
         params
       ),
       buildInternshipConversionData(req)
@@ -432,20 +413,20 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
       if (target >= 0) salaryBands[target].value += 1;
     });
 
-    const placementFocusMap = new Map<string, number>();
-    topPlacementsFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
-      placementFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
-    });
+    const placementFocusMap = canonicalCountMap(
+      topPlacementsFocusResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+      canonicalizeCompany
+    );
 
-    const gradFocusMap = new Map<string, number>();
-    gradAdmissionsFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
-      gradFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
-    });
+    const gradFocusMap = canonicalCountMap(
+      gradAdmissionsFocusResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+      canonicalizeUniversity
+    );
 
-    const internshipFocusMap = new Map<string, number>();
-    internshipPlacementFocusResult.rows.forEach((row: { name?: unknown; value?: unknown }) => {
-      internshipFocusMap.set(String(row.name ?? ''), Number(row.value ?? 0));
-    });
+    const internshipFocusMap = canonicalCountMap(
+      internshipPlacementFocusResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+      canonicalizeCompany
+    );
 
     res.status(200).json({
       outcomeBreakdown: outcomeBreakdownResult.rows,
@@ -453,13 +434,25 @@ export const fetchDashboardAnalytics = async (req: Request, res: Response): Prom
       salaryByRegion: buildStateSeries(salaryByRegionResult.rows),
       jobPlacementsByRegion: buildStateSeries(jobPlacementsByRegionResult.rows),
       topPlacementFocus: orderedSeriesFromMap(TOP_PLACEMENT_COMPANIES, placementFocusMap),
-      topPlacementsTop10: topPlacementsTopTenResult.rows,
+      topPlacementsTop10: topCanonicalSeries(
+        topPlacementsTopTenResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+        canonicalizeCompany,
+        10
+      ),
       gradAdmissionsByRegion: buildStateSeries(gradAdmissionsByRegionResult.rows),
       gradAdmissionsFocus: orderedSeriesFromMap(TOP_GRAD_SCHOOLS, gradFocusMap),
-      gradAdmissionsTop10: gradAdmissionsTopTenResult.rows,
+      gradAdmissionsTop10: topCanonicalSeries(
+        gradAdmissionsTopTenResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+        canonicalizeUniversity,
+        10
+      ),
       internshipConversions,
       internshipPlacementFocus: orderedSeriesFromMap(TOP_PLACEMENT_COMPANIES, internshipFocusMap),
-      internshipPlacementsTop10: internshipPlacementsTopTenResult.rows
+      internshipPlacementsTop10: topCanonicalSeries(
+        internshipPlacementsTopTenResult.rows.map((row) => (typeof row.name === 'string' ? row.name : null)),
+        canonicalizeCompany,
+        10
+      )
     });
   } catch (error) {
     console.error('Error fetching dashboard analytics:', error);

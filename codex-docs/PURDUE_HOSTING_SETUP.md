@@ -85,10 +85,13 @@ RewriteEngine On
 RewriteBase /placement/
 
 RewriteRule ^index\.html$ - [L]
+RewriteRule ^api/ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /placement/index.html [L]
 ```
+
+The `^api/` exclusion is important. Without it, `/placement/api/...` can be rewritten to the SPA entrypoint and return HTML instead of proxying to Express.
 
 ## First deployment checklist
 

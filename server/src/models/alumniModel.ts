@@ -1,5 +1,12 @@
 import { query } from '../db';
 import type { PoolClient } from 'pg';
+import {
+  canonicalizeCompany,
+  canonicalizeJobTitle,
+  canonicalizeUniversity,
+  matchesCanonicalSelection,
+  uniqueCanonicalOptions
+} from '../lib/canonicalization';
 
 export interface Alumni {
   "First Name": string;
@@ -462,7 +469,8 @@ export async function listAlumni(options: AlumniListOptions = {}): Promise<{ row
   return { rows: dataResult.rows, total: Number(countResult.rows[0]?.count ?? 0) };
 }
 
-function buildDirectoryFilters(options: AlumniDirectoryOptions) {
+function buildDirectoryFilters(options: AlumniDirectoryOptions, config?: { includeCanonicalFieldFilters?: boolean }) {
+  const includeCanonicalFieldFilters = config?.includeCanonicalFieldFilters ?? true;
   const params: any[] = [];
   const clauses: string[] = [
     'is_visible = true',
@@ -479,11 +487,11 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
     params.push(options.majors);
     clauses.push(`"Expected Field of Study" = ANY($${params.length}::text[])`);
   }
-  if (options.companies?.length) {
+  if (includeCanonicalFieldFilters && options.companies?.length) {
     params.push(options.companies);
     clauses.push(`"Employer" = ANY($${params.length}::text[])`);
   }
-  if (options.jobTitles?.length) {
+  if (includeCanonicalFieldFilters && options.jobTitles?.length) {
     params.push(options.jobTitles);
     clauses.push(`"Job Title" = ANY($${params.length}::text[])`);
   }
@@ -495,7 +503,7 @@ function buildDirectoryFilters(options: AlumniDirectoryOptions) {
     params.push(options.degreeSeeking);
     clauses.push(`"Degree Seeking" = ANY($${params.length}::text[])`);
   }
-  if (options.universities?.length) {
+  if (includeCanonicalFieldFilters && options.universities?.length) {
     params.push(options.universities);
     clauses.push(`"University" = ANY($${params.length}::text[])`);
   }
@@ -555,12 +563,10 @@ function directoryOrderSql(sortKey: AlumniDirectoryOptions['sortKey'], sortDir: 
 }
 
 export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Promise<{ rows: PublicAlumniProfile[]; total: number }> {
-  const { params, clauses } = buildDirectoryFilters(options);
+  const { params, clauses } = buildDirectoryFilters(options, { includeCanonicalFieldFilters: false });
   const limit = options.limit ?? 50;
   const offset = options.offset ?? 0;
   const where = `WHERE ${clauses.join(' AND ')}`;
-
-  params.push(limit, offset);
 
   const dataResult = await query(
     `SELECT
@@ -579,15 +585,60 @@ export async function listDirectoryAlumni(options: AlumniDirectoryOptions): Prom
       "City" AS city,
       "State" AS state
     FROM alumni
-    ${where}
-    ${directoryOrderSql(options.sortKey, options.sortDir)}
-    LIMIT $${params.length - 1}
-    OFFSET $${params.length}`,
+    ${where}`,
     params
   );
 
-  const countResult = await query(`SELECT COUNT(*) FROM alumni ${where}`, params.slice(0, params.length - 2));
-  return { rows: dataResult.rows as PublicAlumniProfile[], total: Number(countResult.rows[0]?.count ?? 0) };
+  const filteredRows = (dataResult.rows as PublicAlumniProfile[]).filter((row) => {
+    if (!matchesCanonicalSelection(row.employer, options.companies ?? [], canonicalizeCompany)) {
+      return false;
+    }
+    if (!matchesCanonicalSelection(row.job_title, options.jobTitles ?? [], canonicalizeJobTitle)) {
+      return false;
+    }
+    if (!matchesCanonicalSelection(row.university, options.universities ?? [], canonicalizeUniversity)) {
+      return false;
+    }
+    return true;
+  });
+
+  const canonicalSortValue = (row: PublicAlumniProfile) => {
+    switch (options.sortKey) {
+      case 'employer':
+        return canonicalizeCompany(row.employer) ?? '';
+      case 'job_title':
+        return canonicalizeJobTitle(row.job_title) ?? '';
+      case 'university':
+        return canonicalizeUniversity(row.university) ?? '';
+      case 'last_name':
+        return row.last_name ?? '';
+      case 'degree_level':
+        return row.degree_level ?? '';
+      case 'graduation_year':
+      default:
+        return row.graduation_year ?? 0;
+    }
+  };
+
+  const direction = options.sortDir === 'asc' ? 1 : -1;
+  const sortedRows = [...filteredRows].sort((left, right) => {
+    const leftValue = canonicalSortValue(left);
+    const rightValue = canonicalSortValue(right);
+
+    if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+      return (leftValue - rightValue) * direction || left.last_name.localeCompare(right.last_name);
+    }
+
+    return String(leftValue).localeCompare(String(rightValue)) * direction
+      || left.last_name.localeCompare(right.last_name)
+      || left.first_name.localeCompare(right.first_name)
+      || left.alumni_id - right.alumni_id;
+  });
+
+  return {
+    rows: sortedRows.slice(offset, offset + limit),
+    total: filteredRows.length
+  };
 }
 
 export type DirectoryFilterOptions = {
@@ -601,7 +652,7 @@ export type DirectoryFilterOptions = {
 };
 
 export async function listDirectoryFilterOptions(options: AlumniDirectoryOptions): Promise<DirectoryFilterOptions> {
-  const { params, clauses } = buildDirectoryFilters({ outcomeTypes: options.outcomeTypes });
+  const { params, clauses } = buildDirectoryFilters({ outcomeTypes: options.outcomeTypes }, { includeCanonicalFieldFilters: false });
   const where = `WHERE ${clauses.join(' AND ')}`;
   const [yearsResult, majorsResult, companiesResult, jobTitlesResult, statesResult, degreeSeekingResult, universitiesResult] = await Promise.all([
     query(`SELECT DISTINCT "Graduation Year" AS value FROM alumni ${where} AND "Graduation Year" IS NOT NULL ORDER BY "Graduation Year" ASC`, params),
@@ -616,11 +667,11 @@ export async function listDirectoryFilterOptions(options: AlumniDirectoryOptions
   return {
     graduationYears: yearsResult.rows.map((row: { value?: unknown }) => String(row.value)),
     majors: majorsResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
-    companies: companiesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
-    jobTitles: jobTitlesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
+    companies: uniqueCanonicalOptions(companiesResult.rows.map((row: { value?: string }) => row.value), canonicalizeCompany),
+    jobTitles: uniqueCanonicalOptions(jobTitlesResult.rows.map((row: { value?: string }) => row.value), canonicalizeJobTitle),
     states: statesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
     degreeSeeking: degreeSeekingResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value)),
-    universities: universitiesResult.rows.map((row: { value?: string }) => row.value).filter((value): value is string => Boolean(value))
+    universities: uniqueCanonicalOptions(universitiesResult.rows.map((row: { value?: string }) => row.value), canonicalizeUniversity)
   };
 }
 

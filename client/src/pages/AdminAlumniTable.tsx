@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchAdminAlumni, updateAdminAlumni } from '../api/api';
+import {
+  canonicalizeCompany,
+  canonicalizeJobTitle,
+  canonicalizeUniversity
+} from '../lib/canonicalization';
 
 type AdminAlumniRow = {
   alumni_id: number;
@@ -134,6 +139,29 @@ function uniqueSorted(values: Array<string | number | null | undefined>) {
 function matchesSelection(value: string | number | null | undefined, selected: string[]) {
   if (!selected.length) return true;
   return selected.includes(String(value ?? ''));
+}
+
+function matchesCanonicalSelection(
+  value: string | null | undefined,
+  selected: string[],
+  canonicalize: (value: string | null | undefined) => string | null
+) {
+  if (!selected.length) return true;
+  const canonical = canonicalize(value);
+  return canonical ? selected.includes(canonical) : false;
+}
+
+function uniqueCanonicalSorted(
+  values: Array<string | null | undefined>,
+  canonicalize: (value: string | null | undefined) => string | null
+) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => canonicalize(value))
+        .filter((value): value is string => Boolean(value))
+    )
+  ).sort((a, b) => a.localeCompare(b));
 }
 
 function toggleValue(values: string[], value: string) {
@@ -322,11 +350,11 @@ const AdminAlumniTable = () => {
   );
   const graduationYearOptions = uniqueSorted(tabRows.map((row) => row['Graduation Year']));
   const majorOptions = uniqueSorted(tabRows.map((row) => row['Expected Field of Study']));
-  const companyOptions = uniqueSorted(tabRows.map((row) => row.Employer));
-  const jobTitleOptions = uniqueSorted(tabRows.map((row) => row['Job Title']));
+  const companyOptions = uniqueCanonicalSorted(tabRows.map((row) => row.Employer), canonicalizeCompany);
+  const jobTitleOptions = uniqueCanonicalSorted(tabRows.map((row) => row['Job Title']), canonicalizeJobTitle);
   const stateOptions = uniqueSorted(tabRows.map((row) => row.State));
   const degreeSeekingOptions = uniqueSorted(tabRows.map((row) => row['Degree Seeking']));
-  const universityOptions = uniqueSorted(tabRows.map((row) => row.University));
+  const universityOptions = uniqueCanonicalSorted(tabRows.map((row) => row.University), canonicalizeUniversity);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -343,14 +371,14 @@ const AdminAlumniTable = () => {
       if (!matchesSelection(row.State, states)) return false;
 
       if (tab === 'Job' || tab === 'Internship') {
-        if (!matchesSelection(row.Employer, companies)) return false;
-        if (!matchesSelection(row['Job Title'], jobTitles)) return false;
+        if (!matchesCanonicalSelection(row.Employer, companies, canonicalizeCompany)) return false;
+        if (!matchesCanonicalSelection(row['Job Title'], jobTitles, canonicalizeJobTitle)) return false;
       }
 
       if (tab === 'Graduate School') {
         if (!matchesSelection(row['Expected Field of Study'], majors)) return false;
         if (!matchesSelection(row['Degree Seeking'], degreeSeeking)) return false;
-        if (!matchesSelection(row.University, universities)) return false;
+        if (!matchesCanonicalSelection(row.University, universities, canonicalizeUniversity)) return false;
       }
 
       return true;
