@@ -22,6 +22,7 @@ type DropdownProps = {
   options: string[];
   selected: string[];
   onToggle: (value: string) => void;
+  onClear: () => void;
   accent: string;
 };
 
@@ -48,7 +49,7 @@ function parseTab(value: string | null): AlumniTab {
   return 'Job';
 }
 
-function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent }: DropdownProps) {
+function SearchableCheckboxDropdown({ label, options, selected, onToggle, onClear, accent }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -72,14 +73,44 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const matchingOptions = options.filter((option) => option.toLowerCase().includes(query.toLowerCase()));
+  const matchingOptions = options
+    .filter((option) => option.toLowerCase().includes(query.toLowerCase()))
+    .sort((left, right) => {
+      const leftSelected = selected.includes(left);
+      const rightSelected = selected.includes(right);
+      if (leftSelected !== rightSelected) {
+        return leftSelected ? -1 : 1;
+      }
+      return left.localeCompare(right);
+    });
   const visibleOptions = query || showAll ? matchingOptions : matchingOptions.slice(0, 3);
   const summary = selected.length ? `${selected.length} selected` : 'All';
 
   return (
     <div ref={containerRef} style={{ position: 'relative', minWidth: 220 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
+          {selected.length > 0 && (
+            <button
+              type="button"
+              onClick={onClear}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: accent,
+                cursor: 'pointer',
+                fontWeight: 700,
+                padding: 0,
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+                marginRight: 4
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
@@ -264,7 +295,6 @@ const AlumniDirectory = () => {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const firstResult = total ? page * pageSize + 1 : 0;
   const lastResult = Math.min(total, page * pageSize + rows.length);
-
   const visibleSortOptions: Array<{ value: AlumniSortKey; label: string }> = tab === 'Graduate School'
     ? [
         { value: 'graduation_year', label: 'Graduation Year' },
@@ -393,6 +423,7 @@ const AlumniDirectory = () => {
             options={filterOptions.graduationYears}
             selected={graduationYears}
             onToggle={(value) => setGraduationYears((current) => toggleValue(current, value))}
+            onClear={() => setGraduationYears([])}
             accent={deepGold}
           />
           <SearchableCheckboxDropdown
@@ -400,6 +431,7 @@ const AlumniDirectory = () => {
             options={filterOptions.states}
             selected={states}
             onToggle={(value) => setStates((current) => toggleValue(current, value))}
+            onClear={() => setStates([])}
             accent={deepGold}
           />
           {(tab === 'Job' || tab === 'Internship') && (
@@ -409,6 +441,7 @@ const AlumniDirectory = () => {
                 options={filterOptions.companies}
                 selected={companies}
                 onToggle={(value) => setCompanies((current) => toggleValue(current, value))}
+                onClear={() => setCompanies([])}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
@@ -416,6 +449,7 @@ const AlumniDirectory = () => {
                 options={filterOptions.jobTitles}
                 selected={jobTitles}
                 onToggle={(value) => setJobTitles((current) => toggleValue(current, value))}
+                onClear={() => setJobTitles([])}
                 accent={deepGold}
               />
             </>
@@ -427,6 +461,7 @@ const AlumniDirectory = () => {
                 options={filterOptions.majors}
                 selected={majors}
                 onToggle={(value) => setMajors((current) => toggleValue(current, value))}
+                onClear={() => setMajors([])}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
@@ -434,6 +469,7 @@ const AlumniDirectory = () => {
                 options={filterOptions.degreeSeeking}
                 selected={degreeSeeking}
                 onToggle={(value) => setDegreeSeeking((current) => toggleValue(current, value))}
+                onClear={() => setDegreeSeeking([])}
                 accent={deepGold}
               />
               <SearchableCheckboxDropdown
@@ -441,6 +477,7 @@ const AlumniDirectory = () => {
                 options={filterOptions.universities}
                 selected={universities}
                 onToggle={(value) => setUniversities((current) => toggleValue(current, value))}
+                onClear={() => setUniversities([])}
                 accent={deepGold}
               />
             </>

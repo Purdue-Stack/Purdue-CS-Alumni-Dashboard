@@ -199,12 +199,7 @@ const Dashboard: React.FC = () => {
   const [filterOptions, setFilterOptions] = useState<DashboardFilterOptionsResponse>(defaultFilterOptions);
 
   const [graduationYearFilters, setGraduationYearFilters] = useState<string[]>([]);
-  const [majorFilters, setMajorFilters] = useState<string[]>([]);
   const [degreeLevelFilters, setDegreeLevelFilters] = useState<string[]>([]);
-
-  const [appliedGraduationYearFilters, setAppliedGraduationYearFilters] = useState<string[]>([]);
-  const [appliedMajorFilters, setAppliedMajorFilters] = useState<string[]>([]);
-  const [appliedDegreeLevelFilters, setAppliedDegreeLevelFilters] = useState<string[]>([]);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -260,32 +255,19 @@ const Dashboard: React.FC = () => {
       setCanScrollLeft(filterContainer.scrollLeft > 0);
       setCanScrollRight(filterContainer.scrollLeft + 2 < filterContainer.scrollWidth - filterContainer.clientWidth);
     }
-  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters]);
-
-  const applyFilters = () => {
-    setAppliedGraduationYearFilters([...graduationYearFilters]);
-    setAppliedMajorFilters([...majorFilters]);
-    setAppliedDegreeLevelFilters([...degreeLevelFilters]);
-  };
+  }, [graduationYearFilters, degreeLevelFilters]);
 
   const removeFilterTag = (category: string, value: string) => {
     switch (category) {
       case "Graduation Year": {
-        const nextValues = appliedGraduationYearFilters.filter((item) => item !== value);
-        setAppliedGraduationYearFilters(nextValues);
-        setGraduationYearFilters(nextValues);
+        setGraduationYearFilters((current) => current.filter((item) => item !== value));
         break;
       }
       case "Major": {
-        const nextValues = appliedMajorFilters.filter((item) => item !== value);
-        setAppliedMajorFilters(nextValues);
-        setMajorFilters(nextValues);
         break;
       }
       case "Degree Level": {
-        const nextValues = appliedDegreeLevelFilters.filter((item) => item !== value);
-        setAppliedDegreeLevelFilters(nextValues);
-        setDegreeLevelFilters(nextValues);
+        setDegreeLevelFilters((current) => current.filter((item) => item !== value));
         break;
       }
     }
@@ -293,11 +275,7 @@ const Dashboard: React.FC = () => {
 
   const clearAllFilters = () => {
     setGraduationYearFilters([]);
-    setMajorFilters([]);
     setDegreeLevelFilters([]);
-    setAppliedGraduationYearFilters([]);
-    setAppliedMajorFilters([]);
-    setAppliedDegreeLevelFilters([]);
     setSearchTerm("");
   };
 
@@ -319,11 +297,7 @@ const Dashboard: React.FC = () => {
 
         setFilterOptions(options);
         setGraduationYearFilters((current) => current.filter((year) => options.graduationYears.includes(year)));
-        setMajorFilters((current) => current.filter((major) => options.majors.includes(major)));
         setDegreeLevelFilters((current) => current.filter((level) => options.degreeLevels.includes(level)));
-        setAppliedGraduationYearFilters((current) => current.filter((year) => options.graduationYears.includes(year)));
-        setAppliedMajorFilters((current) => current.filter((major) => options.majors.includes(major)));
-        setAppliedDegreeLevelFilters((current) => current.filter((level) => options.degreeLevels.includes(level)));
       } catch (error) {
         console.error("Failed to load dashboard filter options:", error);
       }
@@ -341,9 +315,8 @@ const Dashboard: React.FC = () => {
     const loadAnalytics = async () => {
       try {
         const data = await fetchDashboardAnalytics({
-          graduationYears: appliedGraduationYearFilters,
-          majors: appliedMajorFilters,
-          degreeLevels: appliedDegreeLevelFilters,
+          graduationYears: graduationYearFilters,
+          degreeLevels: degreeLevelFilters,
           search: searchTerm,
         });
         if (!isMounted) return;
@@ -357,7 +330,11 @@ const Dashboard: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [appliedGraduationYearFilters, appliedMajorFilters, appliedDegreeLevelFilters, searchTerm]);
+  }, [graduationYearFilters, degreeLevelFilters, searchTerm]);
+
+  const hasActiveFilters =
+    graduationYearFilters.length > 0 ||
+    degreeLevelFilters.length > 0;
 
   const renderBarChart = (
     data: Array<{ name: string; value: number }>,
@@ -523,66 +500,11 @@ const Dashboard: React.FC = () => {
             onSelectionChange={setGraduationYearFilters}
           />
           <FilterCard
-            title="Major"
-            options={filterOptions.majors}
-            selectedOptions={majorFilters}
-            onSelectionChange={setMajorFilters}
-          />
-          <FilterCard
             title="Degree Level"
             options={filterOptions.degreeLevels}
             selectedOptions={degreeLevelFilters}
             onSelectionChange={setDegreeLevelFilters}
           />
-          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-            <a
-              className="hero-data-button hero-data-button--border"
-              style={{ width: 130, margin: 0, cursor: "pointer", fontFamily: condensedFontFamily }}
-              onClick={applyFilters}
-            >
-              FILTER
-              <svg
-                className="hero-data-button__arrow"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M14 5L21 12M21 12L14 19M21 12H3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </a>
-            <a
-              className="hero-data-button hero-data-button--red-border"
-              style={{ width: 130, margin: 0, cursor: "pointer", fontFamily: condensedFontFamily }}
-              onClick={clearAllFilters}
-            >
-              CLEAR
-              <svg
-                className="hero-data-button__arrow"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ transform: "translateX(4px)" }}
-              >
-                <path
-                  d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </a>
-          </div>
         </div>
 
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
@@ -671,9 +593,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {((appliedGraduationYearFilters.length > 0 && appliedGraduationYearFilters.length < 6) ||
-            (appliedMajorFilters.length > 0 && appliedMajorFilters.length < 3) ||
-            (appliedDegreeLevelFilters.length > 0 && appliedDegreeLevelFilters.length < 3)) && (
+          {hasActiveFilters && (
             <div style={{ position: "relative", marginTop: -14 }}>
               <div
                 style={{
@@ -722,10 +642,10 @@ const Dashboard: React.FC = () => {
                   WebkitOverflowScrolling: "touch",
                 }}
               >
-                {appliedGraduationYearFilters.length > 0 && appliedGraduationYearFilters.length < 6 && (
+                {graduationYearFilters.length > 0 && (
                   <>
                     <CategoryLabel category="Graduation Year" />
-                    {appliedGraduationYearFilters.map((year) => (
+                    {graduationYearFilters.map((year) => (
                       <FilterTag
                         key={`graduation-${year}`}
                         value={year}
@@ -735,23 +655,10 @@ const Dashboard: React.FC = () => {
                   </>
                 )}
 
-                {appliedMajorFilters.length > 0 && appliedMajorFilters.length < 3 && (
-                  <>
-                    <CategoryLabel category="Major" />
-                    {appliedMajorFilters.map((major) => (
-                      <FilterTag
-                        key={`major-${major}`}
-                        value={major}
-                        onRemove={() => removeFilterTag("Major", major)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {appliedDegreeLevelFilters.length > 0 && appliedDegreeLevelFilters.length < 3 && (
+                {degreeLevelFilters.length > 0 && (
                   <>
                     <CategoryLabel category="Degree Level" />
-                    {appliedDegreeLevelFilters.map((degree) => (
+                    {degreeLevelFilters.map((degree) => (
                       <FilterTag
                         key={`degree-${degree}`}
                         value={degree}
@@ -760,6 +667,24 @@ const Dashboard: React.FC = () => {
                     ))}
                   </>
                 )}
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  style={{
+                    border: `1px solid #D66A6A`,
+                    background: "#fff",
+                    color: "#B54545",
+                    borderRadius: 999,
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    fontFamily: bodyFontFamily,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    marginLeft: 4
+                  }}
+                >
+                  Clear Filters
+                </button>
               </div>
             </div>
           )}

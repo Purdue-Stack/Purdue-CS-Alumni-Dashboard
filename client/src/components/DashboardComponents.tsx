@@ -170,7 +170,8 @@ export const FilterCard: React.FC<FilterCardProps> = ({ title, options, selected
       </div>
       <div style={{
         maxHeight: isCollapsed || disabled ? '0px' : '400px',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: isCollapsed || disabled ? 'hidden' : 'auto',
         transition: 'max-height 0.3s ease-in-out',
       }}>
         <div

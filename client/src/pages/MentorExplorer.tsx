@@ -9,6 +9,7 @@ type DropdownProps = {
   options: string[];
   selected: string[];
   onToggle: (value: string) => void;
+  onClear: () => void;
   accent: string;
 };
 
@@ -26,7 +27,7 @@ function toggleValue(values: string[], value: string) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
-function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent }: DropdownProps) {
+function SearchableCheckboxDropdown({ label, options, selected, onToggle, onClear, accent }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -50,14 +51,44 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, accent
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const matchingOptions = options.filter((option) => option.toLowerCase().includes(query.toLowerCase()));
+  const matchingOptions = options
+    .filter((option) => option.toLowerCase().includes(query.toLowerCase()))
+    .sort((left, right) => {
+      const leftSelected = selected.includes(left);
+      const rightSelected = selected.includes(right);
+      if (leftSelected !== rightSelected) {
+        return leftSelected ? -1 : 1;
+      }
+      return left.localeCompare(right);
+    });
   const visibleOptions = query || showAll ? matchingOptions : matchingOptions.slice(0, 3);
   const summary = selected.length ? `${selected.length} selected` : 'All';
 
   return (
     <div ref={containerRef} style={{ position: 'relative', minWidth: 220 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
+          {selected.length > 0 && (
+            <button
+              type="button"
+              onClick={onClear}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: accent,
+                cursor: 'pointer',
+                fontWeight: 700,
+                padding: 0,
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+                marginRight: 4
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
@@ -218,7 +249,6 @@ const MentorExplorer = () => {
   });
 
   const sortedRows = sortRows(filteredRows, sortKey, sortDirection);
-
   return (
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -304,6 +334,7 @@ const MentorExplorer = () => {
             options={roleOptions}
             selected={roles}
             onToggle={(value) => setRoles((current) => toggleValue(current, value))}
+            onClear={() => setRoles([])}
             accent={deepGold}
           />
           <SearchableCheckboxDropdown
@@ -311,6 +342,7 @@ const MentorExplorer = () => {
             options={stateOptions}
             selected={states}
             onToggle={(value) => setStates((current) => toggleValue(current, value))}
+            onClear={() => setStates([])}
             accent={deepGold}
           />
           <SearchableCheckboxDropdown
@@ -318,6 +350,7 @@ const MentorExplorer = () => {
             options={areaOptions}
             selected={areas}
             onToggle={(value) => setAreas((current) => toggleValue(current, value))}
+            onClear={() => setAreas([])}
             accent={deepGold}
           />
         </div>
