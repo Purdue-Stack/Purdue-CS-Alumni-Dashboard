@@ -5,6 +5,7 @@ import {
   canonicalizeJobTitle,
   canonicalizeUniversity
 } from '../lib/canonicalization';
+import { useViewport } from '../hooks/useViewport';
 
 type AdminAlumniRow = {
   alumni_id: number;
@@ -210,7 +211,7 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, onClea
   const summary = selected.length ? `${selected.length} selected` : 'All';
 
   return (
-    <div style={{ position: 'relative', minWidth: 220 }}>
+    <div style={{ position: 'relative', minWidth: 0, width: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
@@ -341,6 +342,7 @@ function parseNullableNumber(value: string) {
 }
 
 const AdminAlumniTable = () => {
+  const { isMobile } = useViewport();
   const [tab, setTab] = useState<AlumniTab>('Job');
   const [rows, setRows] = useState<AdminAlumniRow[]>([]);
   const [search, setSearch] = useState('');
@@ -513,23 +515,25 @@ const AdminAlumniTable = () => {
   };
 
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '24px 32px', display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24, background: offWhite }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: 'fit-content' }}>
+        <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: isMobile ? '100%' : 'fit-content', overflowX: isMobile ? 'auto' : 'visible' }}>
           {(['Job', 'Graduate School', 'Internship'] as AlumniTab[]).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setTab(option)}
               style={{
-                padding: '12px 24px',
+                padding: isMobile ? '10px 14px' : '12px 24px',
                 border: 'none',
                 borderRadius: 12,
                 background: tab === option ? deepGold : 'transparent',
                 color: tab === option ? '#fff' : '#2D2926',
                 cursor: 'pointer',
                 fontWeight: 800,
-                letterSpacing: 0.2
+                letterSpacing: 0.2,
+                whiteSpace: 'nowrap',
+                flex: isMobile ? '0 0 auto' : undefined
               }}
             >
               {option}
@@ -548,7 +552,7 @@ const AdminAlumniTable = () => {
         style={{
           border: `1px solid ${warmBorder}`,
           borderRadius: 20,
-          padding: 24,
+          padding: isMobile ? 14 : 24,
           background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,249,238,1) 100%)',
           boxShadow: '0 20px 40px rgba(45, 41, 38, 0.08)',
           display: 'flex',
@@ -556,8 +560,8 @@ const AdminAlumniTable = () => {
           gap: 20
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'flex-end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 360, flex: '1 1 360px' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: isMobile ? 10 : 16, alignItems: isMobile ? 'stretch' : 'flex-end' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, flex: isMobile ? '0 0 auto' : '1 1 360px' }}>
             <span style={{ fontWeight: 800, color: '#2D2926' }}>Search Raw Data</span>
             <input
               value={search}
@@ -566,14 +570,14 @@ const AdminAlumniTable = () => {
               style={inputStyle}
             />
           </label>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', paddingBottom: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr' : undefined, gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', paddingBottom: 0, width: isMobile ? '100%' : undefined }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? '100%' : undefined }}>
               <span style={{ fontWeight: 800, color: '#2D2926' }}>Sort</span>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr) auto' : undefined, gap: 10, alignItems: 'center' }}>
                 <select
                   value={sortKey}
                   onChange={(event) => setSortKey(event.target.value as AdminSortKey)}
-                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff', height: 48 }}
+                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff', height: 48, minWidth: 0 }}
                 >
                   {visibleSortOptions.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
@@ -604,7 +608,7 @@ const AdminAlumniTable = () => {
                 background: softGold,
                 color: '#2D2926',
                 fontWeight: 800,
-                minWidth: 120,
+                minWidth: isMobile ? 0 : 120,
                 textAlign: 'center',
                 height: 48,
                 display: 'flex',
@@ -618,7 +622,7 @@ const AdminAlumniTable = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <SearchableCheckboxDropdown
             label="Graduation Year"
             options={graduationYearOptions}
@@ -693,10 +697,10 @@ const AdminAlumniTable = () => {
           background: '#fff',
           overflow: 'hidden',
           boxShadow: '0 16px 34px rgba(45, 41, 38, 0.08)',
-          maxHeight: 'calc(100vh - 320px)'
+          maxHeight: isMobile ? 'none' : 'calc(100vh - 320px)'
         }}
       >
-        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 320px)' }}>
+        <div style={{ overflow: 'auto', maxHeight: isMobile ? 'min(62vh, 680px)' : 'calc(100vh - 320px)', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, minWidth: 2800 }}>
             <thead>
               <tr style={{ background: '#F5EEDC', textAlign: 'left' }}>

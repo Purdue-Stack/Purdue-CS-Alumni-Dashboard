@@ -10,12 +10,14 @@ import {
   type UploadFieldError,
   type UploadFieldMapping
 } from '../api/api';
+import { useViewport } from '../hooks/useViewport';
 
 const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
 const offWhite = '#FFFCF7';
 
 const UploadPreview: React.FC = () => {
+  const { isMobile } = useViewport();
   const [activeView, setActiveView] = useState<'upload' | 'preview'>('upload');
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
@@ -142,31 +144,32 @@ const UploadPreview: React.FC = () => {
   return (
     <div
       style={{
-        padding: '32px 48px',
+        padding: isMobile ? '16px 12px' : '32px 48px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 20,
+        gap: isMobile ? 16 : 20,
         background: offWhite,
         minHeight: '100%'
       }}
     >
       <header style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <h1 style={{ margin: 0, fontSize: 34, color: '#2D2926' }}>Upload Data</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 34, color: '#2D2926' }}>Upload Data</h1>
         <p style={{ margin: 0, color: '#534B45', maxWidth: 780, lineHeight: 1.5 }}>
           Import alumni career outcome data, review the parsed rows, validate issues, and commit the final upload.
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2.3fr) minmax(320px, 0.7fr)', gap: 24, alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 2.3fr) minmax(320px, 0.7fr)', gap: isMobile ? 16 : 24, alignItems: 'stretch' }}>
         <section
           style={{
             border: `1px solid ${warmBorder}`,
             borderRadius: 18,
             background: '#fff',
-            padding: 24,
+            padding: isMobile ? 14 : 24,
             boxShadow: '0 2px 10px rgba(45, 41, 38, 0.05)',
             minWidth: 0,
-            height: 460,
+            height: isMobile ? 'auto' : 460,
+            minHeight: isMobile ? 360 : undefined,
             overflow: 'auto'
           }}
         >
@@ -204,9 +207,10 @@ const UploadPreview: React.FC = () => {
             border: `1px solid ${warmBorder}`,
             borderRadius: 18,
             background: '#F7F3EA',
-            padding: 20,
+            padding: isMobile ? 14 : 20,
             minWidth: 0,
-            height: 460,
+            height: isMobile ? 'auto' : 460,
+            maxHeight: isMobile ? 420 : undefined,
             minHeight: 0
           }}
         >

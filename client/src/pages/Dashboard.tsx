@@ -174,6 +174,7 @@ const graphGroups: Record<DashboardTab, GraphDefinition[]> = {
 
 const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
 const dashboardTabs: DashboardTab[] = ["Outcome", "Salary", "Placements", "Graduate School", "Internship"];
+const mobileBreakpoint = 760;
 
 function parseDashboardTab(value: string | null): DashboardTab {
   if (value && dashboardTabs.includes(value as DashboardTab)) {
@@ -193,6 +194,9 @@ function parseGraphIndex(value: string | null, max: number): number {
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = parseDashboardTab(searchParams.get("tab"));
+  const [viewportWidth, setViewportWidth] = useState(() => (
+    typeof window === "undefined" ? 1024 : window.innerWidth
+  ));
   const [selectedTab, setSelectedTab] = useState<DashboardTab>(initialTab);
   const [searchTerm, setSearchTerm] = useState("");
   const [analyticsData, setAnalyticsData] = useState<DashboardAnalyticsResponse>(defaultAnalyticsData);
@@ -216,6 +220,15 @@ const Dashboard: React.FC = () => {
   const currentGraphSet = graphGroups[selectedTab];
   const currentGraphIndex = graphIndices[selectedTab] ?? 0;
   const currentGraph = currentGraphSet[currentGraphIndex];
+  const isMobile = viewportWidth <= mobileBreakpoint;
+  const chartHeight = isMobile ? 360 : 500;
+  const mapHeight = isMobile ? 330 : 470;
+
+  React.useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   React.useEffect(() => {
     const nextTab = parseDashboardTab(searchParams.get("tab"));
@@ -344,14 +357,34 @@ const Dashboard: React.FC = () => {
     valueFormatter?: "currency"
   ) => (
     <ResponsiveContainer>
-      <BarChart data={data} layout="vertical" margin={{ top: 12, right: 24, left: 120, bottom: 12 }}>
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{
+          top: isMobile ? 8 : 12,
+          right: isMobile ? 10 : 24,
+          left: isMobile ? 8 : 120,
+          bottom: isMobile ? 8 : 12,
+        }}
+      >
         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
         <XAxis
           type="number"
           allowDecimals={false}
+          tick={{ fontSize: isMobile ? 10 : 12 }}
           tickFormatter={valueFormatter === "currency" ? (value) => formatCurrency(Number(value)) : undefined}
         />
-        <YAxis type="category" dataKey="name" width={220} tick={{ fontSize: 12 }} />
+        <YAxis
+          type="category"
+          dataKey="name"
+          width={isMobile ? 104 : 220}
+          tick={{ fontSize: isMobile ? 10 : 12 }}
+          tickFormatter={(value) => {
+            const label = String(value);
+            const maxLength = isMobile ? 14 : 28;
+            return label.length > maxLength ? `${label.slice(0, maxLength - 1)}...` : label;
+          }}
+        />
         <Tooltip
           formatter={(value) => [
             valueFormatter === "currency" ? formatCurrency(getTooltipNumber(value)) : getTooltipNumber(value),
@@ -365,10 +398,10 @@ const Dashboard: React.FC = () => {
 
   const renderHistogram = (data: Array<{ name: string; value: number }>, valueLabel: string) => (
     <ResponsiveContainer>
-      <BarChart data={data} margin={{ top: 20, right: 24, left: 0, bottom: 12 }}>
+      <BarChart data={data} margin={{ top: isMobile ? 10 : 20, right: isMobile ? 8 : 24, left: isMobile ? -18 : 0, bottom: isMobile ? 4 : 12 }}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis allowDecimals={false} />
+        <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
+        <YAxis allowDecimals={false} tick={{ fontSize: isMobile ? 10 : 12 }} />
         <Tooltip formatter={(value) => [getTooltipNumber(value), valueLabel]} />
         <Bar dataKey="value" fill="#CFB991" radius={[6, 6, 0, 0]} />
       </BarChart>
@@ -377,7 +410,7 @@ const Dashboard: React.FC = () => {
 
 const renderPie = (data: Array<{ name: string; value: number }>) => (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ display: "flex", gap: 18, justifyContent: "center", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: isMobile ? 10 : 18, justifyContent: "center", flexWrap: "wrap" }}>
         {data
           .filter((item) => item.value > 0)
           .map((item, index) => (
@@ -402,7 +435,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
               <span
                 style={{
                   fontFamily: bodyFontFamily,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12 : 14,
                   lineHeight: 1.1,
                   color: "#333"
                 }}
@@ -420,8 +453,8 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={140}
-            label={({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
+            outerRadius={isMobile ? 96 : 140}
+            label={isMobile ? false : ({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
           >
             {data.map((entry, index) => (
               <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
@@ -434,14 +467,14 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
   );
 
   const renderInternshipConversions = (data: Array<{ name: string; value: number }>) => (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: isMobile ? 12 : 20 }}>
+      <div style={{ display: "flex", gap: isMobile ? 10 : 20, justifyContent: "center", flexWrap: "wrap" }}>
         {data.map((item, index) => {
           const colors = ["#8E6F3E", "#CFB991", "#D9D9D9"];
           return (
             <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 12, height: 12, borderRadius: 999, background: colors[index] }} />
-              <span style={{ fontFamily: bodyFontFamily, fontSize: 14, color: "#333" }}>
+              <span style={{ fontFamily: bodyFontFamily, fontSize: isMobile ? 12 : 14, color: "#333" }}>
                 {item.name}: {item.value}
               </span>
             </div>
@@ -459,11 +492,11 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
             },
           ]}
           layout="vertical"
-          margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
+          margin={{ top: isMobile ? 8 : 20, right: isMobile ? 10 : 40, left: isMobile ? 4 : 40, bottom: isMobile ? 8 : 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <XAxis type="number" allowDecimals={false} />
-          <YAxis type="category" dataKey="name" width={140} />
+          <XAxis type="number" allowDecimals={false} tick={{ fontSize: isMobile ? 10 : 12 }} />
+          <YAxis type="category" dataKey="name" width={isMobile ? 76 : 140} tick={{ fontSize: isMobile ? 10 : 12 }} />
           <Tooltip
             formatter={(value, name) => {
               const numericValue = getTooltipNumber(value);
@@ -499,7 +532,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
       return (
         <USMapD3
           data={data as StateDatum[]}
-          height={470}
+          height={mapHeight}
           tooltipLabel={label}
           legendLabel={label}
           formatValue={currentGraph.valueFormatter === "currency" ? formatCurrency : undefined}
@@ -528,8 +561,20 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
           }
         `}
       </style>
-      <div className="dashboard-page" style={{ display: "flex", width: "100%", minHeight: 400, gap: 32, padding: "20px", position: "relative" }}>
-        <div style={{ flex: "0 0 260px", display: "flex", flexDirection: "column", justifyContent: "flex-start", gap: 12 }}>
+      <div
+        className="dashboard-page"
+        style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          width: "100%",
+          minHeight: 400,
+          gap: isMobile ? 16 : 32,
+          padding: isMobile ? "12px" : "20px",
+          position: "relative",
+          overflowX: "hidden",
+        }}
+      >
+        <div style={{ flex: isMobile ? "0 0 auto" : "0 0 260px", width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", gap: 12 }}>
           <FilterCard
             title="Graduation Year"
             options={filterOptions.graduationYears}
@@ -544,20 +589,23 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
           />
         </div>
 
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ flex: 1, minWidth: 0, width: "100%", display: "flex", flexDirection: "column", gap: isMobile ? 14 : 20 }}>
           <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
             <div
               style={{
                 display: "inline-flex",
-                flexWrap: "wrap",
+                flexWrap: isMobile ? "nowrap" : "wrap",
                 borderRadius: 8,
                 padding: 4,
                 background: tabAccent,
                 border: "1px solid #C4BFC0",
                 width: "100%",
                 maxWidth: 1180,
-                justifyContent: "center",
+                justifyContent: isMobile ? "flex-start" : "center",
                 gap: 4,
+                overflowX: isMobile ? "auto" : "visible",
+                scrollbarWidth: "none",
+                WebkitOverflowScrolling: "touch",
               }}
             >
               {dataOptions.map((option) => (
@@ -568,10 +616,10 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
                   onMouseEnter={() => setHoveredTab(option)}
                   onMouseLeave={() => setHoveredTab((current) => (current === option ? null : current))}
                   style={{
-                    flex: "1 1 0",
-                    minWidth: 140,
+                    flex: isMobile ? "0 0 auto" : "1 1 0",
+                    minWidth: isMobile ? 118 : 140,
                     whiteSpace: "nowrap",
-                    padding: "10px 18px",
+                    padding: isMobile ? "9px 12px" : "10px 18px",
                     border: selectedTab === option ? "1px solid rgba(45, 41, 38, 0.08)" : "1px solid transparent",
                     borderRadius: 6,
                     background: selectedTab === option
@@ -581,7 +629,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
                         : "#FFFFFF",
                     color: "#2D2926",
                     fontFamily: bodyFontFamily,
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     fontWeight: 700,
                     letterSpacing: 0,
                     textTransform: "none",
@@ -607,7 +655,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
               background: "#fff",
               borderRadius: 8,
               border: "1px solid #C4BFC0",
-              padding: "15px 20px",
+              padding: isMobile ? "12px 14px" : "15px 20px",
               width: "100%",
             }}
           >
@@ -641,6 +689,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
                   fontFamily: bodyFontFamily,
                   color: "#333",
                   backgroundColor: "transparent",
+                  minWidth: 0,
                 }}
               />
             </div>
@@ -747,18 +796,20 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
               background: "#fff",
               borderRadius: 8,
               border: "1px solid #C4BFC0",
-              padding: "18px 20px 20px",
+              padding: isMobile ? "14px 12px 16px" : "18px 20px 20px",
               width: "100%",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 10 : 16, marginBottom: isMobile ? 10 : 16, flexWrap: "wrap" }}>
               <h2
                 style={{
                   margin: 0,
                   fontFamily: condensedFontFamily,
                   fontWeight: 600,
-                  fontSize: 32,
+                  fontSize: isMobile ? 25 : 32,
+                  lineHeight: 1.1,
                   color: "black",
+                  overflowWrap: "anywhere",
                 }}
               >
                 {currentGraph.title}
@@ -807,7 +858,7 @@ const renderPie = (data: Array<{ name: string; value: number }>) => (
               )}
             </div>
 
-            <div style={{ height: 500 }}>{renderCurrentGraph()}</div>
+            <div style={{ height: chartHeight, minWidth: 0 }}>{renderCurrentGraph()}</div>
           </div>
         </div>
       </div>

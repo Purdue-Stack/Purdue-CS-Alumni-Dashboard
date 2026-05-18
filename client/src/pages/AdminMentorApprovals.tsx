@@ -5,6 +5,7 @@ import {
   fetchPendingMentorApprovals,
   type PendingMentorCandidate
 } from '../api/api';
+import { useViewport } from '../hooks/useViewport';
 
 type MentorDraft = {
   email: string;
@@ -42,6 +43,7 @@ const fieldInputStyle = {
 };
 
 const AdminMentorApprovals = () => {
+  const { isMobile } = useViewport();
   const [candidates, setCandidates] = useState<PendingMentorCandidate[]>([]);
   const [drafts, setDrafts] = useState<Record<number, MentorDraft>>({});
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
@@ -115,7 +117,7 @@ const AdminMentorApprovals = () => {
   };
 
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20, background: offWhite, minHeight: '100%', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '24px 32px', display: 'flex', flexDirection: 'column', gap: 20, background: offWhite, minHeight: '100%', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
       <header>
         <h1 style={{ marginBottom: 8 }}>Mentor Approvals</h1>
         <p style={{ margin: 0, color: '#534B45', maxWidth: 760, lineHeight: 1.5 }}>
@@ -136,10 +138,10 @@ const AdminMentorApprovals = () => {
         <div
           style={{
             width: '100%',
-            height: 'min(70vh, 900px)',
-            minHeight: 420,
+            height: isMobile ? 'auto' : 'min(70vh, 900px)',
+            minHeight: isMobile ? 0 : 420,
             overflowY: 'auto',
-            padding: 12,
+            padding: isMobile ? 8 : 12,
             border: `1px solid ${warmBorder}`,
             borderRadius: 18,
             background: '#F7F3EA',
@@ -197,7 +199,7 @@ const AdminMentorApprovals = () => {
                   border: `1px solid ${warmBorder}`,
                   borderRadius: 16,
                   background: '#fff',
-                  padding: 18,
+                  padding: isMobile ? 14 : 18,
                   boxShadow: '0 2px 10px rgba(45, 41, 38, 0.05)',
                   display: 'flex',
                   flexDirection: 'column',
@@ -208,7 +210,7 @@ const AdminMentorApprovals = () => {
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: isMobile ? 'flex-start' : 'center',
                     gap: 16,
                     paddingBottom: 14,
                     borderBottom: `1px solid #EEE5D8`,
@@ -233,7 +235,7 @@ const AdminMentorApprovals = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                     <label style={{ display: 'flex', flexDirection: 'column', gap: 8, color: '#2D2926', fontWeight: 700 }}>
                       Email
                       <input
@@ -290,7 +292,7 @@ const AdminMentorApprovals = () => {
                         Show in alumni directory too
                       </label>
 
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginLeft: 'auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : undefined, gap: 12, flexWrap: 'wrap', marginLeft: isMobile ? 0 : 'auto', width: isMobile ? '100%' : undefined }}>
                       <button
                         className="hero-data-button hero-data-button--border"
                         type="button"

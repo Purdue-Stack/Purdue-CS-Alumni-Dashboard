@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import csvIcon from '../assets/icons/csv.svg';
 import type { UploadFieldError, UploadFieldMapping } from '../api/api';
+import { useViewport } from '../hooks/useViewport';
 
 interface PreviewProps {
   file: File;
@@ -51,6 +52,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({
   validationLoading = false,
   commitLoading = false
 }) => {
+  const { isMobile } = useViewport();
   const [tab, setTab] = useState<Tab>('mapping');
   const [localMapping, setLocalMapping] = useState<UploadFieldMapping>({});
   const [editableRows, setEditableRows] = useState<Record<string, any>[]>([]);
@@ -212,11 +214,11 @@ const PreviewComponent: React.FC<PreviewProps> = ({
             </div>
             <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 999, background: '#fff', border: `1px solid ${warmBorder}` }}>
               <img src={csvIcon} alt="" style={{ width: 20, height: 20 }} />
-              <span style={{ color: '#2D2926', fontWeight: 700 }}>{file.name}</span>
+              <span style={{ color: '#2D2926', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, minmax(0, 1fr))' : undefined, gap: 10, flexWrap: 'wrap', width: isMobile ? '100%' : undefined }}>
             <div style={{ padding: '10px 12px', borderRadius: 14, background: '#fff', border: `1px solid ${warmBorder}` }}>
               <div style={{ fontSize: 12, color: mutedText, textTransform: 'uppercase', fontWeight: 700 }}>Rows</div>
               <div style={{ fontSize: 24, fontWeight: 700, color: '#2D2926' }}>{uploadSummary?.totalRows ?? summary?.totalRows ?? rawRows.length}</div>
@@ -233,7 +235,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({
         </div>
       </div>
 
-      <nav style={{ display: 'inline-flex', width: 'fit-content', padding: 6, borderRadius: 16, background: softGold }}>
+      <nav style={{ display: 'inline-flex', width: isMobile ? '100%' : 'fit-content', padding: 6, borderRadius: 16, background: softGold, overflowX: isMobile ? 'auto' : 'visible' }}>
         {tabs.map((item) => {
           const disabled = (item.key === 'validation' && !editableRows.length) || (item.key === 'preview' && !canOpenPreview);
           return (
@@ -244,11 +246,13 @@ const PreviewComponent: React.FC<PreviewProps> = ({
               style={{
                 border: 'none',
                 borderRadius: 12,
-                padding: '12px 18px',
+                padding: isMobile ? '10px 14px' : '12px 18px',
                 background: tab === item.key ? deepGold : 'transparent',
                 color: tab === item.key ? '#fff' : disabled ? '#9E968C' : '#2D2926',
                 fontWeight: 800,
-                cursor: disabled ? 'not-allowed' : 'pointer'
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap',
+                flex: isMobile ? '0 0 auto' : undefined
               }}
             >
               {item.label}
@@ -265,7 +269,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({
           overflow: 'hidden'
         }}
       >
-        <div style={{ padding: 18, borderBottom: `1px solid ${warmBorder}`, background: '#FCFAF5' }}>
+        <div style={{ padding: isMobile ? 14 : 18, borderBottom: `1px solid ${warmBorder}`, background: '#FCFAF5' }}>
           <h2 style={{ margin: 0, color: '#2D2926' }}>
             {tab === 'mapping' ? 'Field Mapping Review' : tab === 'validation' ? 'Validation Results' : 'Data Preview'}
           </h2>
@@ -279,8 +283,8 @@ const PreviewComponent: React.FC<PreviewProps> = ({
         </div>
 
         {tab === 'mapping' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: 18 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: isMobile ? 12 : 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               <div style={{ padding: 14, borderRadius: 14, border: `1px solid ${warmBorder}`, background: '#FCFAF5' }}>
                 <div style={{ fontSize: 12, color: mutedText, textTransform: 'uppercase', fontWeight: 700 }}>File Columns</div>
                 <div style={{ marginTop: 6, fontSize: 24, color: '#2D2926', fontWeight: 700 }}>{rawHeaders.length}</div>
@@ -329,14 +333,14 @@ const PreviewComponent: React.FC<PreviewProps> = ({
               </div>
             )}
 
-            <div style={{ overflow: 'auto', maxHeight: 'min(58vh, 720px)' }}>
+            <div style={{ overflow: 'auto', maxHeight: 'min(58vh, 720px)', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
                 <thead>
                   <tr style={{ background: '#F7F3EA' }}>
-                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>Database Field</th>
-                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>Required</th>
-                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>File Column</th>
-                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>Sample Value</th>
+                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, position: isMobile ? 'sticky' : undefined, top: isMobile ? 0 : undefined, background: '#F7F3EA', zIndex: isMobile ? 1 : undefined }}>Database Field</th>
+                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, position: isMobile ? 'sticky' : undefined, top: isMobile ? 0 : undefined, background: '#F7F3EA', zIndex: isMobile ? 1 : undefined }}>Required</th>
+                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, position: isMobile ? 'sticky' : undefined, top: isMobile ? 0 : undefined, background: '#F7F3EA', zIndex: isMobile ? 1 : undefined }}>File Column</th>
+                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, position: isMobile ? 'sticky' : undefined, top: isMobile ? 0 : undefined, background: '#F7F3EA', zIndex: isMobile ? 1 : undefined }}>Sample Value</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -468,14 +472,15 @@ const PreviewComponent: React.FC<PreviewProps> = ({
         )}
 
         {tab === 'preview' && (
-          <div style={{ overflow: 'auto', maxHeight: 'min(60vh, 720px)' }}>
+          <div style={{ overflow: 'auto', maxHeight: 'min(60vh, 720px)', WebkitOverflowScrolling: 'touch' }}>
             {displayColumns.length > 0 ? (
+              <>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
                 <thead>
                   <tr style={{ background: '#F7F3EA' }}>
-                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>#</th>
+                    <th style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, position: isMobile ? 'sticky' : undefined, left: isMobile ? 0 : undefined, background: '#F7F3EA', zIndex: isMobile ? 2 : undefined }}>#</th>
                     {displayColumns.map((col) => (
-                      <th key={col} style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}` }}>
+                      <th key={col} style={{ padding: 12, textAlign: 'left', borderBottom: `1px solid ${warmBorder}`, whiteSpace: 'nowrap' }}>
                         {col}
                       </th>
                     ))}
@@ -484,7 +489,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({
                 <tbody>
                   {previewRows.map((row, idx) => (
                     <tr key={idx + 1}>
-                      <td style={{ padding: 12, borderBottom: `1px solid #EEE5D8`, color: mutedText }}>{idx + 1}</td>
+                      <td style={{ padding: 12, borderBottom: `1px solid #EEE5D8`, color: mutedText, position: isMobile ? 'sticky' : undefined, left: isMobile ? 0 : undefined, background: '#fff', zIndex: isMobile ? 1 : undefined }}>{idx + 1}</td>
                       {displayColumns.map((col) => (
                         <td key={`${idx + 1}-${col}`} style={{ padding: 12, borderBottom: `1px solid #EEE5D8`, color: '#2D2926' }}>
                           {renderValue(row[col])}
@@ -494,6 +499,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({
                   ))}
                 </tbody>
               </table>
+              </>
             ) : (
               <div style={{ padding: 24, textAlign: 'center', color: mutedText }}>
                 No rows available for preview.

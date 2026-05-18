@@ -1,10 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { useViewport } from '../hooks/useViewport';
 
 const Header = () => {
   const { authMode, beginSamlLogin, isAdmin, isLoggedIn, loading, login, logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isTablet, isMobile } = useViewport();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogin = async () => {
     if (authMode === 'saml') {
@@ -50,6 +54,22 @@ const Header = () => {
     }
   };
 
+  const navLinks = [
+    { label: 'Home', to: '/', show: true },
+    { label: 'Career Outcomes', to: '/dashboard', show: true },
+    { label: 'Alumni Directory', to: '/alumni-directory', show: isLoggedIn },
+    { label: 'Mentor Explorer', to: '/mentors', show: isLoggedIn },
+    { label: 'Admin', to: '/admin/upload', show: isAdmin }
+  ].filter((link) => link.show);
+
+  const quickLinks = [
+    { label: 'Home', to: '/', show: true },
+    { label: 'Dashboard', to: '/dashboard', show: true },
+    { label: 'Alumni Directory', to: '/alumni-directory', show: isLoggedIn },
+    { label: 'Mentors', to: '/mentors', show: isLoggedIn },
+    { label: 'Admin', to: '/admin/upload', show: isAdmin }
+  ].filter((link) => link.show);
+
   const renderAuthLink = () => (
     loading ? (
       <span role="menuitem" aria-disabled="true">
@@ -87,12 +107,12 @@ const Header = () => {
           <section className="header__goldBar--menus">
             <nav className="header__goldBar__quickLinks">
               <span>Quick Links</span>
-              <ul role="menu">
-                <li role="none"><Link role="menuitem" to="/">Home</Link></li>
-                <li role="none"><Link role="menuitem" to="/dashboard">Dashboard</Link></li>
-                {isLoggedIn && <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>}
-                {isLoggedIn && <li role="none"><Link role="menuitem" to="/mentors">Mentors</Link></li>}
-                {isAdmin && <li role="none"><Link role="menuitem" to="/admin/upload">Admin</Link></li>}
+              <ul role="menu" style={isMobile ? { flexDirection: 'row', overflowX: 'auto', gap: 14, paddingBottom: 4 } : undefined}>
+                {quickLinks.map((link) => (
+                  <li key={link.to} role="none" style={isMobile ? { width: 'auto', flex: '0 0 auto', marginRight: 0 } : undefined}>
+                    <Link role="menuitem" to={link.to}>{link.label}</Link>
+                  </li>
+                ))}
               </ul>
             </nav>
           </section>
@@ -122,15 +142,49 @@ const Header = () => {
           </article>
         </section>
       </section>
-      <nav className="header__mainNav container">
-        <section className="header__mainNav--main">
+      <nav className="header__mainNav container" style={isTablet ? { opacity: 1 } : undefined}>
+        {isTablet && (
+          <button
+            type="button"
+            aria-expanded={menuOpen}
+            aria-controls="site-mobile-nav"
+            onClick={() => setMenuOpen((current) => !current)}
+            style={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: isMobile ? '0.85rem 1rem' : '0.85rem 0',
+              background: '#000',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 0.3
+            }}
+          >
+            Menu
+            <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>{menuOpen ? '−' : '+'}</span>
+          </button>
+        )}
+        <section
+          id="site-mobile-nav"
+          className="header__mainNav--main"
+          style={isTablet ? {
+            display: menuOpen ? 'flex' : 'none',
+            height: 'auto',
+            overflow: 'visible',
+            width: '100%',
+            maxWidth: 'none'
+          } : undefined}
+        >
           <ul role="menubar" aria-label="Main Navigation">
-            <li role="none"><Link role="menuitem" to="/">Home</Link></li>
-            <li role="none"><Link role="menuitem" to="/dashboard">Career Outcomes</Link></li>
-            {isLoggedIn && <li role="none"><Link role="menuitem" to="/alumni-directory">Alumni Directory</Link></li>}
-            {isLoggedIn && <li role="none"><Link role="menuitem" to="/mentors">Mentor Explorer</Link></li>}
-            {isAdmin && <li role="none"><Link role="menuitem" to="/admin/upload">Admin</Link></li>}
-            <li role="none" style={{ marginLeft: 'auto' }}>{renderAuthLink()}</li>
+            {navLinks.map((link) => (
+              <li key={link.to} role="none">
+                <Link role="menuitem" to={link.to} onClick={() => setMenuOpen(false)}>{link.label}</Link>
+              </li>
+            ))}
+            <li role="none" style={{ marginLeft: isTablet ? 0 : 'auto' }}>{renderAuthLink()}</li>
           </ul>
         </section>
       </nav>

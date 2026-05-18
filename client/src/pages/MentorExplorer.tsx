@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchMentors, type MentorRow } from '../api/api';
+import { useViewport } from '../hooks/useViewport';
 
 type MentorSortKey = 'last_name' | 'role' | 'location_state';
 type SortDirection = 'asc' | 'desc';
@@ -65,7 +66,7 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, onClea
   const summary = selected.length ? `${selected.length} selected` : 'All';
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', minWidth: 220 }}>
+    <div ref={containerRef} style={{ position: 'relative', minWidth: 0, width: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
@@ -192,6 +193,7 @@ function sortRows(rows: Array<MentorRow & { role_label: string }>, sortKey: Ment
 }
 
 const MentorExplorer = () => {
+  const { isMobile } = useViewport();
   const [rows, setRows] = useState<MentorRow[]>([]);
   const [search, setSearch] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
@@ -250,19 +252,16 @@ const MentorExplorer = () => {
 
   const sortedRows = sortRows(filteredRows, sortKey, sortDirection);
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '24px 32px', display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24, background: offWhite }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h1 style={{ marginBottom: 0 }}>Mentor Explorer</h1>
-        <p style={{ margin: 0, color: '#534B45' }}>
-          Approved mentors only. Role is normalized across job and graduate-school outcomes, while contact details remain visible here.
-        </p>
       </section>
 
       <section
         style={{
           border: `1px solid ${warmBorder}`,
           borderRadius: 20,
-          padding: 24,
+          padding: isMobile ? 14 : 24,
           background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,249,238,1) 100%)',
           boxShadow: '0 20px 40px rgba(45, 41, 38, 0.08)',
           display: 'flex',
@@ -270,8 +269,8 @@ const MentorExplorer = () => {
           gap: 20
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 320, flex: '1 1 320px' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: isMobile ? 10 : 16, alignItems: isMobile ? 'stretch' : 'end' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, flex: isMobile ? '0 0 auto' : '1 1 320px' }}>
             <span style={{ fontWeight: 800, color: '#2D2926' }}>Search Mentors</span>
             <input
               value={search}
@@ -281,14 +280,14 @@ const MentorExplorer = () => {
             />
           </label>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr' : undefined, gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', width: isMobile ? '100%' : undefined }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? '100%' : undefined }}>
               <span style={{ fontWeight: 800, color: '#2D2926' }}>Sort</span>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? 'minmax(0, 1fr) auto' : undefined, gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <select
                   value={sortKey}
                   onChange={(event) => setSortKey(event.target.value as MentorSortKey)}
-                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff' }}
+                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff', maxWidth: '100%', minWidth: 0 }}
                 >
                   <option value="last_name">Last Name</option>
                   <option value="role">Role</option>
@@ -319,8 +318,10 @@ const MentorExplorer = () => {
                 background: softGold,
                 color: '#2D2926',
                 fontWeight: 800,
-                minWidth: 120,
-                textAlign: 'center'
+                minWidth: isMobile ? 0 : 120,
+                textAlign: 'center',
+                width: isMobile ? '100%' : undefined,
+                boxSizing: 'border-box'
               }}
             >
               {sortedRows.length} results
@@ -328,7 +329,7 @@ const MentorExplorer = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <SearchableCheckboxDropdown
             label="Role"
             options={roleOptions}
@@ -363,12 +364,52 @@ const MentorExplorer = () => {
           background: '#fff',
           overflow: 'hidden',
           boxShadow: '0 16px 34px rgba(45, 41, 38, 0.08)',
-          maxHeight: 'calc(100vh - 330px)',
+          maxHeight: isMobile ? 'none' : 'calc(100vh - 330px)',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0
         }}
       >
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+            {sortedRows.map((mentor) => (
+              <article
+                key={mentor.id}
+                style={{
+                  border: '1px solid #EEE5D8',
+                  borderRadius: 14,
+                  padding: 14,
+                  background: '#FFFCF7',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10
+                }}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: 18, color: '#2D2926' }}>{mentor.first_name} {mentor.last_name}</strong>
+                  <span style={{ color: '#534B45', fontWeight: 700 }}>{mentor.role_label || 'Role not listed'}</span>
+                </div>
+                <div style={{ color: '#6B625B' }}>
+                  {mentor.location_city || mentor.location_state ? `${mentor.location_city || 'Unknown city'}${mentor.location_state ? `, ${mentor.location_state}` : ''}` : 'Location not listed'}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(mentor.mentorship_areas.length ? mentor.mentorship_areas : ['Areas not listed']).map((area) => (
+                    <span key={area} style={{ borderRadius: 999, background: softGold, padding: '6px 10px', color: '#2D2926', fontWeight: 700 }}>
+                      {area}
+                    </span>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {mentor.email ? <a href={`mailto:${mentor.email}`}>Email</a> : <span style={{ color: '#8A8178' }}>Email N/A</span>}
+                  {mentor.linkedin ? <a href={mentor.linkedin} target="_blank" rel="noreferrer">LinkedIn</a> : <span style={{ color: '#8A8178' }}>LinkedIn N/A</span>}
+                </div>
+              </article>
+            ))}
+            {!sortedRows.length && (
+              <div style={{ padding: 24, textAlign: 'center', color: '#534B45' }}>No mentors match the current filters.</div>
+            )}
+          </div>
+        ) : (
         <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 330px)', flex: 1, minHeight: 0 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1240 }}>
             <thead>
@@ -402,6 +443,7 @@ const MentorExplorer = () => {
             </tbody>
           </table>
         </div>
+        )}
       </section>
     </div>
   );

@@ -6,6 +6,7 @@ import '../styles/Home.css';
 import heroVideo from '../assets/videos/graduation.mp4';
 import { fetchHomeStats } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
+import { useViewport } from '../hooks/useViewport';
 
 import salaryImg from '../assets/images/salary.jpg';
 import userPlaceholder from '../assets/images/user-placeholder.png';
@@ -71,6 +72,7 @@ const stories = [
 const Home: React.FC = () => {
   const { authMode, beginSamlLogin, isLoggedIn, login } = useAuth();
   const navigate = useNavigate();
+  const { isMobile } = useViewport();
   const explorationBackground = '#CFB991';
   const explorationAccent = '#2D2926';
   const explorationText = '#2D2926';
@@ -210,7 +212,16 @@ const Home: React.FC = () => {
 
   return (
     <div className="page">
-      <section className="hero">
+      <section
+        className="hero"
+        style={isMobile ? {
+          minHeight: 'auto',
+          height: 'auto',
+          padding: '20px 16px 24px',
+          display: 'flex',
+          alignItems: 'stretch'
+        } : undefined}
+      >
         <video
           className="hero__video"
           autoPlay
@@ -221,17 +232,33 @@ const Home: React.FC = () => {
           <source src={heroVideo} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div className="hero__content">
-          <div className="hero__left">
-            <div className="hero__tag">
+        <div
+          className="hero__content"
+          style={isMobile ? {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            width: '100%',
+            padding: 0,
+            alignItems: 'stretch'
+          } : undefined}
+        >
+          <div className="hero__left" style={isMobile ? { width: '100%', maxWidth: 'none', minHeight: 0, paddingBottom: 0 } : undefined}>
+            <div className="hero__tag" style={isMobile ? { marginBottom: 12 } : undefined}>
               <span className="hero__tag-text" style={{ fontFamily: condensedFontFamily }}>SEE THE FUTURE</span>
             </div>
-            <h1 className="hero__title" style={{ fontFamily: condensedFontFamily }}>
+            <h1
+              className="hero__title"
+              style={{
+                fontFamily: condensedFontFamily,
+                ...(isMobile ? { fontSize: 42, lineHeight: 0.95, marginBottom: 10, maxWidth: '100%' } : {})
+              }}
+            >
               EXPLORE ALUMNI SUCCESS
-              <span className="hero__subtitle">Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
+              <span className="hero__subtitle" style={isMobile ? { fontSize: 16, lineHeight: 1.35, marginTop: 8, maxWidth: '100%' } : undefined}>Visualize Alumni Outcomes, Track Salary & Placement Trends, Support Academic & Career Planning</span>
             </h1>
-            <div className="hero__buttons">
-              <Link to="/dashboard" onClick={(event) => void handleProtectedNavigation(event, '/dashboard')} className="hero-data-button" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
+            <div className="hero__buttons" style={isMobile ? { display: 'grid', gridTemplateColumns: '1fr', gap: 8, width: '100%', marginTop: 10 } : undefined}>
+              <Link to="/dashboard" onClick={(event) => void handleProtectedNavigation(event, '/dashboard')} className="hero-data-button" style={{ textDecoration: 'none', fontFamily: condensedFontFamily, ...(isMobile ? { width: '100%', justifyContent: 'space-between', marginTop: 0 } : {}) }}>
                 EXPLORE DATA
                 <svg 
                   className="hero-data-button__arrow" 
@@ -250,7 +277,7 @@ const Home: React.FC = () => {
                   />
                 </svg>
               </Link>
-              <Link to="/alumni-directory" onClick={(event) => void handleProtectedNavigation(event, '/alumni-directory')} className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none', fontFamily: condensedFontFamily }}>
+              <Link to="/alumni-directory" onClick={(event) => void handleProtectedNavigation(event, '/alumni-directory')} className="hero-data-button hero-data-button--white" style={{ textDecoration: 'none', fontFamily: condensedFontFamily, ...(isMobile ? { width: '100%', justifyContent: 'space-between', marginTop: 0 } : {}) }}>
                 RESOURCES
                 <svg 
                   className="hero-data-button__arrow" 
@@ -271,8 +298,8 @@ const Home: React.FC = () => {
               </Link>
             </div>
           </div>
-          <div className="hero__right">
-            <div className="stats-carousel">
+          <div className="hero__right" style={isMobile ? { width: '100%', maxWidth: 'none', minHeight: 0 } : undefined}>
+            <div className="stats-carousel" style={isMobile ? { width: '100%', minHeight: 150 } : undefined}>
               <div 
                 className="stats-carousel__track"
                 style={{ 
@@ -281,8 +308,21 @@ const Home: React.FC = () => {
                 }}
               >
                 {stats.map((stat, index) => (
-                  <div key={index} className="stats-card">
-                    <h3 className="stats-card__number" style={{ fontFamily: condensedFontFamily }}>{stat.number}</h3>
+                  <div key={index} className="stats-card" style={isMobile ? { padding: 16, boxSizing: 'border-box' } : undefined}>
+                    <h3
+                      className="stats-card__number"
+                      style={{
+                        fontFamily: condensedFontFamily,
+                        ...(isMobile ? {
+                          fontSize: 52,
+                          lineHeight: 1,
+                          maxWidth: '100%',
+                          whiteSpace: 'nowrap'
+                        } : {})
+                      }}
+                    >
+                      {stat.number}
+                    </h3>
                     <p className="stats-card__label" style={{ fontFamily: bodyFontFamily }}>{stat.label}</p>
                   </div>
                 ))}
@@ -346,14 +386,14 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-      <section className="exploration" style={{ background: explorationBackground }}>
-        <div className="exploration__content">
-          <div className="exploration__twocol">
-            <div className="exploration__list" style={{ borderRight: `2px solid ${explorationAccent}` }}>
+      <section className="exploration" style={{ background: explorationBackground, ...(isMobile ? { padding: '32px 16px' } : {}) }}>
+        <div className="exploration__content" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+          <div className="exploration__twocol" style={isMobile ? { display: 'flex', flexDirection: 'column', gap: 20 } : undefined}>
+            <div className="exploration__list" style={{ borderRight: isMobile ? 'none' : `2px solid ${explorationAccent}`, ...(isMobile ? { width: '100%', display: 'flex', flexDirection: 'column', overflow: 'visible', gap: 8, paddingBottom: 4, alignItems: 'flex-start' } : {}) }}>
               <div
                 className="exploration__triangle-separator"
                 aria-hidden="true"
-                style={{ top: `${activeExplorationIndex * 78 + 80}px` }}
+                style={{ top: `${activeExplorationIndex * 78 + 80}px`, display: isMobile ? 'none' : undefined }}
               >
                 <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <polygon
@@ -371,34 +411,46 @@ const Home: React.FC = () => {
                   />
                 </svg>
               </div>
-              <div className="hero__tag exploration__tag" style={{ background: '#2D2926' }}>
+              <div className="hero__tag exploration__tag" style={{ background: '#2D2926', ...(isMobile ? { flex: '0 0 auto', width: 'max-content', marginRight: 0, marginLeft: 8, marginBottom: 8 } : {}) }}>
                 <span className="hero__tag-text" style={{ color: '#fff', fontFamily: condensedFontFamily }}>CHOOSE EXPLORATION</span>
               </div>
-              {explorations.map((exp, idx) => (
-                <button
-                  key={exp.key}
-                  className={`exploration__list-item${activeExplorationIndex === idx ? ' active' : ''}`}
-                  onClick={() => setActiveExplorationIndex(idx)}
-                  type="button"
-                  style={{
-                    color: explorationText,
-                    textDecorationColor: '#2D2926'
-                  }}
-                >
-                  {exp.title}
-                </button>
-              ))}
+              <div style={isMobile ? { display: 'flex', flexWrap: 'wrap', gap: 8, width: '100%' } : { display: 'contents' }}>
+                {explorations.map((exp, idx) => (
+                  <button
+                    key={exp.key}
+                    className={`exploration__list-item${activeExplorationIndex === idx ? ' active' : ''}`}
+                    onClick={() => setActiveExplorationIndex(idx)}
+                    type="button"
+                    style={{
+                      color: explorationText,
+                      textDecorationColor: '#2D2926',
+                      ...(isMobile ? {
+                        flex: '0 0 auto',
+                        padding: '10px 14px',
+                        border: `1px solid ${activeExplorationIndex === idx ? '#2D2926' : 'rgba(45,41,38,0.22)'}`,
+                        borderRadius: 2,
+                        background: activeExplorationIndex === idx ? '#2D2926' : 'rgba(255,255,255,0.35)',
+                        color: activeExplorationIndex === idx ? '#fff' : explorationText,
+                        textDecoration: 'none'
+                      } : {})
+                    }}
+                  >
+                    {exp.title}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="exploration__details">
+            <div className="exploration__details" style={isMobile ? { display: 'flex', flexDirection: 'column', width: '100%' } : undefined}>
               <img
                 src={active.image}
                 alt={active.title}
                 className="exploration__details-image"
+                style={isMobile ? { width: '100%', height: 220, objectFit: 'cover' } : undefined}
               />
-              <div className="exploration__details-info">
+              <div className="exploration__details-info" style={isMobile ? { width: '100%', padding: '18px 0 0' } : undefined}>
                 <h3 style={{ color: explorationText }}>{active.title}</h3>
                 <p style={{ color: explorationText }}>{active.description}</p>
-                <Link to={active.link} onClick={(event) => void handleProtectedNavigation(event, active.link)} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none', fontFamily: condensedFontFamily }}>
+                <Link to={active.link} onClick={(event) => void handleProtectedNavigation(event, active.link)} className="hero-data-button" style={{ background: '#2D2926', color: '#fff', textDecoration: 'none', fontFamily: condensedFontFamily, ...(isMobile ? { width: '100%', justifyContent: 'space-between' } : {}) }}>
                   EXPLORE
                   <svg
                     className="hero-data-button__arrow"
@@ -422,13 +474,13 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-      <section className="alumni-stories">
-        <div className="alumni-stories__content">
-          <div className="hero__tag alumni-stories__tag" style={{ background: '#2D2926' }}>
+      <section className="alumni-stories" style={isMobile ? { padding: '32px 16px' } : undefined}>
+        <div className="alumni-stories__content" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+          <div className="hero__tag alumni-stories__tag" style={{ background: '#2D2926', ...(isMobile ? { marginLeft: 0 } : {}) }}>
             <span className="hero__tag-text" style={{ color: '#fff', fontFamily: condensedFontFamily }}>SEE ALUMNI STORIES</span>
           </div>
           <div style={{ position: 'relative' }}>
-            <div ref={alumniGridRef} className="alumni-stories__grid">
+            <div ref={alumniGridRef} className="alumni-stories__grid" style={isMobile ? { display: 'grid', gridAutoFlow: 'column', gridAutoColumns: '72%', overflowX: 'auto', gap: 14, paddingBottom: 8 } : undefined}>
               {stories.map((story) => (
                 <a
                   key={`${story.company}-${story.name}`}
@@ -436,9 +488,16 @@ const Home: React.FC = () => {
                   href={story.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
+                  style={{
+                    textDecoration: 'none',
+                    ...(isMobile ? {
+                      minWidth: 0,
+                      maxWidth: 'none',
+                      width: '100%'
+                    } : {})
+                  }}
                 >
-                  <img src={story.img} alt={story.name} style={{ objectPosition: story.objectPosition }} />
+                  <img src={story.img} alt={story.name} style={{ objectPosition: story.objectPosition, ...(isMobile ? { height: 260 } : {}) }} />
                   <div className="story-card__content">
                     <h3>{story.name}</h3>
                     <p>{story.company}</p>

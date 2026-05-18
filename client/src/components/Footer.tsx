@@ -1,11 +1,47 @@
-const Footer = () => (
+import { useState } from 'react';
+import { useViewport } from '../hooks/useViewport';
+
+const Footer = () => {
+  const { isMobile } = useViewport();
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    communication: true,
+    campus: false,
+    information: false,
+    people: false
+  });
+
+  const toggleSection = (key: string) => {
+    if (!isMobile) return;
+    setOpenSections((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const sectionButtonStyle = isMobile ? {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: '#fff',
+    background: 'transparent',
+    border: 'none',
+    padding: '1rem',
+    textAlign: 'left' as const
+  } : undefined;
+
+  const listStyle = (key: string) => isMobile ? {
+    display: openSections[key] ? 'flex' : 'none',
+    flexDirection: 'column' as const,
+    padding: '0 1rem 1rem',
+    margin: 0
+  } : undefined;
+
+  return (
   <footer className="footer">
       <section className="footer__resources">
         <h2 className="sr-only">Resources</h2>
-        <article className="footer__resources__columns">
-          <div className="footer__resources__column">
-            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded="true" aria-disabled="true" id="accordion1id" aria-controls="sect1">Communication</button></h3>
-            <ul role="list" className="accordion__content--footer" id="sect1" aria-labelledby="accordion1id">
+        <article className="footer__resources__columns" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+          <div className="footer__resources__column" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded={openSections.communication} aria-disabled={!isMobile} id="accordion1id" aria-controls="sect1" onClick={() => toggleSection('communication')} style={sectionButtonStyle}>Communication{isMobile && <span>{openSections.communication ? '−' : '+'}</span>}</button></h3>
+            <ul role="list" className="accordion__content--footer" id="sect1" aria-labelledby="accordion1id" style={listStyle('communication')}>
               <li role="listitem"><a href="https://one.purdue.edu">OneCampus Portal</a></li>
               <li role="listitem"><a href="https://mycourses.purdue.edu">Blackboard</a></li>
               <li role="listitem"><a href="https://www.purdue.edu/boilerconnect/">BoilerConnect</a></li>
@@ -14,9 +50,9 @@ const Footer = () => (
               <li role="listitem"><a href="https://mypurdue.purdue.edu">myPurdue</a></li>
             </ul>
           </div>
-          <div className="footer__resources__column">
-            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded="true" aria-disabled="true" id="accordion2id" aria-controls="sect2">Campus</button></h3>
-            <ul role="list" className="accordion__content--footer" id="sect2" aria-labelledby="accordion2id">
+          <div className="footer__resources__column" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded={openSections.campus} aria-disabled={!isMobile} id="accordion2id" aria-controls="sect2" onClick={() => toggleSection('campus')} style={sectionButtonStyle}>Campus{isMobile && <span>{openSections.campus ? '−' : '+'}</span>}</button></h3>
+            <ul role="list" className="accordion__content--footer" id="sect2" aria-labelledby="accordion2id" style={listStyle('campus')}>
               <li role="listitem"><a href="http://www.purdue.edu/purdue/faculty_staff/index.php">Faculty and Staff</a></li>
               <li role="listitem"><a href="https://www.purdue.edu/hr">Human Resources</a></li>
               <li role="listitem"><a href="http://www.purdue.edu/purdue/careers/index.php">Careers</a></li>
@@ -25,9 +61,9 @@ const Footer = () => (
               <li role="listitem"><a href="https://www.purdue.edu/campus_map/index.html">Campus Map</a></li>
             </ul>
           </div>
-          <div className="footer__resources__column">
-            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded="true" aria-disabled="true" id="accordion3id" aria-controls="sect3">Information </button></h3>
-            <ul role="list" className="accordion__content--footer" id="sect3" aria-labelledby="accordion3id">
+          <div className="footer__resources__column" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded={openSections.information} aria-disabled={!isMobile} id="accordion3id" aria-controls="sect3" onClick={() => toggleSection('information')} style={sectionButtonStyle}>Information{isMobile && <span>{openSections.information ? '−' : '+'}</span>}</button></h3>
+            <ul role="list" className="accordion__content--footer" id="sect3" aria-labelledby="accordion3id" style={listStyle('information')}>
               <li role="listitem"><a href="http://www.purdue.edu/newsroom/purduetoday/">Purdue Today</a></li>
               <li role="listitem"><a href="https://events.purdue.edu/">Events</a></li>
               <li role="listitem"><a href="https://www.lib.purdue.edu/">Libraries</a></li>
@@ -36,9 +72,9 @@ const Footer = () => (
               <li role="listitem"><a href="http://www.purdue.edu/hr/CHL/">Center for Healthy Living</a></li>
             </ul>
           </div>
-          <div className="footer__resources__column">
-            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded="true" aria-disabled="true" id="accordion4id" aria-controls="sect4">People </button></h3>
-            <ul role="list" className="accordion__content--footer" id="sect4" aria-labelledby="accordion4id">
+          <div className="footer__resources__column" style={isMobile ? { width: '100%', padding: 0 } : undefined}>
+            <h3><button className="accordion__heading accordion__heading--footer" aria-expanded={openSections.people} aria-disabled={!isMobile} id="accordion4id" aria-controls="sect4" onClick={() => toggleSection('people')} style={sectionButtonStyle}>People{isMobile && <span>{openSections.people ? '−' : '+'}</span>}</button></h3>
+            <ul role="list" className="accordion__content--footer" id="sect4" aria-labelledby="accordion4id" style={listStyle('people')}>
               <li role="listitem"><a href="https://www.purdue.edu/hotline/">Purdue Hotline</a></li>
               <li role="listitem"><a href="https://www.purdue.edu/diversity-inclusion/">Diversity and Inclusion</a></li>
               <li role="listitem"><a href="https://www.purdue.edu/ethics/">Ethics and Compliance</a></li>
@@ -47,7 +83,7 @@ const Footer = () => (
               <li role="listitem"><a href="https://www.purdue.edu/ehps/police/timely-warnings/">Timely Warnings</a></li>
             </ul>
           </div>
-          <div className="footer__resources__column">
+          <div className="footer__resources__column" style={isMobile ? { width: '100%', padding: '2rem 1rem' } : undefined}>
             <div className="footer__resources__column__motto">
               <svg className="horizontal" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 249.7 45.3">
                 <title>PU-H-Full-Rev-RGB</title>
@@ -170,6 +206,7 @@ const Footer = () => (
         </article>
       </section>
     </footer>
-);
+  );
+};
 
 export default Footer;

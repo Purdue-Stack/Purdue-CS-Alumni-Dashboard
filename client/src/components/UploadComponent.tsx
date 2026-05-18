@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useViewport } from '../hooks/useViewport';
 
 interface UploadProps {
   onFileUpload: (file: File) => void;
@@ -9,6 +10,7 @@ const warmBorder = '#D9CFC0';
 const softGold = 'rgba(207, 185, 145, 0.18)';
 
 const UploadComponent: React.FC<UploadProps> = ({ onFileUpload, setFile }) => {
+  const { isMobile } = useViewport();
   const [file, setLocalFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,8 +61,8 @@ const UploadComponent: React.FC<UploadProps> = ({ onFileUpload, setFile }) => {
           alignItems: 'center',
           justifyContent: 'center',
           textAlign: 'center',
-          minHeight: 280,
-          padding: 32,
+          minHeight: isMobile ? 220 : 280,
+          padding: isMobile ? 20 : 32,
           borderRadius: 22,
           border: `2px dashed ${warmBorder}`,
           background: '#FFFDFC',
@@ -68,8 +70,8 @@ const UploadComponent: React.FC<UploadProps> = ({ onFileUpload, setFile }) => {
           gap: 10
         }}
       >
-        <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: '#2D2926' }}>
-          Drag and drop your file here
+        <p style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, color: '#2D2926' }}>
+          {isMobile ? 'Choose your upload file' : 'Drag and drop your file here'}
         </p>
         <p style={{ margin: 0, color: '#6B625B', fontSize: 16 }}>
           or click to browse from your device
@@ -111,7 +113,8 @@ const UploadComponent: React.FC<UploadProps> = ({ onFileUpload, setFile }) => {
             background: '#fff',
             color: '#2D2926',
             fontWeight: 700,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            flex: isMobile ? '1 1 0' : undefined
           }}
         >
           CANCEL
@@ -127,7 +130,8 @@ const UploadComponent: React.FC<UploadProps> = ({ onFileUpload, setFile }) => {
             background: file ? '#9D7A28' : '#D9D2C4',
             color: '#fff',
             fontWeight: 700,
-            cursor: file ? 'pointer' : 'not-allowed'
+            cursor: file ? 'pointer' : 'not-allowed',
+            flex: isMobile ? '1 1 0' : undefined
           }}
         >
           UPLOAD DATA →

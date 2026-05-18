@@ -6,6 +6,7 @@ import {
   type AlumniDirectoryFilterOptionsResponse,
   type AlumniDirectoryRow
 } from '../api/api';
+import { useViewport } from '../hooks/useViewport';
 
 type AlumniTab = 'Job' | 'Graduate School' | 'Internship';
 type AlumniSortKey =
@@ -87,7 +88,7 @@ function SearchableCheckboxDropdown({ label, options, selected, onToggle, onClea
   const summary = selected.length ? `${selected.length} selected` : 'All';
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', minWidth: 220 }}>
+    <div ref={containerRef} style={{ position: 'relative', minWidth: 0, width: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <span style={{ fontWeight: 700, color: '#2D2926' }}>{label}</span>
@@ -188,6 +189,7 @@ function toggleValue(values: string[], value: string) {
 }
 
 const AlumniDirectory = () => {
+  const { isMobile } = useViewport();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<AlumniTab>(() => parseTab(searchParams.get('tab')));
   const [rows, setRows] = useState<AlumniDirectoryRow[]>([]);
@@ -311,23 +313,25 @@ const AlumniDirectory = () => {
       ];
 
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24, background: offWhite }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '24px 32px', display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24, background: offWhite }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: 'fit-content' }}>
+        <div style={{ display: 'inline-flex', borderRadius: 16, padding: 6, background: softGold, width: isMobile ? '100%' : 'fit-content', overflowX: isMobile ? 'auto' : 'visible' }}>
           {(['Job', 'Graduate School', 'Internship'] as AlumniTab[]).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setTab(option)}
               style={{
-                padding: '12px 24px',
+                padding: isMobile ? '10px 14px' : '12px 24px',
                 border: 'none',
                 borderRadius: 12,
                 background: tab === option ? deepGold : 'transparent',
                 color: tab === option ? '#fff' : '#2D2926',
                 cursor: 'pointer',
                 fontWeight: 800,
-                letterSpacing: 0.2
+                letterSpacing: 0.2,
+                whiteSpace: 'nowrap',
+                flex: isMobile ? '0 0 auto' : undefined
               }}
             >
               {option}
@@ -336,9 +340,6 @@ const AlumniDirectory = () => {
         </div>
         <div>
           <h1 style={{ marginBottom: 8 }}>Alumni Directory</h1>
-          <p style={{ margin: 0, color: '#534B45' }}>
-            Browse {tab === 'Graduate School' ? 'graduate-school' : tab === 'Internship' ? 'internship' : 'job-placement'} outcomes. Mentorship, salary, LinkedIn, and email are excluded from this directory.
-          </p>
         </div>
       </section>
 
@@ -346,7 +347,7 @@ const AlumniDirectory = () => {
         style={{
           border: `1px solid ${warmBorder}`,
           borderRadius: 20,
-          padding: 24,
+          padding: isMobile ? 14 : 24,
           background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,249,238,1) 100%)',
           boxShadow: '0 20px 40px rgba(45, 41, 38, 0.08)',
           display: 'flex',
@@ -354,8 +355,8 @@ const AlumniDirectory = () => {
           gap: 20
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'end' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 320, flex: '1 1 320px' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: isMobile ? 10 : 16, alignItems: isMobile ? 'stretch' : 'end' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, flex: isMobile ? '0 0 auto' : '1 1 320px' }}>
             <span style={{ fontWeight: 800, color: '#2D2926' }}>Search Directory</span>
             <input
               value={search}
@@ -370,14 +371,14 @@ const AlumniDirectory = () => {
             />
           </label>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr' : undefined, gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', width: isMobile ? '100%' : undefined }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? '100%' : undefined }}>
               <span style={{ fontWeight: 800, color: '#2D2926' }}>Sort</span>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? 'minmax(0, 1fr) auto' : undefined, gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <select
                   value={sortKey}
                   onChange={(event) => setSortKey(event.target.value as AlumniSortKey)}
-                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff' }}
+                  style={{ padding: '12px 14px', border: `1px solid ${warmBorder}`, borderRadius: 12, background: '#fff', maxWidth: '100%', minWidth: 0 }}
                 >
                   {visibleSortOptions.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
@@ -408,8 +409,10 @@ const AlumniDirectory = () => {
                 background: softGold,
                 color: '#2D2926',
                 fontWeight: 800,
-                minWidth: 120,
-                textAlign: 'center'
+                minWidth: isMobile ? 0 : 120,
+                textAlign: 'center',
+                width: isMobile ? '100%' : undefined,
+                boxSizing: 'border-box'
               }}
             >
               {activeCount} results
@@ -417,7 +420,7 @@ const AlumniDirectory = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <SearchableCheckboxDropdown
             label="Graduation Year"
             options={filterOptions.graduationYears}
@@ -492,12 +495,56 @@ const AlumniDirectory = () => {
           background: '#fff',
           overflow: 'hidden',
           boxShadow: '0 16px 34px rgba(45, 41, 38, 0.08)',
-          maxHeight: 'calc(100vh - 330px)',
+          maxHeight: isMobile ? 'none' : 'calc(100vh - 330px)',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0
         }}
       >
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+            {rows.map((row) => (
+              <article
+                key={row.alumni_id}
+                style={{
+                  border: '1px solid #EEE5D8',
+                  borderRadius: 14,
+                  padding: 14,
+                  background: '#FFFCF7',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                  <div>
+                    <strong style={{ display: 'block', fontSize: 18, color: '#2D2926' }}>{row.first_name} {row.last_name}</strong>
+                    <span style={{ color: '#534B45', fontWeight: 700 }}>Class of {row.graduation_year}</span>
+                  </div>
+                  <span style={{ borderRadius: 999, background: softGold, padding: '6px 10px', color: '#2D2926', fontWeight: 800 }}>
+                    {row.degree_level || 'N/A'}
+                  </span>
+                </div>
+                <div style={{ color: '#2D2926', fontWeight: 800 }}>
+                  {tab === 'Graduate School'
+                    ? row.university || 'University not listed'
+                    : row.employer || 'Employer not listed'}
+                </div>
+                <div style={{ color: '#534B45' }}>
+                  {tab === 'Graduate School'
+                    ? [row.degree_seeking, row.expected_field_of_study].filter(Boolean).join(' · ') || 'Program not listed'
+                    : row.job_title || 'Title not listed'}
+                </div>
+                <div style={{ color: '#6B625B' }}>
+                  {[row.city, row.state].filter(Boolean).join(', ') || 'Location not listed'} · {row.graduation_term || 'Term N/A'}
+                </div>
+              </article>
+            ))}
+            {!rows.length && (
+              <div style={{ padding: 24, textAlign: 'center', color: '#534B45' }}>No alumni match the current {tab.toLowerCase()} filters.</div>
+            )}
+          </div>
+        ) : (
         <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 330px)', flex: 1, minHeight: 0 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1680 }}>
             <thead>
@@ -541,6 +588,7 @@ const AlumniDirectory = () => {
             </tbody>
           </table>
         </div>
+        )}
         <div
           style={{
             display: 'flex',
